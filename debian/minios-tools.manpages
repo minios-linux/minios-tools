@@ -1,0 +1,13 @@
+man/apt2sb.1
+man/dir2sb.1
+man/minios-bundle.1
+man/minios-geniso.1
+man/minios-update-cache.1
+man/minios-update-dpkg.1
+man/minios-update-users.1
+man/rmsbdir.1
+man/savechanges.1
+man/sb.1
+man/sb2dir.1
+man/scr2sb.1
+man/upg2sb.1

@@ -1,0 +1,108 @@
+#!/bin/bash
+# Author: crims0n <https://minios.dev>
+
+read_config() {
+    # Enable extended globbing. This is required for the pattern matching of variable names.
+    shopt -s extglob
+
+    # The first argument is the configuration file.
+    local CONFIG_FILE="${1?No configuration file given}"
+
+    # All other arguments are the variable names to look for.
+    local KEYLIST="${@:2}"
+
+    # Check if the configuration file exists and is readable.
+    if [[ ! -f "${CONFIG_FILE}" ]]; then
+        echo >&2 "\"${CONFIG_FILE}\" is not a file!"
+        exit 1
+    fi
+    if [[ ! -r "${CONFIG_FILE}" ]]; then
+        echo >&2 "\"${CONFIG_FILE}\" is not readable!"
+        exit 1
+    fi
+
+    # Convert the list of variable names to a regex pattern.
+    KEYLIST="${KEYLIST// /|}"
+
+    # Read each line of the file.
+    while IFS='= ' read -r LHS RHS; do
+        # If the variable name is in our list and the value is not empty...
+        if [[ "${LHS}" =~ ^(${KEYLIST})$ ]] && [[ -n ${RHS} ]]; then
+            # Remove any quotes around the value.
+            RHS="${RHS%\"*}"
+            RHS="${RHS#\"*}"
+            RHS="${RHS%\'*}"
+            RHS="${RHS#\'*}"
+
+            # If the value is an array (surrounded by parentheses)...
+            if [[ "${RHS}" =~ ^\((.*)\)$ ]]; then
+                # Assign the array to the variable.
+                eval ${LHS}=\("${BASH_REMATCH[1]}"\)
+            else
+                # Otherwise, assign the value to the variable.
+                eval ${LHS}=\"${RHS}\"
+            fi
+        fi
+    done <<<"$(tr -d '\r' <${CONFIG_FILE})"
+
+    # Disable extended globbing after we're done using it.
+    shopt -u extglob
+}
+
+[ ! "$1" ] && echo "Builds a common users files (passwd, shadow, group, gshadow) from all bundles
+    Usage:   $0 [bundles mount points location] [optional: changes location]
+    Example: $0 /run/initramfs/memory/bundles /run/initramfs/memory/changes" && exit 1
+
+if [ ! -d /var/log/minios ]; then
+    mkdir -p /var/log/minios
+fi
+
+exec 19>/var/log/minios/minios-update-users.trace
+BASH_XTRACEFD=19
+PS4='${LINENO}: '
+set -x
+if [ ! -d /var/log/minios/users ]; then
+    mkdir -p /var/log/minios/users
+fi
+
+BUNDLES="$1"
+CHANGES="$2"
+read_config /etc/minios/minios.conf CORE_BUNDLE_PREFIX
+CORE_BUNDLE_PREFIX=${CORE_BUNDLE_PREFIX:-"00-core"}
+read_config /etc/minios/config BEXT
+BEXT=${BEXT:-"sb"}
+CORE_BUNDLE_PATH="$(ls -1d $BUNDLES/$CORE_BUNDLE_PREFIX*.$BEXT)"
+
+if [ $(id -u) -ne 0 ]; then
+    echo -e "${BOLD}${RED}This script should be run as 'root'!${ENDCOLOR}"
+    exit 1
+fi
+
+export HOME=/root
+export LC_ALL=C
+
+TMP=$(mktemp -d)
+trap 'rm -rf $TMP' EXIT
+
+for FILE in {passwd,shadow,group,gshadow}; do
+    if [ -f "$CORE_BUNDLE_PATH/etc/$FILE" ]; then
+        cp "$CORE_BUNDLE_PATH/etc/$FILE" "$TMP/$FILE.tmp" || exit
+        cp "$TMP/$FILE.tmp" "/var/log/minios/users/$FILE.core"
+    fi
+done
+
+for DIR in $(ls -1d $BUNDLES/*.$BEXT $CHANGES | egrep -v "^$CORE_BUNDLE_PATH"); do
+    for FILE in {passwd,shadow,group,gshadow}; do
+        if [ -f "$DIR/etc/$FILE" ]; then
+            grep -Fvf "$TMP/$FILE.tmp" "$DIR/etc/$FILE" >>"$TMP/$FILE.tmp"
+            cp "$DIR/etc/$FILE" "/var/log/minios/users/$FILE.$(basename $DIR)"
+            cp "$TMP/$FILE.tmp" "/var/log/minios/users/$FILE.tmp"
+        fi
+    done
+done
+
+for FILE in {passwd,shadow,group,gshadow}; do
+    if [ -f "$TMP/$FILE.tmp" ]; then
+        awk '!x[$0]++' "$TMP/$FILE.tmp" >"/etc/$FILE"
+    fi
+done

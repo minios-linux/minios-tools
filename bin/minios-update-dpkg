@@ -1,0 +1,91 @@
+#!/bin/bash
+# Author: sfs <https://puppyrus.org>
+# Author: crims0n <https://minios.dev>
+
+read_config() {
+    # Enable extended globbing. This is required for the pattern matching of variable names.
+    shopt -s extglob
+
+    # The first argument is the configuration file.
+    local CONFIG_FILE="${1?No configuration file given}"
+
+    # All other arguments are the variable names to look for.
+    local KEYLIST="${@:2}"
+
+    # Check if the configuration file exists and is readable.
+    if [[ ! -f "${CONFIG_FILE}" ]]; then
+        echo >&2 "\"${CONFIG_FILE}\" is not a file!"
+        exit 1
+    fi
+    if [[ ! -r "${CONFIG_FILE}" ]]; then
+        echo >&2 "\"${CONFIG_FILE}\" is not readable!"
+        exit 1
+    fi
+
+    # Convert the list of variable names to a regex pattern.
+    KEYLIST="${KEYLIST// /|}"
+
+    # Read each line of the file.
+    while IFS='= ' read -r LHS RHS; do
+        # If the variable name is in our list and the value is not empty...
+        if [[ "${LHS}" =~ ^(${KEYLIST})$ ]] && [[ -n ${RHS} ]]; then
+            # Remove any quotes around the value.
+            RHS="${RHS%\"*}"
+            RHS="${RHS#\"*}"
+            RHS="${RHS%\'*}"
+            RHS="${RHS#\'*}"
+
+            # If the value is an array (surrounded by parentheses)...
+            if [[ "${RHS}" =~ ^\((.*)\)$ ]]; then
+                # Assign the array to the variable.
+                eval ${LHS}=\("${BASH_REMATCH[1]}"\)
+            else
+                # Otherwise, assign the value to the variable.
+                eval ${LHS}=\"${RHS}\"
+            fi
+        fi
+    done <<<"$(tr -d '\r' <${CONFIG_FILE})"
+
+    # Disable extended globbing after we're done using it.
+    shopt -u extglob
+}
+
+[ ! "$1" ] && echo "Builds a common dpkg database from all bundles
+    Usage:   $0 [bundles mount points location] [optional: changes location]
+    Example: $0 /run/initramfs/memory/bundles /run/initramfs/memory/changes" && exit 1
+
+# Logs
+if [ ! -d /var/log/minios ]; then
+    mkdir -p /var/log/minios
+fi
+exec 19>/var/log/minios/minios-update-dpkg.trace
+BASH_XTRACEFD=19
+PS4='${LINENO}: '
+set -x
+
+# Variables
+BUNDLES="$1"
+CHANGES="$2"
+read_config /etc/minios/config BEXT
+BEXT=${BEXT:-"sb"}
+DPKG_STATUS_FILE=/var/lib/dpkg/status
+
+[ -d $(dirname $DPKG_STATUS_FILE) ] || exit
+
+if [ $(id -u) -ne 0 ]; then
+    echo -e "${BOLD}${RED}This script should be run as 'root'!${ENDCOLOR}"
+    exit 1
+fi
+
+export HOME=/root
+export LC_ALL=C
+
+TEMP_STATOVERRIDE=$(mktemp /run/statoverride.XXXXXX)
+TEMP_STATUS=$(mktemp /run/dpkg_status.XXXXXX)
+trap 'rm -f "$TEMP_STATOVERRIDE"; rm -f "$TEMP_STATUS"' EXIT
+
+cat $(ls "$BUNDLES"/*/var/lib/dpkg/statoverride "$CHANGES/var/lib/dpkg/statoverride" 2>/dev/null) >"$TEMP_STATOVERRIDE"
+cat "$TEMP_STATOVERRIDE" | sort -u >/var/lib/dpkg/statoverride
+
+cat $(ls "$BUNDLES"/*/var/lib/dpkg/status "$CHANGES/var/lib/dpkg/status" 2>/dev/null) >"$TEMP_STATUS"
+perl -00 -ne '$H{$_}++ or print' "$TEMP_STATUS" >$DPKG_STATUS_FILE
