@@ -12,7 +12,7 @@ help() {
     echo "$(gettext "Installs packages from repositories and packages them into a module.")"
     echo ""
     echo "$(gettext "Options"):"
-    echo "  -f, --file=FILE       $(gettext "use FILE as the filename for the module instead of PACKAGE1")".$BEXT"
+    echo "  -f, --file=FILE       $(gettext "use FILE as the filename for the module instead of PACKAGE1").$BEXT"
     echo "  -l, --level=LEVEL     $(gettext "use LEVEL as the filter level")"
     echo "      --help            $(gettext "display this help and exit")"
     echo "      --version         $(gettext "display version information and exit")"
