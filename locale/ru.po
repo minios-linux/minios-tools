@@ -22,6 +22,18 @@ msgid "Usage"
 msgstr "Использование"
 
 # apt2sb
+msgid "Commands"
+msgstr "Команды"
+
+# apt2sb
+msgid "Install package(s)"
+msgstr "Установить пакет(ы)"
+
+# apt2sb
+msgid "Upgrade installed packages"
+msgstr "Обновить установленные пакеты"
+
+# apt2sb
 msgid "Installs packages from repositories and packages them into a module."
 msgstr "Устанавливает пакеты из репозиториев и упаковывает их в модуль."
 
@@ -44,6 +56,10 @@ msgstr "вывести эту справку и выйти"
 # apt2sb
 msgid "display version information and exit"
 msgstr "вывести информацию о версии и выйти"
+
+# apt2sb
+msgid "Apt Options (for install/upgrade command)"
+msgstr "Опции apt (для команд install/upgrade)"
 
 # apt2sb
 msgid "Examples"

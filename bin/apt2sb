@@ -1,31 +1,44 @@
 #!/bin/bash
 
 # Author: crims0n. <http://minios.dev>
-# Author of original idea: parrothead. <https://groups.google.com/g/slax-users/c/3nsx5a8bu8s>
 
-VERSION="1.1"
+VERSION="1.2"
 BEXT="sb"
 export TEXTDOMAIN="minios-tools"
 
 help() {
-    echo "$(gettext "Usage"): $(basename $0) [OPTIONS] PACKAGE1 [PACKAGE2] [...]"
+    echo "$(gettext "Usage"): $(basename $0) COMMAND [OPTIONS] PACKAGE1 [PACKAGE2] [...]"
     echo "$(gettext "Installs packages from repositories and packages them into a module.")"
     echo ""
+    echo "$(gettext "Commands:")"
+    echo "   install                 -- $(gettext "Install package(s)")"
+    echo "   upgrade                 -- $(gettext "Upgrade installed packages")"
+    echo ""
     echo "$(gettext "Options"):"
-    echo "  -f, --file=FILE       $(gettext "use FILE as the filename for the module instead of PACKAGE1").$BEXT"
-    echo "  -l, --level=LEVEL     $(gettext "use LEVEL as the filter level")"
-    echo "      --help            $(gettext "display this help and exit")"
-    echo "      --version         $(gettext "display version information and exit")"
+    echo "   -f, --file  FILE        -- $(gettext "Use FILE as the filename for the module instead of PACKAGE1.$BEXT")"
+    echo "   -l, --level LEVEL       -- $(gettext "Use LEVEL as the filter level")"
+    echo "   --help                  -- $(gettext "Display this help and exit")"
+    echo "   --version               -- $(gettext "Display version information and exit")"
+    echo ""
+    echo "$(gettext "Apt Options (for install/upgrade command)"):"
+    echo "   -y, --yes               -- $(gettext "Automatic yes to prompts")"
+    echo "   --allow-downgrades      -- $(gettext "Allow downgrades of packages")"
+    echo "   --install-recommends    -- $(gettext "Consider recommended packages as a dependency for installing")"
+    echo "   --install-suggests      -- $(gettext "Consider suggested packages as a dependency for installing")"
+    echo "   --no-install-recommends -- $(gettext "Do not consider recommended packages as a dependency for installing")"
+    echo "   --no-install-suggests   -- $(gettext "Do not consider suggested packages as a dependency for installing")"
+    echo "   -t, --target-release    -- $(gettext "Default release to install packages from")"
     echo ""
     echo "$(gettext "Examples"):"
-    echo "  $(basename $0) chromium chromium-sandbox"
-    echo "  $(basename $0) --level=03 chromium chromium-sandbox"
-    echo "  $(basename $0) chromium chromium-sandbox -f 06-chromium.$BEXT -l 3"
+    echo "   $(basename $0) install chromium chromium-sandbox"
+    echo "   $(basename $0) install -y --level=03 chromium chromium-sandbox"
+    echo "   $(basename $0) install -y --no-install-recommends ./google-chrome-stable_current_amd64.deb -f 06-google-chrome.$BEXT -l 3"
+    echo "   $(basename $0) upgrade"
     exit 0
 }
 
 brief_help() {
-    echo "$(gettext "Usage"): $(basename $0) [OPTIONS] PACKAGE1 [PACKAGE2] [...]"
+    echo "$(gettext "Usage"): $(basename $0) COMMAND [OPTIONS] PACKAGE1 [PACKAGE2] [...]"
     echo "$(gettext "Try") '$(basename $0) --help' $(gettext "for more information.")"
     exit 1
 }
@@ -43,25 +56,44 @@ if [ $# -eq 0 ]; then
     brief_help
 fi
 
+APT_COMMAND=$1
+shift
+
+# Adding the variable APT_COMMANDS to store the valid commands.
+APT_COMMANDS="install upgrade"
+
+if [ "$APT_COMMAND" == "--help" -o "$APT_COMMAND" == "--version" ]; then
+    case "$APT_COMMAND" in
+    --help)
+        help
+        ;;
+    --version)
+        version
+        ;;
+    esac
+else
+    # Check if the input APT_COMMAND exists in the APT_COMMANDS string.
+    if [[ ! $APT_COMMANDS =~ (^|[[:space:]])$APT_COMMAND($|[[:space:]]) ]]; then
+        echo "Invalid command entered. Please enter a valid command."
+        echo "Valid commands are: $APT_COMMANDS"
+        echo ""
+        brief_help
+    fi
+fi
+
+# Short and long options for APT applicable for install/upgrade.
+VALID_APT_OPTIONS=(-y --yes --allow-downgrades --install-recommends --install-suggests --no-install-recommends --no-install-suggests --target-release)
+
+
 while [ $# -gt 0 ]; do
     case "$1" in
-    -f | --file=*)
-        if [ "$1" == --* ]; then
-            FILENAME="${1#*=}"
-        else
-            FILENAME="$2"
-            shift
-        fi
-        shift
+    -f | --file)
+        FILENAME="$2"
+        shift 2
         ;;
-    -l | --level=*)
-        if [ "$1" == --* ]; then
-            FILTER_LEVEL=$(printf "%02d" "${1#*=}")
-        else
-            FILTER_LEVEL=$(printf "%02d" "$2")
-            shift
-        fi
-        shift
+    -l | --level)
+        FILTER_LEVEL=$(printf "%02d" "$2")
+        shift 2
         ;;
     --help)
         help
@@ -69,14 +101,19 @@ while [ $# -gt 0 ]; do
     --version)
         version
         ;;
-    *) # unknown option
-        if [ "$1" == -* ]; then
-            brief_help
-            shift
+    *)
+        if [[ "$1" == -* ]]; then
+            # Check if the entered option is in the arrays
+            if [[ ! " ${VALID_APT_OPTIONS[@]} " =~ " $1 " ]]; then
+                echo "'$1' is not a valid apt option."
+                brief_help
+            fi
+
+            APT_OPTIONS+=" $1"
         else
-            INSTALL_ALL="$INSTALL_ALL $1"
-            shift
+            PACKAGES+=" $1"
         fi
+        shift
         ;;
     esac
 done
@@ -86,7 +123,7 @@ if [ "$(id -u)" != "0" ]; then
     brief_help
 fi
 
-if [ ! "$INSTALL_ALL" ]; then
+if [ ! "$PACKAGES" ]; then
     brief_help
 fi
 
@@ -107,9 +144,6 @@ CHANGES="$TMP/changes"
 UNION="$TMP/union"
 
 trap 'if [ "$RESOLVCONFLNK" = "true" ]; then rm -f "$CHANGES/etc/resolv.conf" 2>/dev/null; else umount "$UNION/etc/resolv.conf" 2>/dev/null; fi; umount "$UNION/sys" 2>/dev/null; umount "$UNION/proc" 2>/dev/null; umount "$UNION/dev/pts" 2>/dev/null; umount "$UNION/dev" 2>/dev/null; rm "$CHANGES/install" 2>/dev/null; rmdir "$CHANGES/*" 2>/dev/null; umount "$UNION"; umount "$TMP" 2>/dev/null; rm -rf "$TMP"' EXIT
-
-INSTALL=$(echo "$INSTALL_ALL" | awk '{print $1}')
-[ -n "$INSTALL" ] || exit
 
 #mount -t tmpfs tmpfs "$TMP"
 mkdir -p "$CHANGES"
@@ -154,7 +188,23 @@ for DIR in dev dev/pts proc sys; do
     mount --bind "/$DIR" "$UNION/$DIR"
 done
 
-echo "apt-get update; apt-get install --yes $INSTALL_ALL" >"$UNION/install"
+for PACKAGE in $PACKAGES; do
+    if [[ $PACKAGE =~ \/ ]]; then
+        PACKAGE_PATH=$(realpath $PACKAGE)
+        if [ -f $PACKAGE_PATH ]; then
+            cp $PACKAGE_PATH "$UNION/"
+            PACKAGE_NAME="/"$(basename $PACKAGE_PATH)
+
+            PACKAGES=${PACKAGES//$PACKAGE/$PACKAGE_NAME}
+        else
+            echo "File $PACKAGE_PATH does not exist."
+            continue
+        fi
+    fi
+done
+
+echo "Executing: apt-get update; apt-get install $APT_OPTIONS $PACKAGES"
+echo "apt-get update; apt-get install $APT_OPTIONS $PACKAGES" >"$UNION/install"
 chmod ugo+x "$UNION/install"
 if [ -L "$UNION/etc/resolv.conf" ]; then
     rm "$UNION/etc/resolv.conf"
@@ -165,7 +215,15 @@ else
 fi
 if ! /usr/sbin/chroot "$UNION" /install; then
     FAILED="true"
+else
+    FAILED="false"
 fi
+
+for PACKAGE in $PACKAGES; do
+    if [[ $PACKAGE =~ \/ ]]; then
+        rm "$UNION$PACKAGE_NAME"
+    fi
+done
 
 if [ "$RESOLVCONFLNK" = "true" ]; then
     rm -f "$CHANGES/etc/resolv.conf"
@@ -179,14 +237,15 @@ umount "$UNION/dev"
 rm "$CHANGES/install"
 rmdir "$CHANGES/*" 2>/dev/null
 
-if [ "$FAILED" != "true" ]; then
+if [ "$FAILED" = "false" ]; then
     if [ ! "$FILENAME" ]; then
+        FILENAME="$(echo "$PACKAGES" | awk '{print $1}' | sed 's/\///g').$BEXT"
         if [ -n "$FILTER_LEVEL" ]; then
             PREFIX="$(printf "%02d" $((10#$FILTER_LEVEL + 1)))-"
         else
             PREFIX=""
         fi
-        FILENAME="$PREFIX$INSTALL".$BEXT
+        FILENAME="$PREFIX$FILENAME"
     fi
 
     echo "Saving changes made by installing packages into a module "$FILENAME"..."
