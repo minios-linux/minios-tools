@@ -42,24 +42,52 @@ msgid "Options"
 msgstr "Опции"
 
 # apt2sb
-msgid "use FILE as the filename for the module instead of PACKAGE1"
-msgstr "использовать FILE в качестве имени файла для модуля вместо PACKAGE1"
+msgid "Use FILE as the filename for the module instead of PACKAGE1"
+msgstr "Использовать FILE в качестве имени файла для модуля вместо PACKAGE1"
 
 # apt2sb
-msgid "use LEVEL as the filter level"
-msgstr "использовать LEVEL как уровень фильтрации"
+msgid "Use LEVEL as the filter level"
+msgstr "Использовать LEVEL как уровень фильтрации"
 
 # apt2sb
-msgid "display this help and exit"
-msgstr "вывести эту справку и выйти"
+msgid "Display this help and exit"
+msgstr "Вывести эту справку и выйти"
 
 # apt2sb
-msgid "display version information and exit"
-msgstr "вывести информацию о версии и выйти"
+msgid "Display version information and exit"
+msgstr "Вывести информацию о версии и выйти"
 
 # apt2sb
 msgid "Apt Options (for install/upgrade command)"
 msgstr "Опции apt (для команд install/upgrade)"
+
+# apt2sb
+msgid "Automatic yes to prompts"
+msgstr "Автоматически ответить 'да' на запросы"
+
+# apt2sb
+msgid "Allow downgrades of packages"
+msgstr "Разрешить понижение версий пакетов"
+
+# apt2sb
+msgid "Consider recommended packages as a dependency for installing"
+msgstr "Рассматривать рекомендованные пакеты как зависимости для установки"
+
+# apt2sb
+msgid "Consider suggested packages as a dependency for installing"
+msgstr "Рассматривать предложенные пакеты как зависимости для установки"
+
+# apt2sb
+msgid "Do not consider recommended packages as a dependency for installing"
+msgstr "Не рассматривать рекомендованные пакеты как зависимости для установки"
+
+# apt2sb
+msgid "Do not consider suggested packages as a dependency for installing"
+msgstr "Не рассматривать предложенные пакеты как зависимости для установки"
+
+# apt2sb
+msgid "Default release to install packages from"
+msgstr "Стандартная релиз для установки пакетов"
 
 # apt2sb
 msgid "Examples"
