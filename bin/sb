@@ -1,29 +1,274 @@
 #!/bin/bash
+# MiniOS management and control script
+# Author: Tomas M <http://www.slax.org/>
+# Author: crims0n <https://minios.dev>
 
-if [ "$1" = "rm" ]; then
-   shift
-   rmsbdir "$@"
-   exit $?
-fi 
+. /etc/minios/minios.conf || exit 1
 
-if [ "$1" = "rmdir" ]; then
-   shift
-   rmsbdir "$@"
-   exit $?
-fi 
+VERSION="1.0"
+if [ -d "/run/initramfs/memory/bundles" ]; then
+    LIVE="/run/initramfs/memory"
+elif [ -d "/memory/bundles" ]; then
+    LIVE="/memory"
+fi
+BUNDLES="$LIVE/bundles"
+CHANGES="$LIVE/changes"
+RAMSTORE="$LIVE/modules"
 
-if [ "$1" = "conv" ]; then
-   shift
+alias _='gettext'
+export TEXTDOMAIN="minios-tools"
+#export TEXTDOMAINDIR=/path/to/your/locale/
+
+help() {
+    echo "$(gettext "Usage"): $(basename $0) [COMMAND]... [FILE|DIRECTORY]..."
+    echo "$(gettext "Manage MiniOS bundles.")"
+    echo "$(gettext "To run some of the commands in this script, your Linux kernel must support AUFS.")"
+    echo ""
+    echo "$(gettext "Commands"):"
+    echo "  activate BUNDLE       $(gettext "Activate a MiniOS bundle")"
+    echo "  deactivate BUNDLE     $(gettext "Deactivate an active MiniOS bundle")"
+    echo "  list                  $(gettext "List active MiniOS bundles")"
+    echo "  savechanges           $(gettext "Save changes made at runtime to the bundle")"
+    echo ""
+    echo "  rm DIR                $(gettext "Remove an unpacked bundle directory")"
+    echo "  rmdir DIR             $(gettext "Remove an unpacked bundle directory")"
+    echo "  conv PATH             $(gettext "Convert an .sb bundle to directory or vice versa")"
+    echo ""
+    echo "  help                  $(gettext "Display this help and exit")"
+    echo "  version               $(gettext "Display version information and exit")"
+    echo ""
+    echo "$(gettext "Examples"):"
+    echo "  $(basename $0) activate file.sb"
+    echo "  $(basename $0) deactivate file.sb"
+    echo "  $(basename $0) list"
+    echo "  $(basename $0) savechanges"
+    echo "  $(basename $0) rm /path/to/directory"
+    echo "  $(basename $0) rmdir /path/to/directory"
+    echo "  $(basename $0) conv /path/to/directory_or_/path/to/file.sb"
+    exit 0
+}
+
+brief_help() {
+    echo "$(gettext "Usage"): $(basename $0) [COMMAND]... [FILE|DIRECTORY]..."
+    echo "$(gettext "To run some of the commands in this script, your Linux kernel must support AUFS.")"
+    echo "$(gettext "Try") '$(basename $0) --help' $(gettext "for more information.")"
+    exit 1
+}
+
+version() {
+    echo "$(basename $0) $VERSION"
+    exit 0
+}
+
+# Print error message and exit
+# $1 = error message
+#
+die() {
+    echo "$1" >&2
+    exit 1
+}
+
+print_branches() {
+    local SI BUNDLE LOOP CWD
+
+    SI="/sys/fs/aufs/$(cat /proc/mounts | grep 'aufs / aufs' | egrep -o 'si=([^,) ]+)' | tr = _)"
+    CWD="$(pwd)"
+    cd "$SI"
+    ls -v1 | grep -v xi_path | egrep 'br[0-9]+' | xargs cat | grep memory/bundles | rev | cut -b 4- | rev | while read BUNDLE; do
+        if mountpoint -q "$BUNDLE"; then
+            LOOP=$(cat /proc/mounts | fgrep " $BUNDLE squashfs" | cut -d " " -f 1)
+            echo -n "$BUNDLE"
+            echo -ne "\t"
+            losetup $LOOP | sed -r "s:.*[(]|[)].*::g"
+        fi
+    done | tac
+    cd "$CWD"
+}
+
+# Activate MiniOS Bundle
+# $1 = file to activate
+#
+activate() {
+    local SB TGT BAS
+
+    SB="$(readlink -f "$1")"
+    BAS="$(basename "$SB")"
+
+    # check if file exists
+    if [ ! -r "$SB" ]; then
+        brief_help
+        die "file not found $SB"
+    fi
+
+    # check if the file is part of aufs union, if yes we need to copy it outside
+    if df "$SB" | cut -d " " -f 1 | grep -q aufs; then
+        TGT="$RAMSTORE"
+        mkdir -p "$TGT"
+        if [ -r $TGT/$BAS ]; then die "File exists: $TGT/$BAS"; fi
+        cp -n "$SB" "$TGT/$BAS"
+        if [ $? -ne 0 ]; then die "Error copying file to $TGT/$BAS. Not enough free RAM or disk space?"; fi
+        SB="$TGT/$BAS"
+    fi
+
+    # check if this particular file is already activated
+    if print_branches | cut -f 2 | fgrep -q "$SB"; then
+        exit
+    fi
+
+    # mount remount,add
+    TGT="$LIVE/bundles/$BAS"
+    mkdir -p "$TGT"
+
+    mount -n -o loop,ro "$SB" "$TGT"
+    if [ $? -ne 0 ]; then
+        die "Error mounting $SB to $TGT, perhaps corrupted download"
+    fi
+
+    # add current branch to aufs union
+    mount -t aufs -o remount,add:1:"$TGT=rr+wh" aufs /
+    if [ $? -ne 0 ]; then
+        umount "$TGT"
+        rmdir "$TGT"
+        die "Error attaching bundle filesystem to MiniOS"
+    fi
+
+    echo "MiniOS bundle activated: $BAS"
+}
+
+# Deactivate MiniOS bundle of the given name
+# $1 = path to bundle file, or its name
+#
+deactivate() {
+    local BUNDLES SB MATCH LOOP LOOPFILE
+
+    BUNDLES=$LIVE/bundles
+    MODULES=$LIVE/modules
+    SB="$(basename "$1")"
+
+    rmdir "$BUNDLES/$SB" 2>/dev/null    # this fails unless the dir is
+    rmdir "$BUNDLES/$SB.sb" 2>/dev/null # forgotten there empty. It's safe this way
+
+    if [ ! -d "$BUNDLES/$SB" ]; then
+        # we don't have real filename match, lets try to add .sb extension
+        if [ ! -d "$BUNDLES/$SB.sb" ]; then
+            # no, still no match. Lets use some guesswork
+            SB=$(print_branches | cut -f 2 | egrep -o "/[0-9]+-$SB.sb\$" | tail -n 1 | xargs -r basename)
+        else
+            SB="$SB.sb"
+        fi
+    fi
+
+    if [ "$SB" = "" -o ! -d "$BUNDLES/$SB" ]; then
+        die "Can't find active MiniOS bundle $1"
+    fi
+
+    echo "Attempting to deactivate MiniOS bundle $SB..."
+    mount -t aufs -o remount,verbose,del:"$BUNDLES/$SB" aufs / 2>/dev/null
+    if [ $? -ne 0 ]; then
+        die "Unable to deactivate MiniOS Bundle - still in use. See dmesg for more."
+    fi
+
+    # remember what loop device was the bundle mounted to, it may be needed later
+    LOOP="$(cat /proc/mounts | fgrep " $BUNDLES/$SB " | cut -d " " -f 1)"
+    LOOPFILE="$(losetup "$LOOP" | cut -d " " -f 3 | sed -r 's:^.|.$::g')"
+
+    umount "$BUNDLES/$SB" 2>/dev/null
+    if [ $? -ne 0 ]; then
+        die "Unable to umount MiniOS bundle loop-mount $BUNDLES/$SB"
+    fi
+    rmdir "$BUNDLES/$SB"
+
+    # free the loop device manually since umount fails to do that if the bundle was activated on boot
+    losetup -d "$LOOP" 2>/dev/null
+
+    if echo "$LOOPFILE" | grep -q $RAMSTORE; then
+        rm -f $LOOPFILE
+    fi
+
+    echo "MiniOS bundle deactivated: $SB"
+}
+
+fix_system() {
+    if [ "$SYSTEM_TYPE" = "puzzle" ]; then
+        if [ -x "/usr/sbin/minios-update-users" ]; then
+            # fix users
+            /usr/sbin/minios-update-users "$BUNDLES" "$CHANGES" 2>/dev/null
+        fi
+        if [ -x "/usr/sbin/minios-update-cache" ]; then
+            # fix caches
+            /usr/sbin/minios-update-cache "$BUNDLES" 2>/dev/null &
+        fi
+        if [ -x "/usr/sbin/minios-update-dpkg" ]; then
+            # fix dpkg
+            /usr/sbin/minios-update-dpkg "$BUNDLES" "$CHANGES" 2>/dev/null &
+        fi
+    fi
+}
+
+aufs_support() {
+    if cat /proc/filesystems | grep aufs >/dev/null; then
+        AUFS="true"
+    else
+        AUFS="false"
+    fi
+    if [ $AUFS = "false" ]; then
+        echo "AUFS is not supported by the $(uname -r) kernel."
+        brief_help
+    fi
+}
+
+if [[ $# -eq 0 ]]; then
+    brief_help
 fi
 
-if [ ! -r "$1" ]; then
-   echo File not found "$1"
-   exit 1
+if [[ "$(id -u)" != "0" ]]; then
+    echo "This script must be run as root."
+    brief_help
 fi
 
-if [ -d "$1" ]; then
-   dir2sb "$@"
-   exit $?
-fi
+case "$1" in
+"activate" | "deactivate")
+    aufs_support
+    ${1} "$2"
+    fix_system
+    # reload XFCE menu
+    if pgrep xfce4-panel >/dev/null; then
+        killall -HUP xfce4-panel
+    fi
+    ;;
+"list")
+    print_branches
+    ;;
+"savechanges")
+    shift
+    savechanges "$@"
+    ;;
+"help")
+    help
+    ;;
+"version")
+    version
+    ;;
+"rm" | "rmdir")
+    shift
+    rmsbdir "$@"
+    exit $?
+    ;;
+"conv")
+    shift
+    if [ ! -r "$1" ]; then
+        echo File not found "$1"
+        exit 1
+    fi
 
-sb2dir "$@"
+    if [ -d "$1" ]; then
+        dir2sb "$@"
+    else
+        sb2dir "$@"
+    fi
+    ;;
+*)
+    echo "Invalid command"
+    brief_help
+    ;;
+esac

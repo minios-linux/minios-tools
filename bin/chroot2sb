@@ -2,29 +2,31 @@
 
 # Author: crims0n. <http://minios.dev>
 
-VERSION="1.1"
+VERSION="1.0"
 BEXT="sb"
+export TEXTDOMAIN="minios-tools"
 
 help() {
-    echo "Usage: $(basename $0) [OPTIONS]"
-    echo "Upgrades packages from repositories and packages them into a module."
+    echo "$(gettext "Usage"): $(basename $0) [OPTIONS]..."
+    echo "$(gettext "Packages a module from changes made by an installation script")"
     echo ""
-    echo "Options:"
-    echo "  -f, --file=FILE       use FILE as the filename for the module instead of 10-upgrade-[current datetime].$BEXT"
-    echo "  -l, --level=LEVEL     use LEVEL as the filter level"
-    echo "      --help            display this help and exit"
-    echo "      --version         display version information and exit"
+    echo "$(gettext "Options"):"
+    echo "  -d, --directory DIR     $(gettext "Copy contents of DIR to the root of the module")"
+    echo "  -n, --name NAME         $(gettext "Use NAME as the filename for the module")"
+    echo "  -l, --level LEVEL       $(gettext "Use LEVEL as the filter level")"
+    echo "      --help              $(gettext "Display this help and exit")"
+    echo "      --version           $(gettext "Display version information and exit")"
     echo ""
-    echo "Examples:"
-    echo "  $(basename $0)"
-    echo "  $(basename $0) --level=03"
-    echo "  $(basename $0) -f 04-upgrade.$BEXT -l 3"
+    echo "$(gettext "Examples"):"
+    echo "  $(basename $0) --level 03"
+    echo "  $(basename $0) -n 06-chromium.$BEXT -l 3"
+    echo "  $(basename $0) -d /path/to/copy/contents"
     exit 0
 }
 
 brief_help() {
-    echo "Usage: $(basename $0) [OPTIONS]"
-    echo "Try '$(basename $0) --help' for more information."
+    echo "$(gettext "Usage"): $(basename $0) [OPTIONS]..."
+    echo "$(gettext "Try") '$(basename $0) --help' $(gettext "for more information.")"
     exit 1
 }
 
@@ -39,23 +41,17 @@ aufs_is_supported() {
 
 while [ $# -gt 0 ]; do
     case "$1" in
-    -f | --file=*)
-        if [ "$1" == --* ]; then
-            FILENAME="${1#*=}"
-        else
-            FILENAME="$2"
-            shift
-        fi
-        shift
+    -d | --directory)
+        DIRECTORY="$2"
+        shift 2
         ;;
-    -l | --level=*)
-        if [ "$1" == --* ]; then
-            FILTER_LEVEL=$(printf "%02d" "${1#*=}")
-        else
-            FILTER_LEVEL=$(printf "%02d" "$2")
-            shift
-        fi
-        shift
+    -n | --name)
+        FILENAME="$2"
+        shift 2
+        ;;
+    -l | --level)
+        FILTER_LEVEL=$(printf "%02d" "$2")
+        shift 2
         ;;
     --help)
         help
@@ -64,14 +60,20 @@ while [ $# -gt 0 ]; do
         version
         ;;
     *) # unknown option
-        brief_help
-        shift
+        if [ "$1" == -* ]; then
+            brief_help
+        fi
         ;;
     esac
 done
 
 if [ "$(id -u)" != "0" ]; then
     echo "This script must be run as root."
+    brief_help
+fi
+
+if [ "$DIRECTORY" ] && { [ ! -d "$DIRECTORY" ] || [ -d "$DIRECTORY" ] && [ ! -r "$DIRECTORY" ]; }; then
+    echo "The specified directory must exist and be readable."
     brief_help
 fi
 
@@ -136,8 +138,11 @@ for DIR in dev dev/pts proc sys; do
     mount --bind "/$DIR" "$UNION/$DIR"
 done
 
-echo "apt-get update; apt-get upgrade --yes" >"$UNION/install"
-chmod ugo+x "$UNION/install"
+if [ "$DIRECTORY" ]; then
+    cd "$DIRECTORY" && cp --parents -afr * "$UNION/"
+    cd -
+fi
+
 if [ -L "$UNION/etc/resolv.conf" ]; then
     rm "$UNION/etc/resolv.conf"
     echo "nameserver 8.8.8.8" >"$UNION/etc/resolv.conf"
@@ -145,8 +150,13 @@ if [ -L "$UNION/etc/resolv.conf" ]; then
 else
     mount --bind "/etc/resolv.conf" "$UNION/etc/resolv.conf"
 fi
-if ! /usr/sbin/chroot "$UNION" /install; then
+
+echo "Entering chroot environment..."
+echo "When finished, enter 'exit' in chroot to create the module."
+if ! /usr/sbin/chroot "$UNION"; then
     FAILED="true"
+else
+    FAILED="false"
 fi
 
 if [ "$RESOLVCONFLNK" = "true" ]; then
@@ -154,24 +164,26 @@ if [ "$RESOLVCONFLNK" = "true" ]; then
 else
     umount "$UNION/etc/resolv.conf"
 fi
-umount "$UNION/etc/resolv.conf"
 umount "$UNION/sys"
 umount "$UNION/proc"
 umount "$UNION/dev/pts"
 umount "$UNION/dev"
-rm "$CHANGES/install"
+
+if [ -f "$CHANGES/root/.bash_history" ]; then
+    rm "$CHANGES/root/.bash_history"
+fi
 rmdir "$CHANGES/*" 2>/dev/null
 
 if [ "$FAILED" != "true" ]; then
     if [ ! "$FILENAME" ]; then
         if [ -n "$FILTER_LEVEL" ]; then
-            PREFIX="$(printf "%02d" $((10#$FILTER_LEVEL + 1)))"
+            PREFIX="$(printf "%02d" $((10#$FILTER_LEVEL + 1)))-"
         else
-            PREFIX="10"
+            PREFIX=""
         fi
-        FILENAME="$PREFIX-upgrade-$(date +%y%m%d)".$BEXT
+        FILENAME="$PREFIX$(date +%Y%m%d-%H%M)".$BEXT
     fi
 
-    echo "Saving changes made by upgrading packages into a module "$FILENAME"..."
+    echo "Saving changes made by installation script into a module "$FILENAME"..."
     savechanges "$FILENAME" "$CHANGES"
 fi

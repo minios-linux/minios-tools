@@ -2,31 +2,32 @@
 
 # Author: crims0n. <http://minios.dev>
 
-VERSION="1.1"
+VERSION="1.2"
 BEXT="sb"
 
 help() {
-    echo "Usage: $(basename $0) [OPTIONS]... --script=FILE"
-    echo "Packages a module from changes made by an installation script."
+    echo "$(gettext "Usage"): $(basename $0) [OPTIONS]... --script FILE"
+    echo "$(gettext "Packages a module from changes made by an installation script")"
     echo ""
-    echo "Options:"
-    echo "  -d, --directory=DIR   copy contents of DIR to the root of the module"
-    echo "  -f, --file=FILE       use FILE as the filename for the module"
-    echo "  -l, --level=LEVEL     use LEVEL as the filter level"
-    echo "  -s, --script=FILE     use FILE as the installation script"
-    echo "      --help            display this help and exit"
-    echo "      --version         display version information and exit"
+    echo "$(gettext "Options"):"
+    echo "  -d, --directory DIR   $(gettext "Copy contents of DIR to the root of the module")"
+    echo "  -n, --name NAME       $(gettext "Use NAME as the filename for the module")"
+    echo "  -l, --level LEVEL     $(gettext "Use LEVEL as the filter level")"
+    echo "  -s, --script FILE     $(gettext "Use FILE as the installation script")"
+    echo "      --help            $(gettext "Display this help and exit")"
+    echo "      --version         $(gettext "Display version information and exit")"
     echo ""
-    echo "Examples:"
+    echo "$(gettext "Examples"):"
     echo "  $(basename $0) -s /path/to/install_script.sh"
-    echo "  $(basename $0) --level=03 --script=/path/to/install_script.sh"
-    echo "  $(basename $0) -s /path/to/install_script.sh -f 06-chromium.$BEXT -l 3"
+    echo "  $(basename $0) --level 03 --script /path/to/install_script.sh"
+    echo "  $(basename $0) -s /path/to/install_script.sh -n 06-chromium.$BEXT -l 3"
+    echo "  $(basename $0) chroot -d /path/to/copy/contents"
     exit 0
 }
 
 brief_help() {
-    echo "Usage: $(basename $0) [OPTIONS]... --script=FILE"
-    echo "Try '$(basename $0) --help' for more information."
+    echo "$(gettext "Usage"): $(basename $0) [COMMANDS] [OPTIONS]... --script FILE"
+    echo "$(gettext "Try") '$(basename $0) --help' $(gettext "for more information.")"
     exit 1
 }
 
@@ -46,41 +47,21 @@ fi
 INSTALL_SCRIPT=""
 while [ $# -gt 0 ]; do
     case "$1" in
-    -d | --directory=*)
-        if [ "$1" == --* ]; then
-            DIRECTORY="${1#*=}"
-        else
-            DIRECTORY="$2"
-            shift
-        fi
-        shift
+    -d | --directory)
+        DIRECTORY="$2"
+        shift 2
         ;;
-    -f | --file=*)
-        if [ "$1" == --* ]; then
-            FILENAME="${1#*=}"
-        else
-            FILENAME="$2"
-            shift
-        fi
-        shift
+    -n | --name)
+        FILENAME="$2"
+        shift 2
         ;;
-    -l | --level=*)
-        if [ "$1" == --* ]; then
-            FILTER_LEVEL=$(printf "%02d" "${1#*=}")
-        else
-            FILTER_LEVEL=$(printf "%02d" "$2")
-            shift
-        fi
-        shift
+    -l | --level)
+        FILTER_LEVEL=$(printf "%02d" "$2")
+        shift 2
         ;;
-    -s | --script=*)
-        if [ "$1" == --* ]; then
-            INSTALL_SCRIPT="${1#*=}"
-        else
-            INSTALL_SCRIPT="$2"
-            shift
-        fi
-        shift
+    -s | --script)
+        INSTALL_SCRIPT="$2"
+        shift 2
         ;;
     --help)
         help
@@ -101,7 +82,8 @@ if [ "$(id -u)" != "0" ]; then
     brief_help
 fi
 
-if [ ! "$INSTALL_SCRIPT" ]; then
+if [ ! -f "$INSTALL_SCRIPT" ]; then
+    echo "Error: there is no script at $INSTALL_SCRIPT."
     brief_help
 fi
 
@@ -176,8 +158,10 @@ if [ "$DIRECTORY" ]; then
     cd -
 fi
 
-cp "$INSTALL_SCRIPT" "$UNION/install"
-chmod ugo+x "$UNION/install"
+if [ -f "$INSTALL_SCRIPT" ]; then
+    cp "$INSTALL_SCRIPT" "$UNION/install"
+    chmod ugo+x "$UNION/install"
+fi
 if [ -L "$UNION/etc/resolv.conf" ]; then
     rm "$UNION/etc/resolv.conf"
     echo "nameserver 8.8.8.8" >"$UNION/etc/resolv.conf"
@@ -185,8 +169,11 @@ if [ -L "$UNION/etc/resolv.conf" ]; then
 else
     mount --bind "/etc/resolv.conf" "$UNION/etc/resolv.conf"
 fi
+
 if ! /usr/sbin/chroot "$UNION" /install; then
     FAILED="true"
+else
+    FAILED="false"
 fi
 
 if [ "$RESOLVCONFLNK" = "true" ]; then
@@ -198,20 +185,23 @@ umount "$UNION/sys"
 umount "$UNION/proc"
 umount "$UNION/dev/pts"
 umount "$UNION/dev"
-rm "$CHANGES/install"
+if [ -f "$CHANGES/install" ]; then
+    rm "$CHANGES/install"
+fi
 rmdir "$CHANGES/*" 2>/dev/null
 
 if [ "$FAILED" != "true" ]; then
-    if [ ! "$FILENAME" ]; then
-        FILENAME="$(basename "${INSTALL_SCRIPT%.*}")".$BEXT
-    fi
     if [ ! "$FILENAME" ]; then
         if [ -n "$FILTER_LEVEL" ]; then
             PREFIX="$(printf "%02d" $((10#$FILTER_LEVEL + 1)))-"
         else
             PREFIX=""
         fi
-        FILENAME="$PREFIX$(basename "${INSTALL_SCRIPT%.*}")".$BEXT
+        if [ "$INSTALL_SCRIPT" ]; then
+            FILENAME="$PREFIX$(basename "${INSTALL_SCRIPT%.*}")".$BEXT
+        else
+            FILENAME="$PREFIX$(date +%Y%m%d-%H%M)".$BEXT
+        fi
     fi
 
     echo "Saving changes made by installation script into a module "$FILENAME"..."

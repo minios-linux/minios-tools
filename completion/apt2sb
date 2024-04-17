@@ -7,7 +7,7 @@ _apt2sb() {
     fi
 
     case $prev in
-    -f | --file)
+    -n | --name)
         _filedir
         return
         ;;

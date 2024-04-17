@@ -3,84 +3,27 @@
 # Author: Tomas M. <http://www.linux-live.org>
 # Author: crims0n. <https://minios.dev>
 
-read_config() {
-    # Enable extended globbing. This is required for the pattern matching of variable names.
-    shopt -s extglob
-
-    # The first argument is the configuration file.
-    local CONFIG_FILE="${1?No configuration file given}"
-
-    # All other arguments are the variable names to look for.
-    local KEYLIST="${@:2}"
-
-    # Check if the configuration file exists and is readable.
-    if [[ ! -f "${CONFIG_FILE}" ]]; then
-        echo >&2 "\"${CONFIG_FILE}\" is not a file!"
-        exit 1
-    fi
-    if [[ ! -r "${CONFIG_FILE}" ]]; then
-        echo >&2 "\"${CONFIG_FILE}\" is not readable!"
-        exit 1
-    fi
-
-    # Convert the list of variable names to a regex pattern.
-    KEYLIST="${KEYLIST// /|}"
-
-    # Read each line of the file.
-    while IFS='= ' read -r LHS RHS; do
-        # If the variable name is in our list and the value is not empty...
-        if [[ "${LHS}" =~ ^(${KEYLIST})$ ]] && [[ -n ${RHS} ]]; then
-            # Remove any quotes around the value.
-            RHS="${RHS%\"*}"
-            RHS="${RHS#\"*}"
-            RHS="${RHS%\'*}"
-            RHS="${RHS#\'*}"
-
-            # If the value is an array (surrounded by parentheses)...
-            if [[ "${RHS}" =~ ^\((.*)\)$ ]]; then
-                # Assign the array to the variable.
-                eval ${LHS}=\("${BASH_REMATCH[1]}"\)
-            else
-                # Otherwise, assign the value to the variable.
-                eval ${LHS}=\"${RHS}\"
-            fi
-        fi
-    done <<<"$(tr -d '\r' <${CONFIG_FILE})"
-
-    # Disable extended globbing after we're done using it.
-    shopt -u extglob
-}
-
-VERSION="1.1"
-read_config /etc/minios/config LIVEKITNAME
-read_config /etc/minios/config SYSTEMNAME
-LIVEKITNAME=${LIVEKITNAME:-minios}
-SYSTEMNAME=${SYSTEMNAME:-MiniOS}
-
-TEMP=/tmp/"$LIVEKITNAME"iso.$$
-MODULES=()
-
 help() {
-    echo "Usage: $(basename $0) [OPTIONS]... [MODULE.SB]..."
-    echo "Generate MiniOS ISO image, adding specified modules."
+    echo "$(gettext "Usage"): $(basename $0) [OPTIONS]... [MODULE.SB]..."
+    echo "$(gettext "Generate MiniOS ISO image, adding specified modules.")"
     echo ""
-    echo "Options:"
-    echo "  -e, --exclude=REGEX   exclude any existing path or file matching REGEX"
-    echo "  -f, --file=FILE       specify output ISO filename (default: $LIVEKITNAME-YYYYMMDD_HHMM.iso)"
-    echo "      --help            display this help and exit"
-    echo "      --version         display version information and exit"
+    echo "$(gettext "Options"):"
+    echo "  -e, --exclude REGEX   $(gettext "Exclude any existing path or file matching REGEX")"
+    echo "  -n, --name NAME       $(gettext "Specify output ISO filename (default"): $LIVEKITNAME-YYYYMMDD_HHMM.iso)"
+    echo "      --help            $(gettext "Display this help and exit")"
+    echo "      --version         $(gettext "Display version information and exit")"
     echo ""
-    echo "Examples:"
-    echo "  # create MiniOS ISO without chromium.sb module:"
-    echo "  $(basename $0) -e 'chromium' -f minios_without_chromium.iso"
-    echo "  # create MiniOS text-mode core only:"
-    echo "  $(basename $0) --exclude='firmware|xorg|desktop|apps|chromium' --file=minios_textmode.iso"
+    echo "$(gettext "Examples"):"
+    echo "  # $(gettext "Create MiniOS ISO without firefox.sb module:")"
+    echo "  $(basename $0) -e 'firefox' -f minios_without_firefox.iso"
+    echo "  # $(gettext "Create MiniOS text-mode core only:")"
+    echo "  $(basename $0) --exclude='firmware|xorg|desktop|apps|firefox' --file=minios_textmode.iso"
     exit 0
 }
 
 brief_help() {
-    echo "Usage: $(basename $0) [OPTIONS]... [MODULE.SB]..."
-    echo "Try '$(basename $0) --help' for more information."
+    echo "$(gettext "Usage"): $(basename $0) [OPTIONS]... [MODULE.SB]..."
+    echo "$(gettext "Try") '$(basename $0) --help' $(gettext "for more information.")"
     exit 1
 }
 
@@ -89,25 +32,22 @@ version() {
     exit 0
 }
 
+VERSION="1.1"
+LIVEKITNAME="minios"
+SYSTEMNAME="MiniOS"
+
+TEMP=/tmp/"$LIVEKITNAME"iso.$$
+MODULES=()
+
 while [ "$#" -gt 0 ]; do
     case "$1" in
-    -e | --exclude=*)
-        if [[ "$1" == --* ]]; then
-            REGEX="${1#*=}"
-        else
-            REGEX="$2"
-            shift
-        fi
-        shift
+    -e | --exclude)
+        REGEX="$2"
+        shift 2
         ;;
-    -f | --file=*)
-        if [[ "$1" == --* ]]; then
-            TARGET="$(readlink -f "${1#*=}")"
-        else
-            TARGET="$(readlink -f "$2")"
-            shift
-        fi
-        shift
+    -n | --name)
+        TARGET="$(readlink -f "$2")"
+        shift 2
         ;;
     --help)
         help

@@ -1,0 +1,170 @@
+# Portuguese translations for minios-tools package.
+# Copyright (C) 2024 MiniOS Linux.
+# This file is distributed under the same license as the minios-tools package.
+# crims0n <crims0n@minios.dev>, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: minios-tools 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-03-17 13:59+0300\n"
+"PO-Revision-Date: 2024-03-17 14:43+0300\n"
+"Last-Translator: crims0n <crims0n@minios.dev>, 2024.\n"
+"Language-Team: Portuguese\n"
+"Language: pt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: apt2sb:10 apt2sb:41
+msgid "Usage"
+msgstr "Uso"
+
+#: apt2sb:11
+msgid "Installs packages from repositories and packages them into a module."
+msgstr "Instala pacotes de repositórios e os empacota em um módulo."
+
+#: apt2sb:13
+msgid "Commands"
+msgstr "Comandos"
+
+#: apt2sb:14
+msgid "Install package(s)"
+msgstr "Instalar pacote(s)"
+
+#: apt2sb:15
+msgid "Upgrade installed packages"
+msgstr "Atualizar pacotes instalados"
+
+#: apt2sb:17
+msgid "Options"
+msgstr "Opções"
+
+#: apt2sb:18
+msgid "Use NAME as the filename for the module instead of PACKAGE1"
+msgstr "Use NAME como o nome do arquivo para o módulo em vez de PACKAGE1"
+
+#: apt2sb:19
+msgid "Use LEVEL as the filter level"
+msgstr "Use LEVEL como o nível de filtro"
+
+#: apt2sb:20
+msgid "Display this help and exit"
+msgstr "Exibir esta ajuda e sair"
+
+#: apt2sb:21
+msgid "Display version information and exit"
+msgstr "Exibir informações de versão e sair"
+
+#: apt2sb:23
+msgid "Apt Options (for install/upgrade command)"
+msgstr "Opções Apt (para comando de instalação/atualização)"
+
+#: apt2sb:24
+msgid "Automatic yes to prompts"
+msgstr "Sim automático para prompts"
+
+#: apt2sb:25
+msgid "Allow downgrades of packages"
+msgstr "Permitir rebaixamento de pacotes"
+
+#: apt2sb:26
+msgid "Consider recommended packages as a dependency for installing"
+msgstr "Considere pacotes recomendados como uma dependência para instalação"
+
+#: apt2sb:27
+msgid "Consider suggested packages as a dependency for installing"
+msgstr "Considere pacotes sugeridos como uma dependência para instalação"
+
+#: apt2sb:28
+msgid "Do not consider recommended packages as a dependency for installing"
+msgstr "Não considere pacotes recomendados como uma dependência para instalação"
+
+#: apt2sb:29
+msgid "Do not consider suggested packages as a dependency for installing"
+msgstr "Não considere pacotes sugeridos como uma dependência para instalação"
+
+#: apt2sb:30
+msgid "Default release to install packages from"
+msgstr "Lançamento padrão para instalar pacotes de"
+
+#: apt2sb:32
+msgid "Examples"
+msgstr "Exemplos"
+
+#: apt2sb:42
+msgid "Try"
+msgstr "Tente"
+
+#: apt2sb:42
+msgid "for more information."
+msgstr "para mais informações."
+
+#: chroot2sb:11
+msgid "Packages a module from changes made by an installation script"
+msgstr "Empacota um módulo a partir de alterações feitas por um script de instalação"
+
+#: chroot2sb:14
+msgid "Copy contents of DIR to the root of the module"
+msgstr "Copie o conteúdo de DIR para a raiz do módulo"
+
+#: chroot2sb:15
+msgid "Use NAME as the filename for the module"
+msgstr "Use NAME como o nome do arquivo para o módulo"
+
+#: script2sb:16
+msgid "Use FILE as the installation script"
+msgstr "Use FILE como o script de instalação"
+
+#: sb:24
+msgid "Manage MiniOS bundles."
+msgstr "Gerenciar pacotes MiniOS."
+
+#: sb:25 sb:53
+msgid "To run some of the commands in this script, your Linux kernel must support AUFS."
+msgstr "Para executar alguns dos comandos neste script, seu kernel Linux deve suportar AUFS."
+
+#: sb:28
+msgid "Activate a MiniOS bundle"
+msgstr "Ativar um pacote MiniOS"
+
+#: sb:29
+msgid "Deactivate an active MiniOS bundle"
+msgstr "Desativar um pacote MiniOS ativo"
+
+#: sb:30
+msgid "List active MiniOS bundles"
+msgstr "Listar pacotes MiniOS ativos"
+
+#: sb:31
+msgid "Save changes made at runtime to the bundle"
+msgstr "Salvar alterações feitas em tempo de execução no pacote"
+
+#: sb:33 sb:34
+msgid "Remove an unpacked bundle directory"
+msgstr "Remover um diretório de pacote descompactado"
+
+#: sb:35
+msgid "Convert an .sb bundle to directory or vice versa"
+msgstr "Converter um pacote .sb em diretório ou vice-versa"
+
+#: sb2iso:8
+msgid "Generate MiniOS ISO image, adding specified modules."
+msgstr "Gerar imagem ISO MiniOS, adicionando módulos especificados."
+
+#: sb2iso:11
+msgid "Exclude any existing path or file matching REGEX"
+msgstr "Excluir qualquer caminho ou arquivo existente que corresponda a REGEX"
+
+#: sb2iso:12
+msgid "Specify output ISO filename (default"
+msgstr "Especifique o nome do arquivo ISO de saída (padrão"
+
+#: sb2iso:17
+msgid "Create MiniOS ISO without firefox.sb module:"
+msgstr "Criar ISO MiniOS sem o módulo firefox.sb:"
+
+#: sb2iso:19
+msgid "Create MiniOS text-mode core only:"
+msgstr "Criar apenas o núcleo do modo de texto MiniOS:"

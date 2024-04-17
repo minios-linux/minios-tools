@@ -1,32 +1,54 @@
-% SB(1) MiniOS Live Manual 
+% SB(1) MiniOS Live Manual
 
 ## NAME
-**sb** - A utility for managing .sb modules by calling corresponding scripts based on supplied arguments.
+**sb** - A utility for managing MiniOS bundles.
 
 ## SYNOPSIS
-`sb [COMMAND] [PARAMETERS]`
+`sb COMMAND [OPTIONS]`
 
 ## DESCRIPTION
-Provides a convenient way to manage .sb modules by calling appropriate scripts based on given arguments.
+This script provides functionalities for managing MiniOS bundles. It supports commands to activate, deactivate, list active bundles, save changes to bundles, remove directories, and convert .sb files to directories or vice versa.
 
 ## COMMANDS
-* `rm [DIRECTORY]` or `rmdir [DIRECTORY]`:  
-   Calls the **rmsbdir** script to erase a directory created by the sb2dir command
 
-* `conv [DIRECTORY or FILE]`:   
-   Detects whether the input is a file or a directory and calls appropriate conversion scripts (sb2dir, dir2sb)
+* `activate BUNDLE`
+  Activates a MiniOS bundle by mounting the bundle to AUFS union.
 
-The rest will be considered as [PARAMETERS] for the commands.
+* `deactivate BUNDLE`
+  Deactivates an active MiniOS bundle by removing it from AUFS union.
+
+* `list`
+  Lists all active MiniOS bundles.
+  
+* `savechanges`
+  Saves changes made at runtime to the bundle.
+
+* `rm DIR` or `rmdir DIR`
+  Removes an unpacked bundle directory.
+
+* `conv PATH`
+  Converts an `.sb` bundle to a directory or vice versa.
+
+* `help`
+  Displays the script usage help.
+
+* `version`
+  Displays version information of the script.
 
 ## USAGE NOTES
-1. The script should be executed with a specific COMMAND along with respective PARAMETERS.
-2. If the COMMAND is `rm` or `rmdir`, **rmsbdir** script gets executed to erase a directory.
-3. If the COMMAND is `conv`, it detects the type of the first PARAMETER. If it's a directory, **dir2sb** script is called. If it's a file, **sb2dir** script is called.
+
+1. The script should be run as root.
+2. Certain commands require AUFS support in the system's Linux kernel.
+3. Always provide appropriate arguments based on the command. For instance, for `activate` and `deactivate` commands, bundle path should be provided.
 
 ## EXAMPLES
-- `sb rm example_directory.sb`
-- `sb conv example_file.sb`
-- `sb conv example_directory`
+
+- `sb activate example_bundle.sb`
+- `sb deactivate example_bundle.sb`
+- `sb list`
+- `sb savechanges`
+- `sb rm example_directory`
+- `sb conv example_directory_or_file.sb`
 
 ## SEE ALSO
 

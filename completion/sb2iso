@@ -1,4 +1,4 @@
-_minios-geniso() {
+_sb2iso() {
     local cur prev words cword
     _init_completion -n = || return
 
@@ -35,4 +35,4 @@ _minios-geniso() {
 
 }
 
-complete -F _minios-geniso minios-geniso
+complete -F _sb2iso sb2iso

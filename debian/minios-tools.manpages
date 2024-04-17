@@ -6,5 +6,5 @@ man/rmsbdir.1
 man/savechanges.1
 man/sb.1
 man/sb2dir.1
-man/scr2sb.1
-man/upg2sb.1
+man/script2sb.1
+man/chroot2sb.1
