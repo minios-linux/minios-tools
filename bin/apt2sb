@@ -31,8 +31,8 @@ help() {
     echo ""
     echo "$(gettext "Examples"):"
     echo "   $(basename $0) install chromium chromium-sandbox"
-    echo "   $(basename $0) install -y --level=03 chromium chromium-sandbox"
-    echo "   $(basename $0) install -y --no-install-recommends ./google-chrome-stable_current_amd64.deb -f 06-google-chrome.$BEXT -l 3"
+    echo "   $(basename $0) install -y --level 03 chromium chromium-sandbox"
+    echo "   $(basename $0) install -y --no-install-recommends ./google-chrome-stable_current_amd64.deb -n 06-google-chrome.$BEXT -l 3"
     echo "   $(basename $0) upgrade"
     exit 0
 }
