@@ -1,4 +1,4 @@
-_minios-bundle() {
+_sb() {
     local cur prev opts
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
@@ -15,4 +15,4 @@ _minios-bundle() {
         return 0
     fi
 }
-complete -F _minios-bundle minios-bundle
+complete -F _sb sb

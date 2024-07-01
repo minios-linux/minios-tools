@@ -1,4 +1,4 @@
-_scr2sb() {
+_script2sb() {
     local cur prev words cword
     _init_completion -n = || return
 
@@ -11,7 +11,7 @@ _scr2sb() {
         _filedir
         return
         ;;
-    -f)
+    -n)
         _filedir
         return
         ;;
@@ -33,7 +33,7 @@ _scr2sb() {
             _filedir
             return
             ;;
-        --file)
+        --name)
             _filedir
             return
             ;;
@@ -50,13 +50,13 @@ _scr2sb() {
     fi
 
     if [[ "$cur" == --* ]]; then
-        COMPREPLY=($(compgen -W '--directory= --file= --level= --script=' -- "$cur"))
+        COMPREPLY=($(compgen -W '--directory --name= --level --script' -- "$cur"))
     elif [[ "$cur" == -* ]]; then
-        COMPREPLY=($(compgen -W '-d -f -l -s' -- "$cur"))
+        COMPREPLY=($(compgen -W '-d -n -l -s' -- "$cur"))
     else
-        COMPREPLY=($(compgen -W '--directory= --file= --level= --script=' -- "$cur"))
+        COMPREPLY=($(compgen -W '--directory --name --level --script' -- "$cur"))
     fi
 
 }
 
-complete -F _scr2sb scr2sb
+complete -F _script2sb script2sb

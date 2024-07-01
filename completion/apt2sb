@@ -1,8 +1,8 @@
 _apt2sb() {
     local cur prev words cword
-    _init_completion -n = || return
+    _init_completion || return
 
-    if [[ ${words[1]} = --help ]] || [[ ${words[1]} = --version ]]; then
+    if [[ ${words[1]} == --help || ${words[1]} == --version ]]; then
         return
     fi
 
@@ -17,24 +17,24 @@ _apt2sb() {
         ;;
     esac
 
-    if [[ "${words[1]}" = install ]]; then
-        if [[ "$cur" == --* ]]; then
-            COMPREPLY=($(compgen -W '--file --level --yes --allow-downgrades --install-recommends --install-suggests --no-install-recommends --no-install-suggests --target-releas' -- "$cur"))
-        elif [[ "$cur" == -* ]]; then
-            COMPREPLY=($(compgen -W '-f -l -y -t' -- "$cur"))
-        elif [[ "${#words[@]}" -ge 3 && -z "$(echo "$cur" | grep '/')" ]]; then
+    if [[ ${words[1]} == install ]]; then
+        if [[ $cur == --* ]]; then
+            COMPREPLY=($(compgen -W '--yes --allow-downgrades --install-recommends --install-suggests --no-install-recommends --no-install-suggests --target-release --help --version' -- "$cur"))
+        elif [[ $cur == -* ]]; then
+            COMPREPLY=($(compgen -W '-y -t --help --version' -- "$cur"))
+        elif [[ ${#words[@]} -ge 3 && $cur != */* ]]; then
             COMPREPLY+=($(apt-cache --no-generate pkgnames "$cur" 2>/dev/null))
         else
             _filedir
         fi
-    elif [[ "${words[1]}" = upgrade ]]; then
-        if [[ "$cur" == --* ]]; then
-            COMPREPLY=($(compgen -W '--file --level --yes --allow-downgrades --install-recommends --install-suggests --no-install-recommends --no-install-suggests --target-releas' -- "$cur"))
-        elif [[ "$cur" == -* ]]; then
-            COMPREPLY=($(compgen -W '-f -l -y -t' -- "$cur"))
+    elif [[ ${words[1]} == upgrade ]]; then
+        if [[ $cur == --* ]]; then
+            COMPREPLY=($(compgen -W '--yes --allow-downgrades --install-recommends --install-suggests --no-install-recommends --no-install-suggests --target-release --help --version' -- "$cur"))
+        elif [[ $cur == -* ]]; then
+            COMPREPLY=($(compgen -W '-y -t --help --version' -- "$cur"))
         fi
     else
-        if [[ "$cur" == -* ]]; then
+        if [[ $cur == -* ]]; then
             COMPREPLY=($(compgen -W '--help --version' -- "$cur"))
         else
             COMPREPLY=($(compgen -W 'install upgrade' -- "$cur"))
