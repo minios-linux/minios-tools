@@ -84,19 +84,6 @@ if [ "$MINIOS" = "" ]; then
 fi
 
 echo $SYSTEMNAME >/tmp/info
-cat <<EOF >/tmp/README
-################################### README ####################################
-* To install MiniOS, copy the contents of the ISO to the root of the media,
-  then run minios\boot\bootinst.bat on Windows, or minios/boot/bootinst.sh
-  on Linux.
-* When installed on media with fat32 and ntfs file systems, changes in
-  persistent changes mode will be saved in the minios\changes\changes.dat.x
-  files, the files expands dynamically, the maximum size of each file is 4 GB.
-* When installed on media with ext2-ext4, xfs, btrfs file systems, changes in
-  the persistent changes mode will be saved in the minios\changes folder with
-  no size limit.
-###############################################################################
-EOF
 
 GRAFT=$(
     cd "$MINIOS"
@@ -108,7 +95,6 @@ GRAFT=$(
         echo "EFI/$LINE=$MINIOS/boot/EFI/$LINE"
     done
     echo ".disk/info=/tmp/info"
-    echo "README=/tmp/README"
     echo "$LIVEKITNAME/$LIVEKITNAME.conf=/etc/$LIVEKITNAME/$LIVEKITNAME.conf"
     echo "$LIVEKITNAME/boot/grub/grub.cfg=/etc/$LIVEKITNAME/grub.cfg"
     echo "$LIVEKITNAME/boot/syslinux.cfg=/etc/$LIVEKITNAME/syslinux.cfg"
