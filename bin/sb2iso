@@ -36,7 +36,7 @@ VERSION="1.1"
 LIVEKITNAME="minios"
 SYSTEMNAME="MiniOS"
 
-TEMP=/tmp/"$LIVEKITNAME"iso.$$
+TEMP=/tmp/${LIVEKITNAME}.iso.$$
 MODULES=()
 
 while [ "$#" -gt 0 ]; do
