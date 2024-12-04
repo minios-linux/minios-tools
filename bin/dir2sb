@@ -2,7 +2,7 @@
 # Author: Tomas M. <http://www.slax.org/>
 # Author: crims0n <https://minios.dev>
 
-VERSION="1.2"
+VERSION="1.0"
 BEXT="sb"
 COMP_TYPE="zstd"
 export TEXTDOMAIN="minios-tools"
@@ -46,6 +46,10 @@ while [ $# -gt 0 ]; do
         ;;
     -c | --comp)
         COMP_TYPE="$2"
+        if [[ ! "$COMP_TYPE" =~ ^(zstd|gzip|lzo|xz)$ ]]; then
+            echo "Error: Invalid compression type: $COMP_TYPE" >&2
+            brief_help
+        fi
         shift 2
         ;;
     --help)
@@ -55,7 +59,7 @@ while [ $# -gt 0 ]; do
         version
         ;;
     *)
-        if [ "$1" == -* ]; then # unknown option
+        if [ "$1" == -* ]; then
             brief_help
         fi
         POSARGS+=("$1")
@@ -71,16 +75,17 @@ elif [ ${#POSARGS[@]} -gt 2 ]; then
 fi
 
 P1="$(readlink -f "${POSARGS[0]}")"
-P2=""
 if [ ${#POSARGS[@]} -eq 2 ]; then
     P2="$(readlink -f "${POSARGS[1]}")"
+else
+    P2=""
 fi
 
 if [ "$P1" = "$P2" ]; then
     P2=""
 fi
 
-SB=$(echo "$P1" | grep -o "[.]${BEXT}/*\$")
+SB=$(echo "$P1" | grep -o "[.]sb/*\$")
 if [ "$(echo "$P1" | grep -o "/squashfs-root/*\$")" != "" ]; then
     SB="true"
 fi
@@ -95,7 +100,7 @@ else
 fi
 
 if [ ! -d "$P1" ]; then
-    echo "$(gettext "Error"): $(gettext "Not a directory:") $P1" >&2
+    echo "Not a directory: $P1" >&2
     exit 2
 fi
 
@@ -107,21 +112,26 @@ else
     COMP_OPTS=""
 fi
 
-mksquashfs "$TMP" "$TARGET" -comp "$COMP_TYPE" -b 1024K -always-use-fragments -noappend -quiet $COMP_OPTS
-
 if [ "$P2" = "" ]; then
     TARGET="$P1.$BEXT"
     while [ -e "$TARGET" ]; do TARGET="$TARGET"x; done
-    mksquashfs "$P1" "$TARGET" -comp "$COMP_TYPE" -b 1024K -always-use-fragments -quiet $COMP_OPTS "$KEEP" || echo "$(gettext "Error"): $(gettext "mksquashfs failed.")" >&2 && exit 3
+else
+    TARGET="$P2"
+    if [ -e "$TARGET" ]; then
+        echo "Target exists: $TARGET" >&2
+        exit 4
+    fi
+fi
 
+MKSQUASHFS_CMD="mksquashfs $P1 $TARGET -comp $COMP_TYPE -b 1024K -always-use-fragments -quiet $COMP_OPTS"
+if [ "$KEEP" = "-keep-as-directory" ]; then
+    MKSQUASHFS_CMD="$MKSQUASHFS_CMD -keep-as-directory"
+fi
+
+$MKSQUASHFS_CMD || exit 5
+
+if [ "$P2" = "" ]; then
     umount "$P1" 2>/dev/null
     rm -Rf "$P1"
     mv "$TARGET" "$P1"
-else
-    if [ -e "$P2" ]; then
-        echo "$(gettext "Error"): $(gettext "Target exists:") $P2" >&2
-        exit 4
-    fi
-
-    mksquashfs "$P1" "$P2" -comp "$COMP_TYPE" -b 1024K -always-use-fragments -quiet $COMP_OPTS "$KEEP" || echo "$(gettext "Error"): $(gettext "mksquashfs failed.")" >&2
 fi
