@@ -48,7 +48,7 @@ help() {
 brief_help() {
     echo "$(gettext "Usage"): $(basename $0) [COMMAND]... [FILE|DIRECTORY]..."
     echo "$(gettext "To run some of the commands in this script, your Linux kernel must support AUFS.")"
-    echo "$(gettext "Try") '$(basename $0) --help' $(gettext "for more information.")"
+    echo "$(gettext "Try") '$(basename $0) help' $(gettext "for more information.")"
     exit 1
 }
 

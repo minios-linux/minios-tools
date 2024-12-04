@@ -46,10 +46,6 @@ while [ $# -gt 0 ]; do
         ;;
     -c | --comp)
         COMP_TYPE="$2"
-        if [[ ! "$COMP_TYPE" =~ ^(zstd|gzip|lzo|xz)$ ]]; then
-            echo "Error: Invalid compression type: $COMP_TYPE" >&2
-            brief_help
-        fi
         shift 2
         ;;
     --help)
@@ -67,6 +63,11 @@ while [ $# -gt 0 ]; do
         ;;
     esac
 done
+
+if [ "$(id -u)" != "0" ]; then
+    echo "This script must be run as root."
+    brief_help
+fi
 
 if [ ${#POSARGS[@]} -eq 0 ]; then
     brief_help
