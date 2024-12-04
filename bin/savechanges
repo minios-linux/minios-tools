@@ -104,7 +104,15 @@ find \( -type d -printf "%p/\n" , -not -type d -print \) |
 
 cd "$CWD"
 
-mksquashfs "$TMP" "$TARGET" -comp "$COMP_TYPE" -b 1024K -always-use-fragments -noappend ${COMP_TYPE:="zstd":+ "-Xcompression-level 19"} ${COMP_TYPE:="xz":+ "-Xbcj x86"} #> /dev/null
+if [ "$COMP_TYPE" = "zstd" ]; then
+   COMP_OPTS="-Xcompression-level 19"
+elif [ "$COMP_TYPE" = "xz" ]; then
+   COMP_OPTS="-Xbcj x86"
+else
+   COMP_OPTS=""
+fi
+
+mksquashfs "$TMP" "$TARGET" -comp "$COMP_TYPE" -b 1024K -always-use-fragments -noappend -quiet $COMP_OPTS
 
 umount "$TMP"
 rmdir "$TMP"

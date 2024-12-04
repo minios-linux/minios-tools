@@ -205,10 +205,10 @@ done
 
 if [ "$APT_COMMAND" == "install" ]; then
     echo "Executing: apt-get update; apt-get install $APT_OPTIONS $PACKAGES"
-    echo "apt-get update; apt-get $APT_COMMAND $APT_OPTIONS $PACKAGES" >"$UNION/install"
+    echo "export LANG=C; apt-get update; apt-get $APT_COMMAND $APT_OPTIONS $PACKAGES" >"$UNION/install"
 elif [ "$APT_COMMAND" == "upgrade" ]; then
     echo "Executing: apt-get update; apt-get upgrade $APT_OPTIONS"
-    echo "apt-get update; apt-get $APT_COMMAND $APT_OPTIONS" >"$UNION/install"
+    echo "export LANG=C; apt-get update; apt-get $APT_COMMAND $APT_OPTIONS" >"$UNION/install"
 fi
 
 chmod ugo+x "$UNION/install"

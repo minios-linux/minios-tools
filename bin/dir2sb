@@ -99,10 +99,20 @@ if [ ! -d "$P1" ]; then
     exit 2
 fi
 
+if [ "$COMP_TYPE" = "zstd" ]; then
+    COMP_OPTS="-Xcompression-level 19"
+elif [ "$COMP_TYPE" = "xz" ]; then
+    COMP_OPTS="-Xbcj x86"
+else
+    COMP_OPTS=""
+fi
+
+mksquashfs "$TMP" "$TARGET" -comp "$COMP_TYPE" -b 1024K -always-use-fragments -noappend -quiet $COMP_OPTS
+
 if [ "$P2" = "" ]; then
     TARGET="$P1.$BEXT"
     while [ -e "$TARGET" ]; do TARGET="$TARGET"x; done
-    mksquashfs "$P1" "$TARGET" -comp "$COMP_TYPE" -b 1024K -always-use-fragments "$KEEP" ${COMP_TYPE:="zstd":+ "-Xcompression-level 19"} ${COMP_TYPE:="xz":+ "-Xbcj x86"} || echo "$(gettext "Error"): $(gettext "mksquashfs failed.")" >&2 && exit 3
+    mksquashfs "$P1" "$TARGET" -comp "$COMP_TYPE" -b 1024K -always-use-fragments -quiet $COMP_OPTS "$KEEP" || echo "$(gettext "Error"): $(gettext "mksquashfs failed.")" >&2 && exit 3
 
     umount "$P1" 2>/dev/null
     rm -Rf "$P1"
@@ -113,5 +123,5 @@ else
         exit 4
     fi
 
-    mksquashfs "$P1" "$P2" -comp "$COMP_TYPE" -b 1024K -always-use-fragments "$KEEP" ${COMP_TYPE:="zstd":+ "-Xcompression-level 19"} ${COMP_TYPE:="xz":+ "-Xbcj x86"} || echo "$(gettext "Error"): $(gettext "mksquashfs failed.")" >&2
+    mksquashfs "$P1" "$P2" -comp "$COMP_TYPE" -b 1024K -always-use-fragments -quiet $COMP_OPTS "$KEEP" || echo "$(gettext "Error"): $(gettext "mksquashfs failed.")" >&2
 fi
