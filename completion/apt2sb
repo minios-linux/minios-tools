@@ -19,9 +19,9 @@ _apt2sb() {
 
     if [[ ${words[1]} == install ]]; then
         if [[ $cur == --* ]]; then
-            COMPREPLY=($(compgen -W '--yes --allow-downgrades --install-recommends --install-suggests --no-install-recommends --no-install-suggests --target-release --name --level --help --version' -- "$cur"))
+            COMPREPLY=($(compgen -W '--yes --allow-downgrades --install-recommends --install-suggests --no-install-recommends --no-install-suggests --target-release --bext --comp --name --level --help --version' -- "$cur"))
         elif [[ $cur == -* ]]; then
-            COMPREPLY=($(compgen -W '-y -t -n -l --help --version' -- "$cur"))
+            COMPREPLY=($(compgen -W '-b -c -y -t -n -l --help --version' -- "$cur"))
         elif [[ ${#words[@]} -ge 3 && $cur != */* ]]; then
             COMPREPLY+=($(apt-cache --no-generate pkgnames "$cur" 2>/dev/null))
         else
@@ -29,9 +29,9 @@ _apt2sb() {
         fi
     elif [[ ${words[1]} == upgrade ]]; then
         if [[ $cur == --* ]]; then
-            COMPREPLY=($(compgen -W '--yes --allow-downgrades --install-recommends --install-suggests --no-install-recommends --no-install-suggests --target-release --name --level --help --version' -- "$cur"))
+            COMPREPLY=($(compgen -W '--yes --allow-downgrades --install-recommends --install-suggests --no-install-recommends --no-install-suggests --target-release --bext --comp --name --level --help --version' -- "$cur"))
         elif [[ $cur == -* ]]; then
-            COMPREPLY=($(compgen -W '-y -t -n -l --help --version' -- "$cur"))
+            COMPREPLY=($(compgen -W '-b -c -y -t -n -l --help --version' -- "$cur"))
         fi
     else
         if [[ $cur == -* ]]; then

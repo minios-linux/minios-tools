@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-17 13:59+0300\n"
+"POT-Creation-Date: 2024-12-04 14:02+0300\n"
 "PO-Revision-Date: 2024-03-17 14:43+0300\n"
 "Last-Translator: crims0n <crims0n@minios.dev>, 2024.\n"
 "Language-Team: German\n"
@@ -17,154 +17,278 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: apt2sb:10 apt2sb:41
+#: bin/apt2sb:10 bin/apt2sb:43 bin/chroot2sb:10 bin/chroot2sb:30 bin/dir2sb:11
+#: bin/dir2sb:31 bin/rmsbdir:9 bin/savechanges:14 bin/savechanges:30 bin/sb:20
+#: bin/sb:49 bin/sb2iso:13 bin/sb2iso:31 bin/script2sb:10 bin/script2sb:32
 msgid "Usage"
 msgstr "Verwendung"
 
-#: apt2sb:11
+#: bin/apt2sb:11
 msgid "Installs packages from repositories and packages them into a module."
 msgstr "Installiert Pakete aus Repositories und verpackt sie in ein Modul."
 
-#: apt2sb:13
+#: bin/apt2sb:13 bin/sb:24
 msgid "Commands"
 msgstr "Befehle"
 
-#: apt2sb:14
+#: bin/apt2sb:14
 msgid "Install package(s)"
 msgstr "Paket(e) installieren"
 
-#: apt2sb:15
+#: bin/apt2sb:15
 msgid "Upgrade installed packages"
 msgstr "Installierte Pakete aktualisieren"
 
-#: apt2sb:17
+#: bin/apt2sb:17 bin/chroot2sb:13 bin/dir2sb:14 bin/savechanges:17
+#: bin/sb2iso:16 bin/script2sb:13
 msgid "Options"
 msgstr "Optionen"
 
-#: apt2sb:18
+#: bin/apt2sb:18
 msgid "Use NAME as the filename for the module instead of PACKAGE1"
 msgstr "Verwenden Sie NAME als Dateinamen für das Modul anstelle von PACKAGE1"
 
-#: apt2sb:19
+#: bin/apt2sb:19 bin/chroot2sb:16 bin/script2sb:18
 msgid "Use LEVEL as the filter level"
 msgstr "Verwenden Sie LEVEL als Filterebene"
 
-#: apt2sb:20
+#: bin/apt2sb:20 bin/chroot2sb:17 bin/dir2sb:16 bin/savechanges:18
+#: bin/script2sb:15
+msgid "Compression type (zstd, gzip, lzo, xz). Default: zstd"
+msgstr "Kompressionstyp (zstd, gzip, lzo, xz). Standard: zstd"
+
+#: bin/apt2sb:21 bin/chroot2sb:18 bin/dir2sb:15 bin/savechanges:19
+#: bin/script2sb:14
+msgid "Bundle extension. Default: sb"
+msgstr "Bündelendung. Standard: sb"
+
+#: bin/apt2sb:22 bin/chroot2sb:19 bin/dir2sb:17 bin/savechanges:20 bin/sb:34
+#: bin/sb2iso:19 bin/script2sb:20
 msgid "Display this help and exit"
 msgstr "Diese Hilfe anzeigen und beenden"
 
-#: apt2sb:21
+#: bin/apt2sb:23 bin/chroot2sb:20 bin/dir2sb:18 bin/savechanges:21 bin/sb:35
+#: bin/sb2iso:20 bin/script2sb:21
 msgid "Display version information and exit"
 msgstr "Versionsinformationen anzeigen und beenden"
 
-#: apt2sb:23
+#: bin/apt2sb:25
 msgid "Apt Options (for install/upgrade command)"
-msgstr "Apt Optionen (für install/upgrade Befehl)"
+msgstr "Apt-Optionen (für install/upgrade-Befehl)"
 
-#: apt2sb:24
+#: bin/apt2sb:26
 msgid "Automatic yes to prompts"
-msgstr "Automatische Ja zu Aufforderungen"
+msgstr "Automatisches Ja bei Eingabeaufforderungen"
 
-#: apt2sb:25
+#: bin/apt2sb:27
 msgid "Allow downgrades of packages"
 msgstr "Downgrades von Paketen erlauben"
 
-#: apt2sb:26
+#: bin/apt2sb:28
 msgid "Consider recommended packages as a dependency for installing"
-msgstr "Betrachten Sie empfohlene Pakete als Abhängigkeit für die Installation"
+msgstr "Empfohlene Pakete als Abhängigkeit für die Installation berücksichtigen"
 
-#: apt2sb:27
+#: bin/apt2sb:29
 msgid "Consider suggested packages as a dependency for installing"
-msgstr "Betrachten Sie vorgeschlagene Pakete als Abhängigkeit für die Installation"
+msgstr "Vorgeschlagene Pakete als Abhängigkeit für die Installation berücksichtigen"
 
-#: apt2sb:28
+#: bin/apt2sb:30
 msgid "Do not consider recommended packages as a dependency for installing"
-msgstr "Betrachten Sie empfohlene Pakete nicht als Abhängigkeit für die Installation"
+msgstr "Empfohlene Pakete nicht als Abhängigkeit für die Installation berücksichtigen"
 
-#: apt2sb:29
+#: bin/apt2sb:31
 msgid "Do not consider suggested packages as a dependency for installing"
-msgstr "Betrachten Sie vorgeschlagene Pakete nicht als Abhängigkeit für die Installation"
+msgstr "Vorgeschlagene Pakete nicht als Abhängigkeit für die Installation berücksichtigen"
 
-#: apt2sb:30
+#: bin/apt2sb:32
 msgid "Default release to install packages from"
-msgstr "Standardrelease zur Installation von Paketen"
+msgstr "Standard-Version, von der Pakete installiert werden sollen"
 
-#: apt2sb:32
+#: bin/apt2sb:34 bin/chroot2sb:22 bin/sb:37 bin/sb2iso:22 bin/script2sb:23
 msgid "Examples"
 msgstr "Beispiele"
 
-#: apt2sb:42
+#: bin/apt2sb:44 bin/chroot2sb:31 bin/dir2sb:32 bin/savechanges:31 bin/sb:51
+#: bin/sb2iso:32 bin/script2sb:33
 msgid "Try"
 msgstr "Versuchen Sie"
 
-#: apt2sb:42
+#: bin/apt2sb:44 bin/chroot2sb:31 bin/dir2sb:32 bin/savechanges:31 bin/sb:51
+#: bin/sb2iso:32 bin/script2sb:33
 msgid "for more information."
 msgstr "für weitere Informationen."
 
-#: chroot2sb:11
+#: bin/chroot2sb:11 bin/script2sb:11
 msgid "Packages a module from changes made by an installation script"
-msgstr "Verpackt ein Modul aus Änderungen, die durch ein Installationsskript gemacht wurden"
+msgstr "Verpackt ein Modul aus Änderungen, die durch ein Installationsskript vorgenommen wurden"
 
-#: chroot2sb:14
+#: bin/chroot2sb:14 bin/script2sb:16
 msgid "Copy contents of DIR to the root of the module"
-msgstr "Inhalte von DIR in das Wurzelverzeichnis des Moduls kopieren"
+msgstr "Kopiert den Inhalt von DIR in das Stammverzeichnis des Moduls"
 
-#: chroot2sb:15
+#: bin/chroot2sb:15 bin/script2sb:17
 msgid "Use NAME as the filename for the module"
 msgstr "Verwenden Sie NAME als Dateinamen für das Modul"
 
-#: script2sb:16
-msgid "Use FILE as the installation script"
-msgstr "Verwenden Sie FILE als Installationsskript"
+#: bin/dir2sb:12
+msgid "Converts a directory to a compressed .sb module"
+msgstr "Konvertiert ein Verzeichnis in ein komprimiertes .sb-Modul"
 
-#: sb:24
+#: bin/dir2sb:20
+msgid "Arguments"
+msgstr "Argumente"
+
+#: bin/dir2sb:21
+msgid "The directory to convert to a module"
+msgstr "Das in ein Modul zu konvertierende Verzeichnis"
+
+#: bin/dir2sb:22
+msgid "Optional. The name of the output module file"
+msgstr "Optional. Der Name der Ausgabedatei des Moduls"
+
+#: bin/dir2sb:24
+msgid "Behavior"
+msgstr "Verhalten"
+
+#: bin/dir2sb:25
+msgid ""
+"If SOURCE_DIRECTORY does not have a .sb extension and is not 'squashfs-"
+"root', then the directory itself is included in the module, and TARGET_FILE "
+"is required."
+msgstr ""
+"Wenn SOURCE_DIRECTORY keine .sb-Erweiterung hat und nicht 'squashfs-root' ist, "
+"wird das Verzeichnis selbst in das Modul aufgenommen und TARGET_FILE ist "
+"erforderlich."
+
+#: bin/dir2sb:26
+msgid ""
+"If TARGET_FILE is not specified, SOURCE_DIRECTORY is replaced by the new "
+"module file."
+msgstr ""
+"Wenn TARGET_FILE nicht angegeben ist, wird SOURCE_DIRECTORY durch die neue "
+"Moduldatei ersetzt."
+
+#: bin/dir2sb:98 bin/dir2sb:105 bin/dir2sb:112 bin/dir2sb:116
+msgid "Error"
+msgstr "Fehler"
+
+#: bin/dir2sb:98
+msgid "Not a directory:"
+msgstr "Kein Verzeichnis:"
+
+#: bin/dir2sb:105 bin/dir2sb:116
+msgid "mksquashfs failed."
+msgstr "mksquashfs fehlgeschlagen."
+
+#: bin/dir2sb:112
+msgid "Target exists:"
+msgstr "Ziel existiert bereits:"
+
+#: bin/rmsbdir:8
+msgid "Erase module directory created by sb2dir"
+msgstr "Lösche das von sb2dir erstellte Modulverzeichnis"
+
+#: bin/rmsbdir:9
+msgid "source_directory.sb"
+msgstr "source_directory.sb"
+
+#: bin/rmsbdir:18 bin/sb2dir:31
+msgid "Directory does not exist:"
+msgstr "Verzeichnis existiert nicht:"
+
+#: bin/rmsbdir:25
+msgid "Module directory deleted:"
+msgstr "Modulverzeichnis gelöscht:"
+
+#: bin/savechanges:15
+msgid "Saves all changed files in a compressed filesystem bundle."
+msgstr "Speichert alle geänderten Dateien in einem komprimierten Dateisystem-Bündel."
+
+#: bin/savechanges:23
+msgid "If changes_directory is not specified,"
+msgstr "Wenn changes_directory nicht angegeben ist,"
+
+#: bin/savechanges:24
+msgid "/run/initramfs/memory/changes is used."
+msgstr "wird /run/initramfs/memory/changes verwendet."
+
+#: bin/sb:21
 msgid "Manage MiniOS bundles."
-msgstr "Verwalten Sie MiniOS-Bündel."
+msgstr "MiniOS-Bündel verwalten."
 
-#: sb:25 sb:53
-msgid "To run some of the commands in this script, your Linux kernel must support AUFS."
-msgstr "Um einige der Befehle in diesem Skript auszuführen, muss Ihr Linux-Kernel AUFS unterstützen."
+#: bin/sb:22 bin/sb:50
+msgid ""
+"To run some of the commands in this script, your Linux kernel must support "
+"AUFS."
+msgstr ""
+"Um einige der Befehle in diesem Skript auszuführen, muss Ihr Linux-Kernel "
+"AUFS unterstützen."
 
-#: sb:28
+#: bin/sb:25
 msgid "Activate a MiniOS bundle"
 msgstr "Ein MiniOS-Bündel aktivieren"
 
-#: sb:29
+#: bin/sb:26
 msgid "Deactivate an active MiniOS bundle"
 msgstr "Ein aktives MiniOS-Bündel deaktivieren"
 
-#: sb:30
+#: bin/sb:27
 msgid "List active MiniOS bundles"
-msgstr "Liste der aktiven MiniOS-Bündel"
+msgstr "Aktive MiniOS-Bündel auflisten"
 
-#: sb:31
+#: bin/sb:28
 msgid "Save changes made at runtime to the bundle"
 msgstr "Änderungen, die zur Laufzeit am Bündel vorgenommen wurden, speichern"
 
-#: sb:33 sb:34
+#: bin/sb:30 bin/sb:31
 msgid "Remove an unpacked bundle directory"
 msgstr "Ein ausgepacktes Bündelverzeichnis entfernen"
 
-#: sb:35
+#: bin/sb:32
 msgid "Convert an .sb bundle to directory or vice versa"
 msgstr "Ein .sb-Bündel in ein Verzeichnis konvertieren oder umgekehrt"
 
-#: sb2iso:8
+#: bin/sb2dir:9
+#, fuzzy
+msgid "Usage:"
+msgstr "Verwendung:"
+
+#: bin/sb2dir:10
+msgid "If the output_directory is specified, it must exist"
+msgstr "Wenn output_directory angegeben ist, muss es existieren"
+
+#: bin/sb2dir:11
+msgid "If the output_directory is not specified, the name source_file.sb"
+msgstr "Wenn output_directory nicht angegeben ist, wird der Name source_file.sb"
+
+#: bin/sb2dir:12
+msgid "is used and the directory is overmounted with tmpfs"
+msgstr "verwendet und das Verzeichnis mit tmpfs überschrieben"
+
+#: bin/sb2dir:17
+msgid "File does not exist:"
+msgstr "Datei existiert nicht:"
+
+#: bin/sb2iso:14
 msgid "Generate MiniOS ISO image, adding specified modules."
-msgstr "Erzeugen Sie ein MiniOS ISO-Image und fügen Sie spezifizierte Module hinzu."
+msgstr "MiniOS ISO-Image erstellen und angegebene Module hinzufügen."
 
-#: sb2iso:11
+#: bin/sb2iso:17
 msgid "Exclude any existing path or file matching REGEX"
-msgstr "Jeden vorhandenen Pfad oder jede Datei ausschließen, die mit REGEX übereinstimmt"
+msgstr "Alle vorhandenen Pfade oder Dateien ausschließen, die mit REGEX übereinstimmen"
 
-#: sb2iso:12
+#: bin/sb2iso:18
 msgid "Specify output ISO filename (default"
-msgstr "Geben Sie den Ausgabe-ISO-Dateinamen an (Standard"
+msgstr "Ausgabe-ISO-Dateinamen angeben (Standard"
 
-#: sb2iso:17
+#: bin/sb2iso:23
 msgid "Create MiniOS ISO without firefox.sb module:"
-msgstr "Erstellen Sie ein MiniOS ISO ohne das firefox.sb Modul:"
+msgstr "MiniOS ISO ohne firefox.sb-Modul erstellen:"
 
-#: sb2iso:19
+#: bin/sb2iso:25
 msgid "Create MiniOS text-mode core only:"
-msgstr "Erstellen Sie nur den Textmodus-Kern von MiniOS:"
+msgstr "Nur MiniOS Textmodus-Kern erstellen:"
+
+#: bin/script2sb:19
+msgid "Use FILE as the installation script"
+msgstr "Verwenden Sie FILE als Installationsskript"

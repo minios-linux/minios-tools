@@ -1,7 +1,13 @@
 #!/bin/bash
-
 # Author: Tomas M. <http://www.linux-live.org>
 # Author: crims0n. <https://minios.dev>
+
+VERSION="1.1"
+LIVEKITNAME="minios"
+SYSTEMNAME="MiniOS"
+export TEXTDOMAIN="minios-tools"
+TEMP=/tmp/${LIVEKITNAME}.iso.$$
+MODULES=()
 
 help() {
     echo "$(gettext "Usage"): $(basename $0) [OPTIONS]... [MODULE.SB]..."
@@ -31,13 +37,6 @@ version() {
     echo "$(basename $0) $VERSION"
     exit 0
 }
-
-VERSION="1.1"
-LIVEKITNAME="minios"
-SYSTEMNAME="MiniOS"
-
-TEMP=/tmp/${LIVEKITNAME}.iso.$$
-MODULES=()
 
 while [ "$#" -gt 0 ]; do
     case "$1" in

@@ -50,11 +50,11 @@ _script2sb() {
     fi
 
     if [[ "$cur" == --* ]]; then
-        COMPREPLY=($(compgen -W '--directory --name= --level --script' -- "$cur"))
+        COMPREPLY=($(compgen -W '--bext --comp --directory --name= --level --script' -- "$cur"))
     elif [[ "$cur" == -* ]]; then
-        COMPREPLY=($(compgen -W '-d -n -l -s' -- "$cur"))
+        COMPREPLY=($(compgen -W '-b -c -d -n -l -s' -- "$cur"))
     else
-        COMPREPLY=($(compgen -W '--directory --name --level --script' -- "$cur"))
+        COMPREPLY=($(compgen -W '--bext --comp --directory --name --level --script' -- "$cur"))
     fi
 
 }

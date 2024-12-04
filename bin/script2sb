@@ -1,27 +1,30 @@
 #!/bin/bash
-
-# Author: crims0n. <http://minios.dev>
+# Author: crims0n <https://minios.dev>
 
 VERSION="1.2"
 BEXT="sb"
+COMP_TYPE="zstd"
+export TEXTDOMAIN="minios-tools"
 
 help() {
     echo "$(gettext "Usage"): $(basename $0) [OPTIONS]... --script FILE"
     echo "$(gettext "Packages a module from changes made by an installation script")"
     echo ""
     echo "$(gettext "Options"):"
-    echo "  -d, --directory DIR   $(gettext "Copy contents of DIR to the root of the module")"
-    echo "  -n, --name NAME       $(gettext "Use NAME as the filename for the module")"
-    echo "  -l, --level LEVEL     $(gettext "Use LEVEL as the filter level")"
-    echo "  -s, --script FILE     $(gettext "Use FILE as the installation script")"
-    echo "      --help            $(gettext "Display this help and exit")"
-    echo "      --version         $(gettext "Display version information and exit")"
+    echo "  -b, --bext EXT              $(gettext "Bundle extension. Default: sb")"
+    echo "  -c, --comp TYPE             $(gettext "Compression type (zstd, gzip, lzo, xz). Default: zstd")"
+    echo "  -d, --directory DIR         $(gettext "Copy contents of DIR to the root of the module")"
+    echo "  -n, --name NAME             $(gettext "Use NAME as the filename for the module")"
+    echo "  -l, --level LEVEL           $(gettext "Use LEVEL as the filter level")"
+    echo "  -s, --script FILE           $(gettext "Use FILE as the installation script")"
+    echo "      --help                  $(gettext "Display this help and exit")"
+    echo "      --version               $(gettext "Display version information and exit")"
     echo ""
     echo "$(gettext "Examples"):"
     echo "  $(basename $0) -s /path/to/install_script.sh"
     echo "  $(basename $0) --level 03 --script /path/to/install_script.sh"
-    echo "  $(basename $0) -s /path/to/install_script.sh -n 06-chromium.$BEXT -l 3"
-    echo "  $(basename $0) chroot -d /path/to/copy/contents"
+    echo "  $(basename $0) -s /path/to/install_script.sh -n 06-chromium.$BEXT -l 3 -c lzo"
+    echo "  $(basename $0) -d /path/to/copy/contents -n my-module.$BEXT"
     exit 0
 }
 
@@ -63,6 +66,14 @@ while [ $# -gt 0 ]; do
         INSTALL_SCRIPT="$2"
         shift 2
         ;;
+    -c | --comp)
+        COMP_TYPE="$2"
+        shift 2
+        ;;
+    -b | --bext)
+        BEXT="$2"
+        shift 2
+        ;;
     --help)
         help
         ;;
@@ -100,17 +111,12 @@ elif [ -d "/memory/bundles" ]; then
     SYSTEMCHANGES="/memory/changes"
 fi
 
-# We use the changes folder to store temporary files and perform module
-# builds because it is on the physical file system, which will avoid RAM
-# leaks when building a large module.
-#
 TMP=$(mktemp -d "$SYSTEMCHANGES"/build2sb.XXXXX)
 CHANGES="$TMP/changes"
 UNION="$TMP/union"
 
 trap 'if [ "$RESOLVCONFLNK" = "true" ]; then rm -f "$CHANGES/etc/resolv.conf" 2>/dev/null; else umount "$UNION/etc/resolv.conf" 2>/dev/null; fi; umount "$UNION/sys" 2>/dev/null; umount "$UNION/proc" 2>/dev/null; umount "$UNION/dev/pts" 2>/dev/null; umount "$UNION/dev" 2>/dev/null; rm "$CHANGES/install" 2>/dev/null; rmdir "$CHANGES/*" 2>/dev/null; umount "$UNION"; umount "$TMP" 2>/dev/null; rm -rf "$TMP"' EXIT
 
-#mount -t tmpfs tmpfs "$TMP"
 mkdir -p "$CHANGES"
 mkdir -p "$UNION"
 
@@ -205,5 +211,5 @@ if [ "$FAILED" != "true" ]; then
     fi
 
     echo "Saving changes made by installation script into a module "$FILENAME"..."
-    savechanges "$FILENAME" "$CHANGES"
+    savechanges "$FILENAME" "$CHANGES" -c "$COMP_TYPE"
 fi

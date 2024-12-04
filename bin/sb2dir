@@ -1,19 +1,21 @@
 #!/bin/bash
 # Author: Tomas M. <http://www.slax.org/>
 
+export TEXTDOMAIN="minios-tools"
+
 if [ ! -e "$1" ]; then
-   echo 
-   echo "Convert .sb compressed module into directory with the same name"
-   echo "Usage: $0 [source_file.sb] [[optional output_directory]]"
-   echo "  If the output_directory is specified, it must exist"
-   echo "  If the output_directory is not specified, the name source_file.sb"
-   echo "  is used and the directory is overmounted with tmpfs"
+   echo
+   echo "$(gettext "Convert .$BEXT compressed module into directory with the same name")"
+   echo "$(gettext "Usage:"): $0 [source_file.sb] [[optional output_directory]]"
+   echo "  $(gettext "If the output_directory is specified, it must exist")"
+   echo "  $(gettext "If the output_directory is not specified, the name source_file.sb")"
+   echo "  $(gettext "is used and the directory is overmounted with tmpfs")"
    exit 1
 fi
 
 if [ ! -r "$1" ]; then
-   echo "File does not exist: $1" >&2
-   exit
+   echo "$(gettext "File does not exist:"): $1" >&2
+   exit 1
 fi
 
 if [ "$2" = "" ]; then
@@ -26,8 +28,8 @@ if [ "$2" = "" ]; then
    rm "$SOURCE"
 else
    if [ ! -d "$2" ]; then
-      echo "Directory does not exist: $2" >&2
-      exit
+      echo "$(gettext "Directory does not exist:"): $2" >&2
+      exit 1
    fi
    unsquashfs -f -dest "$2" "$1" >/dev/null
 fi

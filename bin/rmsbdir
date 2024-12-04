@@ -1,17 +1,25 @@
 #!/bin/bash
 # Author: Tomas M. <http://www.slax.org/>
+# Author: crims0n <https://minios.dev>
+
+export TEXTDOMAIN="minios-tools"
+
+usage() {
+   echo "$(gettext "Erase module directory created by sb2dir")"
+   echo "$(gettext "Usage"): $0 [$(gettext "source_directory.sb")]"
+   exit 1
+}
 
 if [ ! -e "$1" ]; then
-   echo 
-   echo "Erase module directory created by sb2dir"
-   echo "Usage: $0 [source_directory.sb]"
-   exit 1
+   usage
 fi
 
 if [ ! -d "$1" ]; then
-   echo "Directory does not exist: $1" >&2
-   exit
+   echo "$(gettext "Directory does not exist:"): $1" >&2
+   exit 1
 fi
 
 umount "$1" 2>/dev/null
 rm -Rf "$1"
+
+echo "$(gettext "Module directory deleted:") $1"

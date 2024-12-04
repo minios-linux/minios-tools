@@ -2,83 +2,33 @@
 # Author: Tomas M. <http://www.slax.org/>
 # Author: crims0n <https://minios.dev>
 
-read_config() {
-   # Enable extended globbing. This is required for the pattern matching of variable names.
-   shopt -s extglob
-
-   # The first argument is the configuration file.
-   local CONFIG_FILE="${1?No configuration file given}"
-
-   # All other arguments are the variable names to look for.
-   local KEYLIST="${@:2}"
-
-   # Check if the configuration file exists and is readable.
-   if [[ ! -f "${CONFIG_FILE}" ]]; then
-      echo >&2 "\"${CONFIG_FILE}\" is not a file!"
-      exit 1
-   fi
-   if [[ ! -r "${CONFIG_FILE}" ]]; then
-      echo >&2 "\"${CONFIG_FILE}\" is not readable!"
-      exit 1
-   fi
-
-   # Convert the list of variable names to a regex pattern.
-   KEYLIST="${KEYLIST// /|}"
-
-   # Read each line of the file.
-   while IFS='= ' read -r LHS RHS; do
-      # If the variable name is in our list and the value is not empty...
-      if [[ "${LHS}" =~ ^(${KEYLIST})$ ]] && [[ -n ${RHS} ]]; then
-         # Remove any quotes around the value.
-         RHS="${RHS%\"*}"
-         RHS="${RHS#\"*}"
-         RHS="${RHS%\'*}"
-         RHS="${RHS#\'*}"
-
-         # If the value is an array (surrounded by parentheses)...
-         if [[ "${RHS}" =~ ^\((.*)\)$ ]]; then
-            # Assign the array to the variable.
-            eval ${LHS}=\("${BASH_REMATCH[1]}"\)
-         else
-            # Otherwise, assign the value to the variable.
-            eval ${LHS}=\"${RHS}\"
-         fi
-      fi
-   done <<<"$(tr -d '\r' <${CONFIG_FILE})"
-
-   # Disable extended globbing after we're done using it.
-   shopt -u extglob
-}
-
-
 VERSION="1.0"
-read_config /etc/minios/config COMP_TYPE
-BEXT=${COMP_TYPE:-"zstd"}
-read_config /etc/minios/config BEXT
-BEXT=${BEXT:-"sb"}
+BEXT="sb"
+COMP_TYPE="zstd"
+export TEXTDOMAIN="minios-tools"
 TMP=/tmp/changes$$
 EXCLUDE="^\$|/\$|[.]wh[.][.]wh[.]orph/|^[.]wh[.][.]pwd[.]lock|^[.]wh[.][.]wh[.]plnk/|^[.]wh[.][.]wh[.]aufs|^var/cache/|^var/backups/|^var/tmp/|^var/log/|^var/lib/apt/|^var/lib/dhcp/|^var/lib/systemd/|^sbin/fsck[.]aufs|^etc/resolv[.]conf|^root/[.]Xauthority|^root/[.]xsession-errors|^root/[.]fehbg|^root/[.]fluxbox/lastwallpaper|^root/[.]fluxbox/menu_resolution|^etc/mtab|^etc/fstab|^boot/|^dev/|^mnt/|^proc/|^run/|^sys/|^tmp/"
 CHANGES=/run/initramfs/memory/changes
 
 help() {
-   echo "Usage: $(basename $0) [target_file.$BEXT] [changes_directory]"
-   echo "Saves all changed files in a compressed filesystem bundle,"
-   echo "excluding some predefined files such as /etc/mtab, temp & log files,"
-   echo "empty directories, apt cache, and such."
+   echo "$(gettext "Usage"): $(basename $0) [OPTIONS] target_file.$BEXT [changes_directory]"
+   echo "$(gettext "Saves all changed files in a compressed filesystem bundle.")"
    echo ""
-   echo "Options:"
-   echo "  --help            display this help and exit"
-   echo "  --version         display version information and exit"
+   echo "$(gettext "Options"):"
+   echo "  -c, --comp TYPE        $(gettext "Compression type (zstd, gzip, lzo, xz). Default: zstd")"
+   echo "  -b, --bext EXT         $(gettext "Bundle extension. Default: sb")"
+   echo "      --help             $(gettext "Display this help and exit")"
+   echo "      --version          $(gettext "Display version information and exit")"
    echo ""
-   echo "If changes_directory is not specified,"
-   echo "/run/initramfs/memory/changes is used."
+   echo "$(gettext "If changes_directory is not specified,")"
+   echo "$(gettext "/run/initramfs/memory/changes is used.")"
    echo ""
    exit 0
 }
 
 brief_help() {
-   echo "Usage: $(basename $0) [target_file.$BEXT] [changes_directory]"
-   echo "Try '$(basename $0) --help' for more information."
+   echo "$(gettext "Usage"): $(basename $0) [OPTIONS] target_file.$BEXT [changes_directory]"
+   echo "$(gettext "Try") '$(basename $0) --help' $(gettext "for more information.")"
    exit 1
 }
 
@@ -87,39 +37,64 @@ version() {
    exit 0
 }
 
+while [[ $# -gt 0 ]]; do
+   key="$1"
+
+   case $key in
+   -c | --comp)
+      COMP_TYPE="$2"
+      shift 2
+      ;;
+   -b | --bext)
+      BEXT="$2"
+      shift 2
+      ;;
+   --help)
+      help
+      ;;
+   --version)
+      version
+      ;;
+   *) # unknown option
+      TARGET="$1"
+      shift
+      if [[ $# -gt 0 ]]; then
+         CHANGES="$1"
+         shift
+      fi
+      ;;
+   esac
+done
+
 if [[ "$(id -u)" != "0" ]]; then
-   echo "This script must be run as root."
+   echo "This script must be run as root." >&2
    brief_help
 fi
 
-if [[ $# -eq 0 ]]; then
+if [[ -z "$TARGET" ]]; then
    brief_help
-fi
-
-if [ ! "$2" = "" ]; then
-   CHANGES="$2"
 fi
 
 # Overlayfs requires one more subdir. Detect it this way
-if [ -d "$CHANGES/changes" -a -d "$CHANGES/workdir" -a "$(ls -1 "$CHANGES" | egrep -v '^changes$' | egrep -v '^workdir')" = "" ]; then
+if [ -d "$CHANGES/changes" ] && [ -d "$CHANGES/workdir" ] && [ "$(ls -1 "$CHANGES" | egrep -v '^changes$' | egrep -v '^workdir')" = "" ]; then
    CHANGES="$CHANGES/changes"
 fi
 
 # exclude control files for automounted disk drives
 EXCLUDEDISKS=$(grep "Skip savechanges" /etc/systemd/system/{*,*/*} 2>/dev/null | cut -d : -f 1 | cut -b 2- | tr '\n' '|')
-if [ "$EXCLUDEDISKS" != "" ]; then
+if [ -n "$EXCLUDEDISKS" ]; then
    EXCLUDE="$EXCLUDE|^($EXCLUDEDISKS)\$"
 fi
 
 # exclude the save_file itself of course
-EXCLUDE="$EXCLUDE|^""$(readlink -f "$1" | cut -b 2- | sed -r "s/[.]/[.]/")""\$"
+EXCLUDE="$EXCLUDE|^$(readlink -f "$TARGET" | cut -b 2- | sed -r "s/[.]/[.]/")\$"
 
 CWD=$(pwd)
 
-cd $CHANGES || exit
+cd "$CHANGES" || exit
 
-mkdir -p $TMP
-mount -t tmpfs tmpfs $TMP
+mkdir -p "$TMP"
+mount -t tmpfs tmpfs "$TMP"
 
 find \( -type d -printf "%p/\n" , -not -type d -print \) |
    sed -r "s/^[.]\\///" | egrep -v "$EXCLUDE" |
@@ -127,13 +102,9 @@ find \( -type d -printf "%p/\n" , -not -type d -print \) |
       cp --parents -afr "$FILE" "$TMP"
    done
 
-cd $CWD
+cd "$CWD"
 
-if [ $COMP_TYPE = "xz" ]; then
-   mksquashfs $TMP "$1" -comp $COMP_TYPE -b 1024K -Xbcj x86 -always-use-fragments -noappend #> /dev/null
-else
-   mksquashfs $TMP "$1" -comp $COMP_TYPE -b 1024K -always-use-fragments -noappend #> /dev/null
-fi
+mksquashfs "$TMP" "$TARGET" -comp "$COMP_TYPE" -b 1024K -always-use-fragments -noappend ${COMP_TYPE:="zstd":+ "-Xcompression-level 19"} ${COMP_TYPE:="xz":+ "-Xbcj x86"} #> /dev/null
 
-umount $TMP
-rmdir $TMP
+umount "$TMP"
+rmdir "$TMP"

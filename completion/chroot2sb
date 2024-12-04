@@ -42,11 +42,11 @@ _chroot2sb() {
     fi
 
     if [[ "$cur" == --* ]]; then
-        COMPREPLY=($(compgen -W '--directory --name --level' -- "$cur"))
+        COMPREPLY=($(compgen -W '--bext --comp --directory --name --level' -- "$cur"))
     elif [[ "$cur" == -* ]]; then
-        COMPREPLY=($(compgen -W '-d -n -l' -- "$cur"))
+        COMPREPLY=($(compgen -W '-b -c -d -n -l' -- "$cur"))
     else
-        COMPREPLY=($(compgen -W '--directory --name --level' -- "$cur"))
+        COMPREPLY=($(compgen -W '--bext --comp --directory --name --level' -- "$cur"))
     fi
 
 }

@@ -6,6 +6,7 @@
 . /etc/minios/minios.conf || exit 1
 
 VERSION="1.0"
+export TEXTDOMAIN="minios-tools"
 if [ -d "/run/initramfs/memory/bundles" ]; then
     LIVE="/run/initramfs/memory"
 elif [ -d "/memory/bundles" ]; then
@@ -14,10 +15,6 @@ fi
 BUNDLES="$LIVE/bundles"
 CHANGES="$LIVE/changes"
 RAMSTORE="$LIVE/modules"
-
-alias _='gettext'
-export TEXTDOMAIN="minios-tools"
-#export TEXTDOMAINDIR=/path/to/your/locale/
 
 help() {
     echo "$(gettext "Usage"): $(basename $0) [COMMAND]... [FILE|DIRECTORY]..."

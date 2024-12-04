@@ -1,9 +1,9 @@
 #!/bin/bash
-
-# Author: crims0n. <http://minios.dev>
+# Author: crims0n <https://minios.dev>
 
 VERSION="1.0"
 BEXT="sb"
+COMP_TYPE="zstd"
 export TEXTDOMAIN="minios-tools"
 
 help() {
@@ -14,13 +14,15 @@ help() {
     echo "  -d, --directory DIR     $(gettext "Copy contents of DIR to the root of the module")"
     echo "  -n, --name NAME         $(gettext "Use NAME as the filename for the module")"
     echo "  -l, --level LEVEL       $(gettext "Use LEVEL as the filter level")"
+    echo "  -c, --comp TYPE         $(gettext "Compression type (zstd, gzip, lzo, xz). Default: zstd")"
+    echo "  -b, --bext EXT          $(gettext "Bundle extension. Default: sb")"
     echo "      --help              $(gettext "Display this help and exit")"
     echo "      --version           $(gettext "Display version information and exit")"
     echo ""
     echo "$(gettext "Examples"):"
-    echo "  $(basename $0) --level 03"
-    echo "  $(basename $0) -n 06-chromium.$BEXT -l 3"
-    echo "  $(basename $0) -d /path/to/copy/contents"
+    echo "  $(basename $0) --level 03 --comp gzip"
+    echo "  $(basename $0) -n 06-chromium.$BEXT -l 3 -c xz"
+    echo "  $(basename $0) -d /path/to/copy/contents -b mod"
     exit 0
 }
 
@@ -51,6 +53,14 @@ while [ $# -gt 0 ]; do
         ;;
     -l | --level)
         FILTER_LEVEL=$(printf "%02d" "$2")
+        shift 2
+        ;;
+    -c | --comp)
+        COMP_TYPE="$2"
+        shift 2
+        ;;
+    -b | --bext)
+        BEXT="$2"
         shift 2
         ;;
     --help)
@@ -88,7 +98,6 @@ fi
 # We use the changes folder to store temporary files and perform module
 # builds because it is on the physical file system, which will avoid RAM
 # leaks when building a large module.
-#
 TMP=$(mktemp -d "$SYSTEMCHANGES"/build2sb.XXXXX)
 CHANGES="$TMP/changes"
 UNION="$TMP/union"
@@ -181,9 +190,9 @@ if [ "$FAILED" != "true" ]; then
         else
             PREFIX=""
         fi
-        FILENAME="$PREFIX$(date +%Y%m%d-%H%M)".$BEXT
+        FILENAME="$PREFIX$(date +%Y%m%d-%H%M).${BEXT}"
     fi
 
-    echo "Saving changes made by installation script into a module "$FILENAME"..."
-    savechanges "$FILENAME" "$CHANGES"
+    echo "Saving changes made by installation script into a module $FILENAME..."
+    savechanges "$FILENAME" "$CHANGES" -c "$COMP_TYPE"
 fi
