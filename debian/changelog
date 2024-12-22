@@ -1,3 +1,10 @@
+minios-tools (1.1) unstable; urgency=medium
+
+  * Fixed sb2iso, now the iso image should generate correctly.
+  * Adapted code for new iso format.
+
+ -- crims0n <crims0n@minios.dev>  Sun, 22 Dec 2024 23:16:02 +0300
+
 minios-tools (1.0) unstable; urgency=medium
 
   * Initial release

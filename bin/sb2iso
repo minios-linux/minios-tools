@@ -2,12 +2,17 @@
 # Author: Tomas M. <http://www.linux-live.org>
 # Author: crims0n. <https://minios.dev>
 
-VERSION="1.1"
+VERSION="1.2"
 LIVEKITNAME="minios"
 SYSTEMNAME="MiniOS"
 export TEXTDOMAIN="minios-tools"
 TEMP=/tmp/${LIVEKITNAME}.iso.$$
 MODULES=()
+if [ -d "/run/initramfs/memory" ]; then
+    SOURCE="/run/initramfs/memory"
+elif [ -d "/memory" ]; then
+    SOURCE="/memory"
+fi
 
 help() {
     echo "$(gettext "Usage"): $(basename $0) [OPTIONS]... [MODULE.SB]..."
@@ -118,12 +123,29 @@ done
     cp "$MINIOS/boot/isolinux.bin" "$TEMP/$LIVEKITNAME/boot"
     cp "$MINIOS/boot/isohdpfx.bin" "$TEMP/$LIVEKITNAME/boot"
     cd "$TEMP"
-    xorriso -as mkisofs -isohybrid-mbr $MINIOS/boot/isohdpfx.bin \
-        -no-emul-boot -boot-load-size 4 -boot-info-table \
-        -eltorito-alt-boot -isohybrid-gpt-basdat -e $LIVEKITNAME/boot/grub/efi.img \
-        -hide-rr-moved -o - -quiet -v -J -R -D -V "$SYSTEMNAME" -A "$SYSTEMNAME" -input-charset utf-8 \
-        -b $LIVEKITNAME/boot/isolinux.bin -c $LIVEKITNAME/boot/isolinux.boot \
+    PERSISTENCE_IMG=$(mktemp --suffix=.img)
+    dd if=/dev/zero of="$PERSISTENCE_IMG" bs=1M count=1
+    mkfs.ext2 -L persistence "$PERSISTENCE_IMG"
+    xorriso -as mkisofs --isohybrid-mbr "$MINIOS/boot/isohdpfx.bin" \
+        --hide-rr-moved \
+        -f \
+        -r \
+        --joliet \
+        -l \
+        -V "${SYSTEMNAME^^}" \
+        -A "$SYSTEMNAME" \
+        -b "$LIVEKITNAME/boot/isolinux.bin" \
+        -c "$LIVEKITNAME/boot/isolinux.boot" \
+        --no-emul-boot \
+        --boot-load-size 4 \
+        --boot-info-table \
+        --efi-boot "$LIVEKITNAME/boot/grub/efi64.img" \
+        --efi-boot "$LIVEKITNAME/boot/grub/efi32.img" \
+        --protective-msdos-label \
+        -partition_cyl_align off \
+        -partition_offset 0 \
+        -append_partition 2 0x83 "$PERSISTENCE_IMG" \
         -graft-points $GRAFT .
 ) >"$TARGET"
 
-rm -Rf $TEMP
+rm -Rf $TEMP $PERSISTENCE_IMG
