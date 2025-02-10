@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-04 14:02+0300\n"
+"POT-Creation-Date: 2025-02-10 01:06+0300\n"
 "PO-Revision-Date: 2024-03-17 14:43+0300\n"
 "Last-Translator: crims0n <crims0n@minios.dev>, 2024.\n"
 "Language-Team: French\n"
@@ -19,13 +19,14 @@ msgstr ""
 
 #: bin/apt2sb:10 bin/apt2sb:43 bin/chroot2sb:10 bin/chroot2sb:30 bin/dir2sb:11
 #: bin/dir2sb:31 bin/rmsbdir:9 bin/savechanges:14 bin/savechanges:30 bin/sb:20
-#: bin/sb:49 bin/sb2iso:13 bin/sb2iso:31 bin/script2sb:10 bin/script2sb:32
+#: bin/sb:49 bin/sb2iso:17 bin/sb2iso:35 bin/script2sb:10 bin/script2sb:32
 msgid "Usage"
 msgstr "Utilisation"
 
 #: bin/apt2sb:11
 msgid "Installs packages from repositories and packages them into a module."
-msgstr "Installe des paquets à partir des dépôts et les emballe dans un module."
+msgstr ""
+"Installe des paquets à partir des dépôts et les emballe dans un module."
 
 #: bin/apt2sb:13 bin/sb:24
 msgid "Commands"
@@ -40,7 +41,7 @@ msgid "Upgrade installed packages"
 msgstr "Mettre à niveau les paquets installés"
 
 #: bin/apt2sb:17 bin/chroot2sb:13 bin/dir2sb:14 bin/savechanges:17
-#: bin/sb2iso:16 bin/script2sb:13
+#: bin/sb2iso:20 bin/script2sb:13
 msgid "Options"
 msgstr "Options"
 
@@ -63,12 +64,12 @@ msgid "Bundle extension. Default: sb"
 msgstr "Extension du paquet. Par défaut : sb"
 
 #: bin/apt2sb:22 bin/chroot2sb:19 bin/dir2sb:17 bin/savechanges:20 bin/sb:34
-#: bin/sb2iso:19 bin/script2sb:20
+#: bin/sb2iso:23 bin/script2sb:20
 msgid "Display this help and exit"
 msgstr "Afficher cette aide et quitter"
 
 #: bin/apt2sb:23 bin/chroot2sb:20 bin/dir2sb:18 bin/savechanges:21 bin/sb:35
-#: bin/sb2iso:20 bin/script2sb:21
+#: bin/sb2iso:24 bin/script2sb:21
 msgid "Display version information and exit"
 msgstr "Afficher les informations de version et quitter"
 
@@ -86,41 +87,49 @@ msgstr "Autoriser les rétrogradations de paquets"
 
 #: bin/apt2sb:28
 msgid "Consider recommended packages as a dependency for installing"
-msgstr "Considérer les paquets recommandés comme une dépendance pour l'installation"
+msgstr ""
+"Considérer les paquets recommandés comme une dépendance pour l'installation"
 
 #: bin/apt2sb:29
 msgid "Consider suggested packages as a dependency for installing"
-msgstr "Considérer les paquets suggérés comme une dépendance pour l'installation"
+msgstr ""
+"Considérer les paquets suggérés comme une dépendance pour l'installation"
 
 #: bin/apt2sb:30
 msgid "Do not consider recommended packages as a dependency for installing"
-msgstr "Ne pas considérer les paquets recommandés comme une dépendance pour l'installation"
+msgstr ""
+"Ne pas considérer les paquets recommandés comme une dépendance pour "
+"l'installation"
 
 #: bin/apt2sb:31
 msgid "Do not consider suggested packages as a dependency for installing"
-msgstr "Ne pas considérer les paquets suggérés comme une dépendance pour l'installation"
+msgstr ""
+"Ne pas considérer les paquets suggérés comme une dépendance pour "
+"l'installation"
 
 #: bin/apt2sb:32
 msgid "Default release to install packages from"
 msgstr "Version par défaut pour installer les paquets"
 
-#: bin/apt2sb:34 bin/chroot2sb:22 bin/sb:37 bin/sb2iso:22 bin/script2sb:23
+#: bin/apt2sb:34 bin/chroot2sb:22 bin/sb:37 bin/sb2iso:26 bin/script2sb:23
 msgid "Examples"
 msgstr "Exemples"
 
 #: bin/apt2sb:44 bin/chroot2sb:31 bin/dir2sb:32 bin/savechanges:31 bin/sb:51
-#: bin/sb2iso:32 bin/script2sb:33
+#: bin/sb2iso:36 bin/script2sb:33
 msgid "Try"
 msgstr "Essayez"
 
 #: bin/apt2sb:44 bin/chroot2sb:31 bin/dir2sb:32 bin/savechanges:31 bin/sb:51
-#: bin/sb2iso:32 bin/script2sb:33
+#: bin/sb2iso:36 bin/script2sb:33
 msgid "for more information."
 msgstr "pour plus d'informations."
 
 #: bin/chroot2sb:11 bin/script2sb:11
 msgid "Packages a module from changes made by an installation script"
-msgstr "Crée un module à partir des modifications apportées par un script d'installation"
+msgstr ""
+"Crée un module à partir des modifications apportées par un script "
+"d'installation"
 
 #: bin/chroot2sb:14 bin/script2sb:16
 msgid "Copy contents of DIR to the root of the module"
@@ -168,22 +177,6 @@ msgstr ""
 "Si TARGET_FILE n'est pas spécifié, SOURCE_DIRECTORY est remplacé par le "
 "nouveau fichier module."
 
-#: bin/dir2sb:98 bin/dir2sb:105 bin/dir2sb:112 bin/dir2sb:116
-msgid "Error"
-msgstr "Erreur"
-
-#: bin/dir2sb:98
-msgid "Not a directory:"
-msgstr "N'est pas un répertoire :"
-
-#: bin/dir2sb:105 bin/dir2sb:116
-msgid "mksquashfs failed."
-msgstr "mksquashfs a échoué."
-
-#: bin/dir2sb:112
-msgid "Target exists:"
-msgstr "La cible existe :"
-
 #: bin/rmsbdir:8
 msgid "Erase module directory created by sb2dir"
 msgstr "Effacer le répertoire de module créé par sb2dir"
@@ -192,7 +185,7 @@ msgstr "Effacer le répertoire de module créé par sb2dir"
 msgid "source_directory.sb"
 msgstr "source_directory.sb"
 
-#: bin/rmsbdir:18 bin/sb2dir:31
+#: bin/rmsbdir:18 bin/sb2dir:35
 msgid "Directory does not exist:"
 msgstr "Le répertoire n'existe pas :"
 
@@ -202,7 +195,9 @@ msgstr "Répertoire du module supprimé :"
 
 #: bin/savechanges:15
 msgid "Saves all changed files in a compressed filesystem bundle."
-msgstr "Enregistre tous les fichiers modifiés dans un paquet de système de fichiers compressé."
+msgstr ""
+"Enregistre tous les fichiers modifiés dans un paquet de système de fichiers "
+"compressé."
 
 #: bin/savechanges:23
 msgid "If changes_directory is not specified,"
@@ -269,26 +264,44 @@ msgstr "est utilisé et le répertoire est surmonté avec tmpfs"
 msgid "File does not exist:"
 msgstr "Le fichier n'existe pas :"
 
-#: bin/sb2iso:14
+#: bin/sb2iso:18
 msgid "Generate MiniOS ISO image, adding specified modules."
 msgstr "Générer une image ISO MiniOS, en ajoutant les modules spécifiés."
 
-#: bin/sb2iso:17
+#: bin/sb2iso:21
 msgid "Exclude any existing path or file matching REGEX"
 msgstr "Exclure tout chemin ou fichier existant correspondant à REGEX"
 
-#: bin/sb2iso:18
+#: bin/sb2iso:22
 msgid "Specify output ISO filename (default"
 msgstr "Spécifiez le nom de fichier ISO de sortie (par défaut"
 
-#: bin/sb2iso:23
+#: bin/sb2iso:27
 msgid "Create MiniOS ISO without firefox.sb module:"
 msgstr "Créer une ISO MiniOS sans le module firefox.sb :"
 
-#: bin/sb2iso:25
+#: bin/sb2iso:29
 msgid "Create MiniOS text-mode core only:"
 msgstr "Créer uniquement le cœur en mode texte de MiniOS :"
+
+#: bin/sb2iso:104
+msgid ""
+"If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
+msgstr ""
+"Si vous avez chargé le système en RAM, utilisez 'toram=full' dans les paramètres du noyau."
 
 #: bin/script2sb:19
 msgid "Use FILE as the installation script"
 msgstr "Utilisez FILE comme script d'installation"
+
+#~ msgid "Error"
+#~ msgstr "Erreur"
+
+#~ msgid "Not a directory:"
+#~ msgstr "N'est pas un répertoire :"
+
+#~ msgid "mksquashfs failed."
+#~ msgstr "mksquashfs a échoué."
+
+#~ msgid "Target exists:"
+#~ msgstr "La cible existe :"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-04 14:02+0300\n"
+"POT-Creation-Date: 2025-02-10 01:06+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,7 +19,7 @@ msgstr ""
 
 #: bin/apt2sb:10 bin/apt2sb:43 bin/chroot2sb:10 bin/chroot2sb:30 bin/dir2sb:11
 #: bin/dir2sb:31 bin/rmsbdir:9 bin/savechanges:14 bin/savechanges:30 bin/sb:20
-#: bin/sb:49 bin/sb2iso:13 bin/sb2iso:31 bin/script2sb:10 bin/script2sb:32
+#: bin/sb:49 bin/sb2iso:17 bin/sb2iso:35 bin/script2sb:10 bin/script2sb:32
 msgid "Usage"
 msgstr ""
 
@@ -40,7 +40,7 @@ msgid "Upgrade installed packages"
 msgstr ""
 
 #: bin/apt2sb:17 bin/chroot2sb:13 bin/dir2sb:14 bin/savechanges:17
-#: bin/sb2iso:16 bin/script2sb:13
+#: bin/sb2iso:20 bin/script2sb:13
 msgid "Options"
 msgstr ""
 
@@ -63,12 +63,12 @@ msgid "Bundle extension. Default: sb"
 msgstr ""
 
 #: bin/apt2sb:22 bin/chroot2sb:19 bin/dir2sb:17 bin/savechanges:20 bin/sb:34
-#: bin/sb2iso:19 bin/script2sb:20
+#: bin/sb2iso:23 bin/script2sb:20
 msgid "Display this help and exit"
 msgstr ""
 
 #: bin/apt2sb:23 bin/chroot2sb:20 bin/dir2sb:18 bin/savechanges:21 bin/sb:35
-#: bin/sb2iso:20 bin/script2sb:21
+#: bin/sb2iso:24 bin/script2sb:21
 msgid "Display version information and exit"
 msgstr ""
 
@@ -104,17 +104,17 @@ msgstr ""
 msgid "Default release to install packages from"
 msgstr ""
 
-#: bin/apt2sb:34 bin/chroot2sb:22 bin/sb:37 bin/sb2iso:22 bin/script2sb:23
+#: bin/apt2sb:34 bin/chroot2sb:22 bin/sb:37 bin/sb2iso:26 bin/script2sb:23
 msgid "Examples"
 msgstr ""
 
 #: bin/apt2sb:44 bin/chroot2sb:31 bin/dir2sb:32 bin/savechanges:31 bin/sb:51
-#: bin/sb2iso:32 bin/script2sb:33
+#: bin/sb2iso:36 bin/script2sb:33
 msgid "Try"
 msgstr ""
 
 #: bin/apt2sb:44 bin/chroot2sb:31 bin/dir2sb:32 bin/savechanges:31 bin/sb:51
-#: bin/sb2iso:32 bin/script2sb:33
+#: bin/sb2iso:36 bin/script2sb:33
 msgid "for more information."
 msgstr ""
 
@@ -163,22 +163,6 @@ msgid ""
 "module file."
 msgstr ""
 
-#: bin/dir2sb:98 bin/dir2sb:105 bin/dir2sb:112 bin/dir2sb:116
-msgid "Error"
-msgstr ""
-
-#: bin/dir2sb:98
-msgid "Not a directory:"
-msgstr ""
-
-#: bin/dir2sb:105 bin/dir2sb:116
-msgid "mksquashfs failed."
-msgstr ""
-
-#: bin/dir2sb:112
-msgid "Target exists:"
-msgstr ""
-
 #: bin/rmsbdir:8
 msgid "Erase module directory created by sb2dir"
 msgstr ""
@@ -187,7 +171,7 @@ msgstr ""
 msgid "source_directory.sb"
 msgstr ""
 
-#: bin/rmsbdir:18 bin/sb2dir:31
+#: bin/rmsbdir:18 bin/sb2dir:35
 msgid "Directory does not exist:"
 msgstr ""
 
@@ -261,24 +245,29 @@ msgstr ""
 msgid "File does not exist:"
 msgstr ""
 
-#: bin/sb2iso:14
+#: bin/sb2iso:18
 msgid "Generate MiniOS ISO image, adding specified modules."
 msgstr ""
 
-#: bin/sb2iso:17
+#: bin/sb2iso:21
 msgid "Exclude any existing path or file matching REGEX"
 msgstr ""
 
-#: bin/sb2iso:18
+#: bin/sb2iso:22
 msgid "Specify output ISO filename (default"
 msgstr ""
 
-#: bin/sb2iso:23
+#: bin/sb2iso:27
 msgid "Create MiniOS ISO without firefox.sb module:"
 msgstr ""
 
-#: bin/sb2iso:25
+#: bin/sb2iso:29
 msgid "Create MiniOS text-mode core only:"
+msgstr ""
+
+#: bin/sb2iso:104
+msgid ""
+"If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
 msgstr ""
 
 #: bin/script2sb:19

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-04 14:02+0300\n"
+"POT-Creation-Date: 2025-02-10 01:06+0300\n"
 "PO-Revision-Date: 2024-03-17 14:43+0300\n"
 "Last-Translator: crims0n <crims0n@minios.dev>, 2024.\n"
 "Language-Team: Russian\n"
@@ -20,7 +20,7 @@ msgstr ""
 
 #: bin/apt2sb:10 bin/apt2sb:43 bin/chroot2sb:10 bin/chroot2sb:30 bin/dir2sb:11
 #: bin/dir2sb:31 bin/rmsbdir:9 bin/savechanges:14 bin/savechanges:30 bin/sb:20
-#: bin/sb:49 bin/sb2iso:13 bin/sb2iso:31 bin/script2sb:10 bin/script2sb:32
+#: bin/sb:49 bin/sb2iso:17 bin/sb2iso:35 bin/script2sb:10 bin/script2sb:32
 msgid "Usage"
 msgstr "Использование"
 
@@ -41,7 +41,7 @@ msgid "Upgrade installed packages"
 msgstr "Обновить установленные пакеты"
 
 #: bin/apt2sb:17 bin/chroot2sb:13 bin/dir2sb:14 bin/savechanges:17
-#: bin/sb2iso:16 bin/script2sb:13
+#: bin/sb2iso:20 bin/script2sb:13
 msgid "Options"
 msgstr "Опции"
 
@@ -64,12 +64,12 @@ msgid "Bundle extension. Default: sb"
 msgstr "Расширение пакета. По умолчанию: sb"
 
 #: bin/apt2sb:22 bin/chroot2sb:19 bin/dir2sb:17 bin/savechanges:20 bin/sb:34
-#: bin/sb2iso:19 bin/script2sb:20
+#: bin/sb2iso:23 bin/script2sb:20
 msgid "Display this help and exit"
 msgstr "Показать справку и выйти"
 
 #: bin/apt2sb:23 bin/chroot2sb:20 bin/dir2sb:18 bin/savechanges:21 bin/sb:35
-#: bin/sb2iso:20 bin/script2sb:21
+#: bin/sb2iso:24 bin/script2sb:21
 msgid "Display version information and exit"
 msgstr "Показать информацию о версии и выйти"
 
@@ -105,17 +105,17 @@ msgstr "Не учитывать предлагаемые пакеты как з�
 msgid "Default release to install packages from"
 msgstr "Релиз по умолчанию для установки пакетов"
 
-#: bin/apt2sb:34 bin/chroot2sb:22 bin/sb:37 bin/sb2iso:22 bin/script2sb:23
+#: bin/apt2sb:34 bin/chroot2sb:22 bin/sb:37 bin/sb2iso:26 bin/script2sb:23
 msgid "Examples"
 msgstr "Примеры"
 
 #: bin/apt2sb:44 bin/chroot2sb:31 bin/dir2sb:32 bin/savechanges:31 bin/sb:51
-#: bin/sb2iso:32 bin/script2sb:33
+#: bin/sb2iso:36 bin/script2sb:33
 msgid "Try"
 msgstr "Попробуйте"
 
 #: bin/apt2sb:44 bin/chroot2sb:31 bin/dir2sb:32 bin/savechanges:31 bin/sb:51
-#: bin/sb2iso:32 bin/script2sb:33
+#: bin/sb2iso:36 bin/script2sb:33
 msgid "for more information."
 msgstr "для получения дополнительной информации."
 
@@ -157,8 +157,8 @@ msgid ""
 "root', then the directory itself is included in the module, and TARGET_FILE "
 "is required."
 msgstr ""
-"Если SOURCE_DIRECTORY не имеет расширения .sb и не является 'squashfs-"
-"root', то сама директория включается в модуль, и требуется TARGET_FILE."
+"Если SOURCE_DIRECTORY не имеет расширения .sb и не является 'squashfs-root', "
+"то сама директория включается в модуль, и требуется TARGET_FILE."
 
 #: bin/dir2sb:26
 msgid ""
@@ -166,22 +166,6 @@ msgid ""
 "module file."
 msgstr ""
 "Если TARGET_FILE не указан, SOURCE_DIRECTORY заменяется новым файлом модуля."
-
-#: bin/dir2sb:98 bin/dir2sb:105 bin/dir2sb:112 bin/dir2sb:116
-msgid "Error"
-msgstr "Ошибка"
-
-#: bin/dir2sb:98
-msgid "Not a directory:"
-msgstr "Не директория:"
-
-#: bin/dir2sb:105 bin/dir2sb:116
-msgid "mksquashfs failed."
-msgstr "mksquashfs завершилась с ошибкой."
-
-#: bin/dir2sb:112
-msgid "Target exists:"
-msgstr "Целевой файл существует:"
 
 #: bin/rmsbdir:8
 msgid "Erase module directory created by sb2dir"
@@ -191,7 +175,7 @@ msgstr "Удалить директорию модуля, созданную sb2
 msgid "source_directory.sb"
 msgstr "source_directory.sb"
 
-#: bin/rmsbdir:18 bin/sb2dir:31
+#: bin/rmsbdir:18 bin/sb2dir:35
 msgid "Directory does not exist:"
 msgstr "Директория не существует:"
 
@@ -268,26 +252,44 @@ msgstr "и директория монтируется поверх с помо�
 msgid "File does not exist:"
 msgstr "Файл не существует:"
 
-#: bin/sb2iso:14
+#: bin/sb2iso:18
 msgid "Generate MiniOS ISO image, adding specified modules."
 msgstr "Создать образ ISO MiniOS, добавив указанные модули."
 
-#: bin/sb2iso:17
+#: bin/sb2iso:21
 msgid "Exclude any existing path or file matching REGEX"
 msgstr "Исключить все существующие пути или файлы, соответствующие REGEX"
 
-#: bin/sb2iso:18
+#: bin/sb2iso:22
 msgid "Specify output ISO filename (default"
 msgstr "Указать имя выходного файла ISO (по умолчанию"
 
-#: bin/sb2iso:23
+#: bin/sb2iso:27
 msgid "Create MiniOS ISO without firefox.sb module:"
 msgstr "Создать образ ISO MiniOS без модуля firefox.sb:"
 
-#: bin/sb2iso:25
+#: bin/sb2iso:29
 msgid "Create MiniOS text-mode core only:"
 msgstr "Создать только ядро MiniOS в текстовом режиме:"
+
+#: bin/sb2iso:104
+msgid ""
+"If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
+msgstr ""
+"Если вы загрузили систему в ОЗУ, используйте 'toram=full' в параметрах ядра."
 
 #: bin/script2sb:19
 msgid "Use FILE as the installation script"
 msgstr "Использовать FILE в качестве скрипта установки"
+
+#~ msgid "Error"
+#~ msgstr "Ошибка"
+
+#~ msgid "Not a directory:"
+#~ msgstr "Не директория:"
+
+#~ msgid "mksquashfs failed."
+#~ msgstr "mksquashfs завершилась с ошибкой."
+
+#~ msgid "Target exists:"
+#~ msgstr "Целевой файл существует:"

@@ -2,11 +2,10 @@
 # Author: Tomas M. <http://www.linux-live.org>
 # Author: crims0n. <https://minios.dev>
 
-VERSION="1.2"
-LIVEKITNAME="minios"
+VERSION="1.3"
 SYSTEMNAME="MiniOS"
 export TEXTDOMAIN="minios-tools"
-TEMP=/tmp/${LIVEKITNAME}.iso.$$
+TEMP=/tmp/minios.iso.$$
 MODULES=()
 if [ -d "/run/initramfs/memory" ]; then
     SOURCE="/run/initramfs/memory"
@@ -20,7 +19,7 @@ help() {
     echo ""
     echo "$(gettext "Options"):"
     echo "  -e, --exclude REGEX   $(gettext "Exclude any existing path or file matching REGEX")"
-    echo "  -n, --name NAME       $(gettext "Specify output ISO filename (default"): $LIVEKITNAME-YYYYMMDD_HHMM.iso)"
+    echo "  -n, --name NAME       $(gettext "Specify output ISO filename (default"): minios-YYYYMMDD_HHMM.iso)"
     echo "      --help            $(gettext "Display this help and exit")"
     echo "      --version         $(gettext "Display version information and exit")"
     echo ""
@@ -70,16 +69,16 @@ while [ "$#" -gt 0 ]; do
     esac
 done
 
-TARGET=${TARGET:-"$LIVEKITNAME-$(date +%Y%m%d_%H%M).iso"}
+TARGET=${TARGET:-"minios-$(date +%Y%m%d_%H%M).iso"}
 
-if [ -e "$SOURCE/data/$LIVEKITNAME/boot/isolinux.bin" ]; then
-    MINIOS=$SOURCE/data/$LIVEKITNAME
-elif [ -e "$SOURCE/iso/$LIVEKITNAME/boot/isolinux.bin" ]; then
-    MINIOS=$SOURCE/iso/$LIVEKITNAME
+if [ -e "$SOURCE/data/minios/boot/isolinux.bin" ]; then
+    MINIOS=$SOURCE/data/minios
+elif [ -e "$SOURCE/iso/minios/boot/isolinux.bin" ]; then
+    MINIOS=$SOURCE/iso/minios
 elif [ -e "$SOURCE/toram/boot/isolinux.bin" ]; then
     MINIOS=$SOURCE/toram
-elif [ -e "$SOURCE/data/from/0/$LIVEKITNAME/boot/isolinux.bin" ]; then
-    MINIOS=$SOURCE/data/from/0/$LIVEKITNAME
+elif [ -e "$SOURCE/data/from/0/minios/boot/isolinux.bin" ]; then
+    MINIOS=$SOURCE/data/from/0/minios
 fi
 
 if [ "$MINIOS" = "" ]; then
@@ -89,19 +88,37 @@ fi
 
 echo $SYSTEMNAME >/tmp/info
 
+# Check required files
+REQUIRED_FILES=(
+    "$MINIOS/boot/isolinux.bin"
+    "$MINIOS/boot/isohdpfx.bin"
+    "$MINIOS/boot/grub/syslinux.cfg"
+    "$MINIOS/boot/grub/efi64.img"
+    "$MINIOS/boot/grub/efi32.img"
+    "$MINIOS/boot/grub/grub.cfg"
+)
+
+for FILE in "${REQUIRED_FILES[@]}"; do
+    if [ ! -e "$FILE" ]; then
+        echo "$(gettext "Error: Required file not found: $FILE")" >&2
+        echo "$(gettext "If you loaded the system into RAM, use 'toram=full' in the kernel parameters.")" >&2
+        exit 2
+    fi
+done
+
 GRAFT=$(
     cd "$MINIOS"
     find . -type f | sed -r "s:^[.]/::" | egrep -v "^changes/" | egrep -v "$REGEX" | while read LINE; do
-        echo "$LIVEKITNAME/$LINE=$MINIOS/$LINE"
+        echo "minios/$LINE=$MINIOS/$LINE"
     done
     cd "$MINIOS/boot/EFI"
     find . -type f | sed -r "s:^[.]/::" | egrep -v "$REGEX" | while read LINE; do
         echo "EFI/$LINE=$MINIOS/boot/EFI/$LINE"
     done
     echo ".disk/info=/tmp/info"
-    echo "$LIVEKITNAME/$LIVEKITNAME.conf=/etc/$LIVEKITNAME/$LIVEKITNAME.conf"
-    echo "$LIVEKITNAME/boot/grub/grub.cfg=/etc/$LIVEKITNAME/grub.cfg"
-    echo "$LIVEKITNAME/boot/syslinux.cfg=/etc/$LIVEKITNAME/syslinux.cfg"
+    echo "minios/minios.conf=/etc/minios/minios.conf"
+    echo "minios/boot/grub/grub.cfg=/etc/minios/grub.cfg"
+    echo "minios/boot/syslinux.cfg=/etc/minios/syslinux.cfg"
 )
 
 # add all modules
@@ -112,16 +129,16 @@ for MOD in "${MODULES[@]}"; do
     fi
     BAS="$(basename "$MOD")"
     if [[ $BAS =~ ^[0-9]{2}- ]]; then
-        GRAFT="$GRAFT $LIVEKITNAME/$BAS=$MOD"
+        GRAFT="$GRAFT minios/$BAS=$MOD"
     else
-        GRAFT="$GRAFT $LIVEKITNAME/modules/$BAS=$MOD"
+        GRAFT="$GRAFT minios/modules/$BAS=$MOD"
     fi
 done
 
 (
-    mkdir -p $TEMP/$LIVEKITNAME/{boot,modules,changes,scripts}
-    cp "$MINIOS/boot/isolinux.bin" "$TEMP/$LIVEKITNAME/boot"
-    cp "$MINIOS/boot/isohdpfx.bin" "$TEMP/$LIVEKITNAME/boot"
+    mkdir -p $TEMP/minios/{boot,modules,changes,scripts}
+    cp "$MINIOS/boot/isolinux.bin" "$TEMP/minios/boot"
+    cp "$MINIOS/boot/isohdpfx.bin" "$TEMP/minios/boot"
     cd "$TEMP"
     PERSISTENCE_IMG=$(mktemp --suffix=.img)
     dd if=/dev/zero of="$PERSISTENCE_IMG" bs=1M count=1
@@ -134,13 +151,13 @@ done
         -l \
         -V "${SYSTEMNAME^^}" \
         -A "$SYSTEMNAME" \
-        -b "$LIVEKITNAME/boot/isolinux.bin" \
-        -c "$LIVEKITNAME/boot/isolinux.boot" \
+        -b "minios/boot/isolinux.bin" \
+        -c "minios/boot/isolinux.boot" \
         --no-emul-boot \
         --boot-load-size 4 \
         --boot-info-table \
-        --efi-boot "$LIVEKITNAME/boot/grub/efi64.img" \
-        --efi-boot "$LIVEKITNAME/boot/grub/efi32.img" \
+        --efi-boot "minios/boot/grub/efi64.img" \
+        --efi-boot "minios/boot/grub/efi32.img" \
         --protective-msdos-label \
         -partition_cyl_align off \
         -partition_offset 0 \
