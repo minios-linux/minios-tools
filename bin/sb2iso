@@ -140,29 +140,32 @@ done
     cp "$MINIOS/boot/isolinux.bin" "$TEMP/minios/boot"
     cp "$MINIOS/boot/isohdpfx.bin" "$TEMP/minios/boot"
     cd "$TEMP"
-    PERSISTENCE_IMG=$(mktemp --suffix=.img)
-    dd if=/dev/zero of="$PERSISTENCE_IMG" bs=1M count=1
-    mkfs.ext2 -L persistence "$PERSISTENCE_IMG"
-    xorriso -as mkisofs --isohybrid-mbr "$MINIOS/boot/isohdpfx.bin" \
-        --hide-rr-moved \
-        -f \
-        -r \
-        --joliet \
-        -l \
-        -V "${SYSTEMNAME^^}" \
+    PERCHIMG=$(mktemp --suffix=.img)
+    dd if=/dev/zero of="$PERCHIMG" bs=1M count=1
+    mkfs.ext2 -L persistence "$PERCHIMG"
+    xorriso \
+        --as mkisofs \
+        -iso-level 3 \
+        -volid "${SYSTEMNAME^^}" \
         -A "$SYSTEMNAME" \
-        -b "minios/boot/isolinux.bin" \
-        -c "minios/boot/isolinux.boot" \
-        --no-emul-boot \
-        --boot-load-size 4 \
-        --boot-info-table \
-        --efi-boot "minios/boot/grub/efi64.img" \
-        --efi-boot "minios/boot/grub/efi32.img" \
-        --protective-msdos-label \
-        -partition_cyl_align off \
-        -partition_offset 0 \
-        -append_partition 2 0x83 "$PERSISTENCE_IMG" \
+        -joliet -joliet-long -rational-rock \
+        -eltorito-boot "minios/boot/isolinux.bin" \
+        -eltorito-catalog "minios/boot/isolinux.boot" \
+        -no-emul-boot \
+        -boot-load-size 4 \
+        -boot-info-table \
+        -eltorito-alt-boot \
+        -e "minios/boot/grub/efi64.img" \
+        -no-emul-boot \
+        -eltorito-alt-boot \
+        -e "minios/boot/grub/efi32.img" \
+        -no-emul-boot \
+        --isohybrid-mbr "${DIR}/minios/boot/isohdpfx.bin" \
+        -append_partition 2 0x83 "$PERCHIMG" \
+        -partition_cyl_align on \
+        -partition_offset 16 \
+        -part_like_isohybrid \
         -graft-points $GRAFT .
 ) >"$TARGET"
 
-rm -Rf $TEMP $PERSISTENCE_IMG
+rm -Rf $TEMP $PERCHIMG
