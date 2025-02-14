@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-10 01:06+0300\n"
+"POT-Creation-Date: 2025-02-13 21:54+0300\n"
 "PO-Revision-Date: 2024-03-17 14:43+0300\n"
 "Last-Translator: crims0n <crims0n@minios.dev>, 2024.\n"
 "Language-Team: Brazilian Portuguese\n"
@@ -169,6 +169,397 @@ msgstr ""
 "Se TARGET_FILE não for especificado, SOURCE_DIRECTORY será substituído pelo "
 "novo arquivo de módulo."
 
+#: bin/minios-kernelpack:54
+msgid "Creates a SquashFS image with kernel modules and an initramfs image."
+msgstr ""
+"Cria uma imagem SquashFS com módulos do kernel e uma imagem initramfs."
+
+#: bin/minios-kernelpack:55 bin/sb2dir:9
+#, fuzzy
+msgid "Usage:"
+msgstr "Uso:"
+
+#: bin/minios-kernelpack:57
+#, fuzzy
+msgid "Options:"
+msgstr "Opções"
+
+#: bin/minios-kernelpack:58
+#, fuzzy
+msgid "Show this help message and exit"
+msgstr "Exibir esta ajuda e sair"
+
+#: bin/minios-kernelpack:59
+msgid "Prompt interactively for compression methods."
+msgstr ""
+"Solicitar interativamente por métodos de compressão."
+
+#: bin/minios-kernelpack:61
+msgid ""
+"Specify SquashFS compression method (e.g., lz4, lzo, gzip, zstd, lzma, xz, "
+"bzip2)."
+msgstr ""
+"Especifique o método de compressão SquashFS (por exemplo, lz4, lzo, gzip, "
+"zstd, lzma, xz, bzip2)."
+
+#: bin/minios-kernelpack:63
+msgid ""
+"Specify initramfs compression method (e.g., lz4, lzo, gzip, zstd, lzma, xz, "
+"bzip2)."
+msgstr ""
+"Especifique o método de compressão initramfs (por exemplo, lz4, lzo, gzip, "
+"zstd, lzma, xz, bzip2)."
+
+#: bin/minios-kernelpack:65
+msgid ""
+"If neither interactive mode (-c/--choose-compression) nor direct options (-s "
+"and -i)\n"
+"are provided, the script defaults to \"zstd\" for both images."
+msgstr ""
+"Se nem o modo interativo (-c/--choose-compression) nem as opções diretas (-s "
+"e -i)\n"
+"forem fornecidos, o script assume \"zstd\" para ambas as imagens."
+
+#: bin/minios-kernelpack:103
+msgid "Updating package lists"
+msgstr "Atualizando listas de pacotes"
+
+#: bin/minios-kernelpack:106
+msgid "Package lists cache exists; skipping apt-get update."
+msgstr "O cache das listas de pacotes existe; ignorando apt-get update."
+
+#: bin/minios-kernelpack:121
+msgid ""
+"No valid modules directory found: both /lib and /usr/lib are symlinks or "
+"missing."
+msgstr ""
+"Nenhum diretório de módulos válido encontrado: /lib e /usr/lib são links "
+"simbólicos ou estão faltando."
+
+#: bin/minios-kernelpack:135
+#, fuzzy
+msgid "Kernel modules directory for"
+msgstr "Apagar o diretório do módulo criado por sb2dir"
+
+#: bin/minios-kernelpack:135
+msgid "not found in"
+msgstr "não encontrado em"
+
+#: bin/minios-kernelpack:178
+msgid "Kernel Source"
+msgstr "Fonte do Kernel"
+
+#: bin/minios-kernelpack:178
+msgid "Choose kernel source:"
+msgstr "Escolha a fonte do kernel:"
+
+#: bin/minios-kernelpack:179
+#, fuzzy
+msgid "Use an installed kernel"
+msgstr "Atualizar pacotes instalados"
+
+#: bin/minios-kernelpack:180
+msgid "Download a kernel from the repository"
+msgstr "Baixar um kernel do repositório"
+
+#: bin/minios-kernelpack:183
+msgid "Kernel source not selected."
+msgstr "Fonte do kernel não selecionada."
+
+#: bin/minios-kernelpack:194
+msgid "Scanning for installed kernels"
+msgstr "Procurando por kernels instalados"
+
+#: bin/minios-kernelpack:198
+msgid "No installed kernels found in /lib/modules."
+msgstr "Nenhum kernel instalado encontrado em /lib/modules."
+
+#: bin/minios-kernelpack:201
+msgid "Found kernels:"
+msgstr "Kernels encontrados:"
+
+#: bin/minios-kernelpack:207
+msgid "Installed Kernels"
+msgstr "Kernels Instalados"
+
+#: bin/minios-kernelpack:207
+msgid "Select a kernel:"
+msgstr "Selecione um kernel:"
+
+#: bin/minios-kernelpack:209
+msgid "No kernel selected."
+msgstr "Nenhum kernel selecionado."
+
+#: bin/minios-kernelpack:240
+msgid "No repository kernels found, updating package lists again..."
+msgstr ""
+"Nenhum kernel de repositório encontrado, atualizando as listas de pacotes novamente..."
+
+#: bin/minios-kernelpack:244
+msgid "No repository kernels found."
+msgstr "Nenhum kernel de repositório encontrado."
+
+#: bin/minios-kernelpack:253
+msgid "Repository Kernels"
+msgstr "Kernels do Repositório"
+
+#: bin/minios-kernelpack:253
+msgid "Select a kernel package:"
+msgstr "Selecione um pacote do kernel:"
+
+#: bin/minios-kernelpack:255
+msgid "No kernel package selected."
+msgstr "Nenhum pacote do kernel selecionado."
+
+#: bin/minios-kernelpack:267
+msgid "Downloading package:"
+msgstr "Baixando pacote:"
+
+#: bin/minios-kernelpack:272
+#, fuzzy
+msgid "Failed to download package"
+msgstr "Permitir downgrades de pacotes"
+
+#: bin/minios-kernelpack:275
+msgid "Extracting package"
+msgstr "Extraindo pacote"
+
+#: bin/minios-kernelpack:296
+msgid "Repository kernel prepared:"
+msgstr "Kernel do repositório preparado:"
+
+#: bin/minios-kernelpack:319
+msgid "Using command-line SquashFS compression:"
+msgstr "Usando a compressão SquashFS da linha de comando:"
+
+#: bin/minios-kernelpack:321
+msgid "Selecting SquashFS compression method"
+msgstr "Selecionando o método de compressão SquashFS"
+
+#: bin/minios-kernelpack:327 bin/minios-kernelpack:378
+msgid "Extreme speed, low compression ratio"
+msgstr "Velocidade extrema, baixa taxa de compressão"
+
+#: bin/minios-kernelpack:328 bin/minios-kernelpack:379
+msgid "Very fast, low compression ratio"
+msgstr "Muito rápido, baixa taxa de compressão"
+
+#: bin/minios-kernelpack:329 bin/minios-kernelpack:380
+msgid "Fast, moderate compression ratio"
+msgstr "Rápido, taxa de compressão moderada"
+
+#: bin/minios-kernelpack:330 bin/minios-kernelpack:381
+msgid "Balanced speed and compression"
+msgstr "Velocidade e compressão balanceadas"
+
+#: bin/minios-kernelpack:331 bin/minios-kernelpack:382
+msgid "Slow, high compression ratio"
+msgstr "Lento, alta taxa de compressão"
+
+#: bin/minios-kernelpack:332 bin/minios-kernelpack:383
+msgid "Slowest, highest compression ratio"
+msgstr "Mais lento, maior taxa de compressão"
+
+#: bin/minios-kernelpack:333 bin/minios-kernelpack:384
+msgid "Very slow, slightly better than xz"
+msgstr "Muito lento, ligeiramente melhor que xz"
+
+#: bin/minios-kernelpack:337
+msgid "SquashFS Compression"
+msgstr "Compressão SquashFS"
+
+#: bin/minios-kernelpack:337 bin/minios-kernelpack:388
+msgid "Choose a compression method:"
+msgstr "Escolha um método de compressão:"
+
+#: bin/minios-kernelpack:339
+msgid "No SquashFS compression method selected."
+msgstr "Nenhum método de compressão SquashFS selecionado."
+
+#: bin/minios-kernelpack:353
+msgid "Selected SquashFS:"
+msgstr "SquashFS selecionado:"
+
+#: bin/minios-kernelpack:357
+msgid "Using default SquashFS compression:"
+msgstr "Usando a compressão SquashFS padrão:"
+
+#: bin/minios-kernelpack:370
+msgid "Using command-line initramfs compression:"
+msgstr "Usando a compressão initramfs da linha de comando:"
+
+#: bin/minios-kernelpack:372
+msgid "Selecting initramfs compression method"
+msgstr "Selecionando o método de compressão initramfs"
+
+#: bin/minios-kernelpack:388
+msgid "Initramfs Compression"
+msgstr "Compressão Initramfs"
+
+#: bin/minios-kernelpack:390
+msgid "No initramfs compression method selected."
+msgstr "Nenhum método de compressão initramfs selecionado."
+
+#: bin/minios-kernelpack:394
+msgid "Selected initramfs compression:"
+msgstr "Compressão initramfs selecionada:"
+
+#: bin/minios-kernelpack:397
+msgid "Using default initramfs compression:"
+msgstr "Usando a compressão initramfs padrão:"
+
+#: bin/minios-kernelpack:405
+msgid "Locating vmlinuz for kernel"
+msgstr "Localizando vmlinuz para o kernel"
+
+#: bin/minios-kernelpack:421
+msgid "vmlinuz for kernel"
+msgstr "vmlinuz para o kernel"
+
+#: bin/minios-kernelpack:421
+msgid "not found."
+msgstr "não encontrado."
+
+#: bin/minios-kernelpack:425
+msgid "vmlinuz copied as"
+msgstr "vmlinuz copiado como"
+
+#: bin/minios-kernelpack:433
+msgid "Preparing temporary kernel modules for"
+msgstr "Preparando módulos temporários do kernel para"
+
+#: bin/minios-kernelpack:437
+msgid "Kernel"
+msgstr "Kernel"
+
+#: bin/minios-kernelpack:437
+msgid ""
+"is already installed in the system. Please select one of the installed "
+"kernels."
+msgstr ""
+"já está instalado no sistema. Selecione um dos kernels instalados."
+
+#: bin/minios-kernelpack:446
+msgid "Extracted kernel modules for"
+msgstr "Módulos do kernel extraídos para"
+
+#: bin/minios-kernelpack:446
+msgid "not found in the package."
+msgstr "não encontrados no pacote."
+
+#: bin/minios-kernelpack:449
+msgid "Copying kernel modules for"
+msgstr "Copiando módulos do kernel para"
+
+#: bin/minios-kernelpack:449
+msgid "to"
+msgstr "para"
+
+#: bin/minios-kernelpack:452
+msgid "Failed to copy kernel modules to"
+msgstr "Falha ao copiar módulos do kernel para"
+
+#: bin/minios-kernelpack:457
+msgid "Running depmod for kernel"
+msgstr "Executando depmod para o kernel"
+
+#: bin/minios-kernelpack:467
+msgid "Building SquashFS image for kernel modules"
+msgstr "Construindo imagem SquashFS para módulos do kernel"
+
+#: bin/minios-kernelpack:483
+msgid "SquashFS image created:"
+msgstr "Imagem SquashFS criada:"
+
+#: bin/minios-kernelpack:490
+msgid "Generating initramfs image"
+msgstr "Gerando imagem initramfs"
+
+#: bin/minios-kernelpack:496
+msgid "Failed to generate initramfs image."
+msgstr "Falha ao gerar imagem initramfs."
+
+#: bin/minios-kernelpack:500
+msgid "initramfs image created:"
+msgstr "Imagem initramfs criada:"
+
+#: bin/minios-kernelpack:510
+msgid "Usage Instructions for the Generated Files:"
+msgstr "Instruções de uso para os arquivos gerados:"
+
+#: bin/minios-kernelpack:513
+msgid "Copy the SquashFS image:"
+msgstr "Copiar a imagem SquashFS:"
+
+#: bin/minios-kernelpack:514
+msgid "File:"
+msgstr "Arquivo:"
+
+#: bin/minios-kernelpack:515
+msgid ""
+"Destination: Place this file into the /minios folder on your USB flash drive."
+msgstr ""
+"Destino: Coloque este arquivo na pasta /minios em seu pendrive USB."
+
+#: bin/minios-kernelpack:517
+msgid "Copy the kernel and initramfs images:"
+msgstr "Copiar as imagens do kernel e initramfs:"
+
+#: bin/minios-kernelpack:518
+msgid "Files:"
+msgstr "Arquivos:"
+
+#: bin/minios-kernelpack:519
+msgid ""
+"Destination: Place these files into the /minios/boot folder on your USB "
+"flash drive."
+msgstr ""
+"Destino: Coloque estes arquivos na pasta /minios/boot em seu pendrive USB."
+
+#: bin/minios-kernelpack:521
+msgid "Update Bootloader Configuration:"
+msgstr "Atualizar a configuração do bootloader:"
+
+#: bin/minios-kernelpack:522
+msgid "Edit the file"
+msgstr "Edite o arquivo"
+
+#: bin/minios-kernelpack:522
+msgid "and update the entries for the kernel and initrd."
+msgstr "e atualize as entradas para o kernel e initrd."
+
+#: bin/minios-kernelpack:523
+msgid "Similarly, edit"
+msgstr "Da mesma forma, edite"
+
+#: bin/minios-kernelpack:525
+msgid ""
+"Save your changes and safely eject the flash drive. Your flash drive is now "
+"ready to boot the new system."
+msgstr ""
+"Salve suas alterações e ejete o pendrive com segurança. Seu pendrive agora "
+"está pronto para inicializar o novo sistema."
+
+#: bin/minios-kernelpack:534
+msgid "Cleaning up temporary files"
+msgstr "Limpando arquivos temporários"
+
+#: bin/minios-kernelpack:542
+msgid "Removing temporary kernel modules for"
+msgstr "Removendo módulos temporários do kernel para"
+
+#: bin/minios-kernelpack:542
+msgid "from"
+msgstr "de"
+
+#: bin/minios-kernelpack:545
+msgid "Cleanup complete."
+msgstr "Limpeza completa."
+
+#: bin/minios-kernelpack:567
+msgid "This script must be run as root."
+msgstr "Este script deve ser executado como root."
+
 #: bin/rmsbdir:8
 msgid "Erase module directory created by sb2dir"
 msgstr "Apagar o diretório do módulo criado por sb2dir"
@@ -234,11 +625,6 @@ msgstr "Remover um diretório de pacote descompactado"
 #: bin/sb:32
 msgid "Convert an .sb bundle to directory or vice versa"
 msgstr "Converter um pacote .sb para diretório ou vice-versa"
-
-#: bin/sb2dir:9
-#, fuzzy
-msgid "Usage:"
-msgstr "Uso:"
 
 #: bin/sb2dir:10
 msgid "If the output_directory is specified, it must exist"
