@@ -260,7 +260,7 @@ choose_repository_kernel_package() {
 download_and_extract_repository_kernel() {
     local pkg="$1"
     print_step "$(gettext "Downloading package:") $pkg"
-    apt-get download "$pkg"
+    apt-get download "$pkg" >/dev/null 2>&1  # Redirect output to avoid cluttering the KERNEL variable.
     local deb_file
     deb_file=$(find . -maxdepth 1 -type f -name "${pkg}_*.deb" | head -n1)
     if [ -z "$deb_file" ]; then
