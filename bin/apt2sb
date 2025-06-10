@@ -139,8 +139,10 @@ elif [ -d "/memory/bundles" ]; then
     BUNDLES="/memory/bundles"
     SYSTEMCHANGES="/memory/changes"
 fi
-if [ -d "$SYSTEMCHANGES/changes" ] && [ -d "$SYSTEMCHANGES/workdir" ]; then
-    SYSTEMCHANGES="$SYSTEMCHANGES/changes"
+
+# Overlayfs requires one more subdir. Detect it this way
+if [ -d "$SYSTEMCHANGES/changes" ] && [ -d "$SYSTEMCHANGES/workdir" ] && [ "$(ls -1 "$SYSTEMCHANGES" | egrep -v '^changes$' | egrep -v '^workdir')" = "" ]; then
+   SYSTEMCHANGES="$SYSTEMCHANGES/changes"
 fi
 
 TMP=$(mktemp -d "$SYSTEMCHANGES"/build2sb.XXXXX)

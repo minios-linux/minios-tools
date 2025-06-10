@@ -1,7 +1,7 @@
 #!/bin/bash
 # Author: crims0n <https://minios.dev>
 
-VERSION="1.0"
+VERSION="1.0.1"
 BEXT="sb"
 COMP_TYPE="zstd"
 export TEXTDOMAIN="minios-tools"
@@ -93,6 +93,11 @@ if [ -d "/run/initramfs/memory/bundles" ]; then
 elif [ -d "/memory/bundles" ]; then
     BUNDLES="/memory/bundles"
     SYSTEMCHANGES="/memory/changes"
+fi
+
+# Overlayfs requires one more subdir. Detect it this way
+if [ -d "$SYSTEMCHANGES/changes" ] && [ -d "$SYSTEMCHANGES/workdir" ] && [ "$(ls -1 "$SYSTEMCHANGES" | egrep -v '^changes$' | egrep -v '^workdir')" = "" ]; then
+   SYSTEMCHANGES="$SYSTEMCHANGES/changes"
 fi
 
 # We use the changes folder to store temporary files and perform module
