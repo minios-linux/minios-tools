@@ -1,6 +1,7 @@
 minios-tools (1.4) unstable; urgency=medium
 
-  * Update sb2iso script to version 1.4. Impruved compatibility with the latest MiniOS ISO format, fixed some bugs, impruved user experience.
+  * Update sb2iso script to version 1.4. Impruved compatibility with the latest
+    MiniOS ISO format, fixed some bugs, impruved user experience.
   * Update apt2sb script to version 1.2.1. Fixed building with overlayfs.
   * Update script2sb script to version 1.2.1. Fixed building with overlayfs.
   * Update chroot2sb script to version 1.0.1. Fixed building with overlayfs.
