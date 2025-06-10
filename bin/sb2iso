@@ -2,11 +2,14 @@
 # Author: Tomas M. <http://www.linux-live.org>
 # Author: crims0n. <https://minios.dev>
 
-VERSION="1.3"
+VERSION="1.4"
 SYSTEMNAME="MiniOS"
 export TEXTDOMAIN="minios-tools"
 TEMP=/tmp/minios.iso.$$
+REGEX='^$'
 MODULES=()
+PWD="$(pwd)"
+VERBOSITY_LEVEL=0
 if [ -d "/run/initramfs/memory" ]; then
     SOURCE="/run/initramfs/memory"
 elif [ -d "/memory" ]; then
@@ -42,6 +45,85 @@ version() {
     exit 0
 }
 
+console_colors() {
+    RED=$'\e[31m'
+    GREEN=$'\e[32m'
+    YELLOW=$'\e[33m'
+    CYAN=$'\e[36m'
+
+    BOLD=$'\e[1m'
+
+    ENDCOLOR=$'\e[0m'
+}
+
+error() {
+    local MESSAGE="${1-}"
+    if [ "$OUTPUT_MODE" = "console" ]; then
+        echo -e "${BOLD}${RED}E:${ENDCOLOR} $MESSAGE" >&2
+    else
+        echo "E: $MESSAGE" >&2
+    fi
+}
+
+warning() {
+    local MESSAGE="${1-}"
+    if [ "$OUTPUT_MODE" = "console" ]; then
+        echo -e "${BOLD}${YELLOW}W:${ENDCOLOR} $MESSAGE"
+    else
+        echo "W: $MESSAGE"
+    fi
+}
+
+information() {
+    local MESSAGE="${1-}"
+    if [ "$OUTPUT_MODE" = "console" ]; then
+        echo -e "${BOLD}${CYAN}I:${ENDCOLOR} $MESSAGE"
+    else
+        echo "I: $MESSAGE"
+    fi
+}
+
+spinner() {
+    local PID="${1}"
+    local MSG="${2}"
+    local XTRACE_WAS_SET=false
+    case "$-" in
+    *x*)
+        XTRACE_WAS_SET=true
+        set +x
+        ;;
+    esac
+
+    local DELAY=0.1
+    local SPINSTR='|/-\\'
+    while [ -d "/proc/${PID}" ]; do
+        for ((i = 0; i < ${#SPINSTR}; i++)); do
+            printf "\r${BOLD}${CYAN}I:${ENDCOLOR} ${MSG} [${CYAN}${SPINSTR:$i:1}${ENDCOLOR}]"
+            sleep "${DELAY}"
+        done
+    done
+    printf "\r${BOLD}${CYAN}I:${ENDCOLOR} ${MSG} [${GREEN}done${ENDCOLOR}]$(tput el)\n"
+
+    if ${XTRACE_WAS_SET}; then
+        set -x
+    fi
+}
+
+run_with_spinner() {
+    local MSG="$1"
+    shift
+    if [ "${VERBOSITY_LEVEL}" -ge 1 ]; then
+        "$@"
+    else
+        "$@" >/dev/null 2>&1 &
+        local CMD_PID="$!"
+        spinner "${CMD_PID}" "${MSG}"
+        wait "${CMD_PID}"
+    fi
+}
+
+console_colors
+
 while [ "$#" -gt 0 ]; do
     case "$1" in
     -e | --exclude)
@@ -64,12 +146,15 @@ while [ "$#" -gt 0 ]; do
         elif [ -e "$1" ]; then
             MODULES+=("$(readlink -f "$1")")
             shift
+        else
+            error "$(gettext "Unknown argument: $1")"
+            brief_help
         fi
         ;;
     esac
 done
 
-TARGET=${TARGET:-"minios-$(date +%Y%m%d_%H%M).iso"}
+TARGET=${TARGET:-"${PWD}/minios-$(date +%Y%m%d_%H%M).iso"}
 
 if [ -e "$SOURCE/data/minios/boot/isolinux.bin" ]; then
     MINIOS=$SOURCE/data/minios
@@ -92,7 +177,7 @@ echo $SYSTEMNAME >/tmp/info
 REQUIRED_FILES=(
     "$MINIOS/boot/isolinux.bin"
     "$MINIOS/boot/isohdpfx.bin"
-    "$MINIOS/boot/grub/syslinux.cfg"
+    "$MINIOS/boot/syslinux.cfg"
     "$MINIOS/boot/grub/efi64.img"
     "$MINIOS/boot/grub/efi32.img"
     "$MINIOS/boot/grub/grub.cfg"
@@ -100,8 +185,8 @@ REQUIRED_FILES=(
 
 for FILE in "${REQUIRED_FILES[@]}"; do
     if [ ! -e "$FILE" ]; then
-        echo "$(gettext "Error: Required file not found: $FILE")" >&2
-        echo "$(gettext "If you loaded the system into RAM, use 'toram=full' in the kernel parameters.")" >&2
+        error "$(gettext "Required file not found: $FILE.)"
+        information "If you loaded the system into RAM, use 'toram=full' in the kernel parameters.")"
         exit 2
     fi
 done
@@ -109,12 +194,12 @@ done
 GRAFT=$(
     cd "$MINIOS"
     find . -type f | sed -r "s:^[.]/::" | egrep -v "^changes/" | egrep -v "$REGEX" | while read LINE; do
-        echo "minios/$LINE=$MINIOS/$LINE"
-    done
+            echo "minios/$LINE=$MINIOS/$LINE"
+        done
     cd "$MINIOS/boot/EFI"
     find . -type f | sed -r "s:^[.]/::" | egrep -v "$REGEX" | while read LINE; do
-        echo "EFI/$LINE=$MINIOS/boot/EFI/$LINE"
-    done
+            echo "EFI/$LINE=$MINIOS/boot/EFI/$LINE"
+        done
     echo ".disk/info=/tmp/info"
     echo "minios/minios.conf=/etc/minios/minios.conf"
     echo "minios/boot/grub/grub.cfg=/etc/minios/grub.cfg"
@@ -124,7 +209,7 @@ GRAFT=$(
 # add all modules
 for MOD in "${MODULES[@]}"; do
     if [ ! -e "$MOD" ]; then
-        echo "File does not exist: $MOD"
+        error "$(gettext "File does not exist: $MOD")"
         exit 3
     fi
     BAS="$(basename "$MOD")"
@@ -135,37 +220,41 @@ for MOD in "${MODULES[@]}"; do
     fi
 done
 
-(
-    mkdir -p $TEMP/minios/{boot,modules,changes,scripts}
-    cp "$MINIOS/boot/isolinux.bin" "$TEMP/minios/boot"
-    cp "$MINIOS/boot/isohdpfx.bin" "$TEMP/minios/boot"
-    cd "$TEMP"
-    PERCHIMG=$(mktemp --suffix=.img)
-    dd if=/dev/zero of="$PERCHIMG" bs=1M count=1
-    mkfs.ext2 -L persistence "$PERCHIMG"
-    xorriso \
-        --as mkisofs \
-        -iso-level 3 \
-        -volid "${SYSTEMNAME^^}" \
-        -A "$SYSTEMNAME" \
-        -joliet -joliet-long -rational-rock \
-        -eltorito-boot "minios/boot/isolinux.bin" \
-        -eltorito-catalog "minios/boot/isolinux.boot" \
-        -no-emul-boot \
-        -boot-load-size 4 \
-        -boot-info-table \
-        -eltorito-alt-boot \
-        -e "minios/boot/grub/efi64.img" \
-        -no-emul-boot \
-        -eltorito-alt-boot \
-        -e "minios/boot/grub/efi32.img" \
-        -no-emul-boot \
-        --isohybrid-mbr "${DIR}/minios/boot/isohdpfx.bin" \
-        -append_partition 2 0x83 "$PERCHIMG" \
-        -partition_cyl_align on \
-        -partition_offset 16 \
-        -part_like_isohybrid \
-        -graft-points $GRAFT .
-) >"$TARGET"
+run_with_spinner "$(gettext "Creating ISO work directory")" mkdir -p "$TEMP/minios/boot" "$TEMP/minios/modules" "$TEMP/minios/changes" "$TEMP/minios/scripts"
+run_with_spinner "$(gettext "Copying boot files (isolinux.bin & isohdpfx.bin)")" sh -c 'cp "$0/boot/isolinux.bin" "$1" && cp "$0/boot/isohdpfx.bin" "$1"' "$MINIOS" "$TEMP/minios/boot"
 
-rm -Rf $TEMP $PERCHIMG
+cd "$TEMP" || exit 4
+
+PERCHIMG=$(mktemp --suffix=.img)
+run_with_spinner "$(gettext "Creating temporary persistence image")" dd if=/dev/zero of="$PERCHIMG" bs=1M count=1
+run_with_spinner "$(gettext "Formatting persistence image")" mkfs.ext2 -L persistence "$PERCHIMG"
+run_with_spinner "$(gettext "Generating ISO image")" xorriso \
+    --as mkisofs \
+    -iso-level 3 \
+    -volid "${SYSTEMNAME^^}" \
+    -A "$SYSTEMNAME" \
+    -joliet -joliet-long -rational-rock \
+    -eltorito-boot "minios/boot/isolinux.bin" \
+    -eltorito-catalog "minios/boot/isolinux.boot" \
+    -no-emul-boot \
+    -boot-load-size 4 \
+    -boot-info-table \
+    -eltorito-alt-boot \
+    -e "minios/boot/grub/efi64.img" \
+    -no-emul-boot \
+    -eltorito-alt-boot \
+    -e "minios/boot/grub/efi32.img" \
+    -no-emul-boot \
+    --isohybrid-mbr "$MINIOS/boot/isohdpfx.bin" \
+    -append_partition 2 0x83 "$PERCHIMG" \
+    -partition_cyl_align on \
+    -partition_offset 16 \
+    -part_like_isohybrid \
+    -graft-points $GRAFT \
+    -quiet \
+    -output "$TARGET"
+
+run_with_spinner "$(gettext "Cleaning up temporary files")" rm -rf "$TEMP" "$PERCHIMG"
+
+information "ISO successfully created: ${CYAN}$TARGET${ENDCOLOR}"
+exit 0

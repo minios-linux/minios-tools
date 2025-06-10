@@ -1,7 +1,7 @@
 #!/bin/bash
 # Author: crims0n <https://minios.dev>
 
-VERSION="1.2"
+VERSION="1.2.1"
 BEXT="sb"
 COMP_TYPE="zstd"
 export TEXTDOMAIN="minios-tools"
@@ -138,6 +138,9 @@ if [ -d "/run/initramfs/memory/bundles" ]; then
 elif [ -d "/memory/bundles" ]; then
     BUNDLES="/memory/bundles"
     SYSTEMCHANGES="/memory/changes"
+fi
+if [ -d "$SYSTEMCHANGES/changes" ] && [ -d "$SYSTEMCHANGES/workdir" ]; then
+    SYSTEMCHANGES="$SYSTEMCHANGES/changes"
 fi
 
 TMP=$(mktemp -d "$SYSTEMCHANGES"/build2sb.XXXXX)

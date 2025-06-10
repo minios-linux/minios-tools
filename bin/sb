@@ -3,9 +3,9 @@
 # Author: Tomas M <http://www.slax.org/>
 # Author: crims0n <https://minios.dev>
 
-. /etc/minios/minios.conf || exit 1
+. /etc/live/config.conf
 
-VERSION="1.0"
+VERSION="1.0.1"
 export TEXTDOMAIN="minios-tools"
 if [ -d "/run/initramfs/memory/bundles" ]; then
     LIVE="/run/initramfs/memory"
@@ -186,7 +186,7 @@ deactivate() {
 }
 
 fix_system() {
-    if [ "$SYSTEM_TYPE" = "puzzle" ]; then
+    if [ "$MODULE_MODE" = "merged" ]; then
         if [ -x "/usr/sbin/minios-update-users" ]; then
             # fix users
             /usr/sbin/minios-update-users "$BUNDLES" "$CHANGES" 2>/dev/null
