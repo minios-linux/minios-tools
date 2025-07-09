@@ -3,9 +3,12 @@
 # Author: Tomas M <http://www.slax.org/>
 # Author: crims0n <https://minios.dev>
 
-. /etc/live/config.conf
+# Check if this is a help/version request before loading config
+if [ "$1" != "help" ] && [ "$1" != "version" ]; then
+    . /etc/live/config.conf
+fi
 
-VERSION="1.0.1"
+VERSION="1.0.2"
 export TEXTDOMAIN="minios-tools"
 if [ -d "/run/initramfs/memory/bundles" ]; then
     LIVE="/run/initramfs/memory"
