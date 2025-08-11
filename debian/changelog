@@ -1,3 +1,12 @@
+minios-tools (1.4.2) UNRELEASED; urgency=medium
+
+  * Remove `minios-kernelpack`. Its functions are now performed by
+    `minios-kernel` and `minios-kernel-manager`
+  * Add Indonesian translation
+  * Update translations
+
+ -- crims0n <crims0n@minios.dev>  Mon, 11 Aug 2025 09:10:29 +0300
+
 minios-tools (1.4.1) unstable; urgency=medium
 
   * Update sb script to conditionally load config and bump version to 1.0.2

@@ -9,7 +9,7 @@ COMPLETIONSDIR = usr/share/bash-completion/completions
 DOC_FILES = $(shell find doc -name "*.md")
 MAN_FILES = $(patsubst doc/%.md, man/%.1, $(DOC_FILES))
 
-PO_FILES  = $(shell find locale -name "*.po")
+PO_FILES  = $(shell find po -name "*.po")
 MO_FILES  = $(patsubst %.po,%.mo,$(PO_FILES))
 
 # Build rules
