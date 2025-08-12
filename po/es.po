@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.4.2\n"
 "Report-Msgid-Bugs-To: support@minios.dev\n"
-"POT-Creation-Date: 2025-08-11 09:37+0300\n"
+"POT-Creation-Date: 2025-08-12 19:48+0300\n"
 "PO-Revision-Date: 2025-08-11 09:37+0300\n"
 "Last-Translator: crims0n <crims0n@minios.dev>\n"
 "Language-Team: none\n"
@@ -20,7 +20,7 @@ msgstr ""
 #: bin/apt2sb:10 bin/apt2sb:43 bin/dir2sb:11 bin/dir2sb:31 bin/sb:23 bin/sb:52
 #: bin/rmsbdir:9 bin/sb2iso:20 bin/sb2iso:38 bin/savechanges:14
 #: bin/savechanges:30 bin/chroot2sb:10 bin/chroot2sb:30 bin/script2sb:10
-#: bin/script2sb:32
+#: bin/script2sb:32 bin/sb2iso:39
 msgid "Usage"
 msgstr "Uso"
 
@@ -64,12 +64,12 @@ msgid "Bundle extension. Default: sb"
 msgstr "Extensión del paquete. Predeterminado: sb"
 
 #: bin/apt2sb:22 bin/dir2sb:17 bin/sb:37 bin/sb2iso:26 bin/savechanges:20
-#: bin/chroot2sb:19 bin/script2sb:20
+#: bin/chroot2sb:19 bin/script2sb:20 bin/sb2iso:27
 msgid "Display this help and exit"
 msgstr "Mostrar esta ayuda y salir"
 
 #: bin/apt2sb:23 bin/dir2sb:18 bin/sb:38 bin/sb2iso:27 bin/savechanges:21
-#: bin/chroot2sb:20 bin/script2sb:21
+#: bin/chroot2sb:20 bin/script2sb:21 bin/sb2iso:28
 msgid "Display version information and exit"
 msgstr "Mostrar información de versión y salir"
 
@@ -95,7 +95,8 @@ msgstr "Considerar paquetes sugeridos como dependencia para la instalación"
 
 #: bin/apt2sb:30
 msgid "Do not consider recommended packages as a dependency for installing"
-msgstr "No considerar paquetes recomendados como dependencia para la instalación"
+msgstr ""
+"No considerar paquetes recomendados como dependencia para la instalación"
 
 #: bin/apt2sb:31
 msgid "Do not consider suggested packages as a dependency for installing"
@@ -106,16 +107,17 @@ msgid "Default release to install packages from"
 msgstr "Versión predeterminada para instalar paquetes"
 
 #: bin/apt2sb:34 bin/sb:40 bin/sb2iso:29 bin/chroot2sb:22 bin/script2sb:23
+#: bin/sb2iso:30
 msgid "Examples"
 msgstr "Ejemplos"
 
 #: bin/apt2sb:44 bin/dir2sb:32 bin/sb:54 bin/sb2iso:39 bin/savechanges:31
-#: bin/chroot2sb:31 bin/script2sb:33
+#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40
 msgid "Try"
 msgstr "Pruebe"
 
 #: bin/apt2sb:44 bin/dir2sb:32 bin/sb:54 bin/sb2iso:39 bin/savechanges:31
-#: bin/chroot2sb:31 bin/script2sb:33
+#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40
 msgid "for more information."
 msgstr "para más información."
 
@@ -146,8 +148,8 @@ msgid ""
 "is required."
 msgstr ""
 "Si DIRECTORIO_ORIGEN no tiene una extensión .sb y no es 'squashfs-root', "
-"entonces el propio directorio se incluye en el módulo, y ARCHIVO_DESTINO "
-"es requerido."
+"entonces el propio directorio se incluye en el módulo, y ARCHIVO_DESTINO es "
+"requerido."
 
 #: bin/dir2sb:26
 msgid ""
@@ -221,35 +223,35 @@ msgstr "Excluir cualquier ruta o archivo existente que coincida con REGEX"
 msgid "Specify output ISO filename (default"
 msgstr "Especificar nombre de archivo ISO de salida (predeterminado"
 
-#: bin/sb2iso:30
+#: bin/sb2iso:30 bin/sb2iso:31
 msgid "Create MiniOS ISO without firefox.sb module:"
 msgstr "Crear ISO de MiniOS sin el módulo firefox.sb:"
 
-#: bin/sb2iso:32
+#: bin/sb2iso:32 bin/sb2iso:33
 msgid "Create MiniOS text-mode core only:"
 msgstr "Crear solo el núcleo de MiniOS en modo texto:"
 
-#: bin/sb2iso:223
+#: bin/sb2iso:223 bin/sb2iso:259
 msgid "Creating ISO work directory"
 msgstr "Creando directorio de trabajo ISO"
 
-#: bin/sb2iso:224
+#: bin/sb2iso:224 bin/sb2iso:261
 msgid "Copying boot files (isolinux.bin & isohdpfx.bin)"
 msgstr "Copiando archivos de arranque (isolinux.bin & isohdpfx.bin)"
 
-#: bin/sb2iso:229
+#: bin/sb2iso:229 bin/sb2iso:269
 msgid "Creating temporary persistence image"
 msgstr "Creando imagen de persistencia temporal"
 
-#: bin/sb2iso:230
+#: bin/sb2iso:230 bin/sb2iso:270
 msgid "Formatting persistence image"
 msgstr "Formateando imagen de persistencia"
 
-#: bin/sb2iso:231
+#: bin/sb2iso:231 bin/sb2iso:301
 msgid "Generating ISO image"
 msgstr "Generando imagen ISO"
 
-#: bin/sb2iso:257
+#: bin/sb2iso:257 bin/sb2iso:310
 msgid "Cleaning up temporary files"
 msgstr "Limpiando archivos temporales"
 
@@ -263,7 +265,9 @@ msgstr "Si se especifica el directorio_de_salida, debe existir"
 
 #: bin/sb2dir:11
 msgid "If the output_directory is not specified, the name source_file.sb"
-msgstr "Si no se especifica el directorio_de_salida, se utiliza el nombre archivo_origen.sb"
+msgstr ""
+"Si no se especifica el directorio_de_salida, se utiliza el nombre "
+"archivo_origen.sb"
 
 #: bin/sb2dir:12
 msgid "is used and the directory is overmounted with tmpfs"
@@ -275,7 +279,9 @@ msgstr "El archivo no existe:"
 
 #: bin/savechanges:15
 msgid "Saves all changed files in a compressed filesystem bundle."
-msgstr "Guarda todos los archivos cambiados en un paquete de sistema de archivos comprimido."
+msgstr ""
+"Guarda todos los archivos cambiados en un paquete de sistema de archivos "
+"comprimido."
 
 #: bin/savechanges:23
 msgid "If changes_directory is not specified,"
@@ -287,7 +293,9 @@ msgstr "se utiliza /run/initramfs/memory/changes."
 
 #: bin/chroot2sb:11 bin/script2sb:11
 msgid "Packages a module from changes made by an installation script"
-msgstr "Empaqueta un módulo a partir de los cambios realizados por un script de instalación"
+msgstr ""
+"Empaqueta un módulo a partir de los cambios realizados por un script de "
+"instalación"
 
 #: bin/chroot2sb:14 bin/script2sb:16
 msgid "Copy contents of DIR to the root of the module"
@@ -300,3 +308,16 @@ msgstr "Usar NOMBRE como nombre de archivo para el módulo"
 #: bin/script2sb:19
 msgid "Use FILE as the installation script"
 msgstr "Usar ARCHIVO como script de instalación"
+
+#: bin/sb2iso:26
+msgid "Increase verbosity level"
+msgstr "Aumentar el nivel de verbosidad"
+
+#: bin/sb2iso:215
+msgid ""
+"If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
+msgstr "Si cargaste el sistema en RAM, usa 'toram=full' en los parámetros del kernel."
+
+#: bin/sb2iso:263
+msgid "Copying GRUB boot files"
+msgstr "Copiando archivos de arranque de GRUB"

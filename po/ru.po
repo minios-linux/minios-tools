@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.4.2\n"
 "Report-Msgid-Bugs-To: support@minios.dev\n"
-"POT-Creation-Date: 2025-08-11 09:37+0300\n"
+"POT-Creation-Date: 2025-08-12 19:48+0300\n"
 "PO-Revision-Date: 2025-08-11 09:37+0300\n"
 "Last-Translator: crims0n <crims0n@minios.dev>\n"
 "Language-Team: none\n"
@@ -21,7 +21,7 @@ msgstr ""
 #: bin/apt2sb:10 bin/apt2sb:43 bin/dir2sb:11 bin/dir2sb:31 bin/sb:23 bin/sb:52
 #: bin/rmsbdir:9 bin/sb2iso:20 bin/sb2iso:38 bin/savechanges:14
 #: bin/savechanges:30 bin/chroot2sb:10 bin/chroot2sb:30 bin/script2sb:10
-#: bin/script2sb:32
+#: bin/script2sb:32 bin/sb2iso:39
 msgid "Usage"
 msgstr "Использование"
 
@@ -65,12 +65,12 @@ msgid "Bundle extension. Default: sb"
 msgstr "Расширение пакета. По умолчанию: sb"
 
 #: bin/apt2sb:22 bin/dir2sb:17 bin/sb:37 bin/sb2iso:26 bin/savechanges:20
-#: bin/chroot2sb:19 bin/script2sb:20
+#: bin/chroot2sb:19 bin/script2sb:20 bin/sb2iso:27
 msgid "Display this help and exit"
 msgstr "Отобразить эту справку и выйти"
 
 #: bin/apt2sb:23 bin/dir2sb:18 bin/sb:38 bin/sb2iso:27 bin/savechanges:21
-#: bin/chroot2sb:20 bin/script2sb:21
+#: bin/chroot2sb:20 bin/script2sb:21 bin/sb2iso:28
 msgid "Display version information and exit"
 msgstr "Отобразить информацию о версии и выйти"
 
@@ -107,16 +107,17 @@ msgid "Default release to install packages from"
 msgstr "Выпуск по умолчанию для установки пакетов"
 
 #: bin/apt2sb:34 bin/sb:40 bin/sb2iso:29 bin/chroot2sb:22 bin/script2sb:23
+#: bin/sb2iso:30
 msgid "Examples"
 msgstr "Примеры"
 
 #: bin/apt2sb:44 bin/dir2sb:32 bin/sb:54 bin/sb2iso:39 bin/savechanges:31
-#: bin/chroot2sb:31 bin/script2sb:33
+#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40
 msgid "Try"
 msgstr "Попробуйте"
 
 #: bin/apt2sb:44 bin/dir2sb:32 bin/sb:54 bin/sb2iso:39 bin/savechanges:31
-#: bin/chroot2sb:31 bin/script2sb:33
+#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40
 msgid "for more information."
 msgstr "для получения дополнительной информации."
 
@@ -154,8 +155,7 @@ msgid ""
 "If TARGET_FILE is not specified, SOURCE_DIRECTORY is replaced by the new "
 "module file."
 msgstr ""
-"Если ЦЕЛЕВОЙ_ФАЙЛ не указан, ИСХОДНЫЙ_КАТАЛОГ заменяется новым файлом "
-"модуля."
+"Если ЦЕЛЕВОЙ_ФАЙЛ не указан, ИСХОДНЫЙ_КАТАЛОГ заменяется новым файлом модуля."
 
 #: bin/sb:24
 msgid "Manage MiniOS bundles."
@@ -221,35 +221,35 @@ msgstr "Исключить любой существующий путь или �
 msgid "Specify output ISO filename (default"
 msgstr "Укажите имя выходного ISO-файла (по умолчанию"
 
-#: bin/sb2iso:30
+#: bin/sb2iso:30 bin/sb2iso:31
 msgid "Create MiniOS ISO without firefox.sb module:"
 msgstr "Создать ISO MiniOS без модуля firefox.sb:"
 
-#: bin/sb2iso:32
+#: bin/sb2iso:32 bin/sb2iso:33
 msgid "Create MiniOS text-mode core only:"
 msgstr "Создать только ядро MiniOS в текстовом режиме:"
 
-#: bin/sb2iso:223
+#: bin/sb2iso:223 bin/sb2iso:259
 msgid "Creating ISO work directory"
 msgstr "Создание рабочего каталога ISO"
 
-#: bin/sb2iso:224
+#: bin/sb2iso:224 bin/sb2iso:261
 msgid "Copying boot files (isolinux.bin & isohdpfx.bin)"
 msgstr "Копирование загрузочных файлов (isolinux.bin и isohdpfx.bin)"
 
-#: bin/sb2iso:229
+#: bin/sb2iso:229 bin/sb2iso:269
 msgid "Creating temporary persistence image"
 msgstr "Создание временного образа постоянства"
 
-#: bin/sb2iso:230
+#: bin/sb2iso:230 bin/sb2iso:270
 msgid "Formatting persistence image"
 msgstr "Форматирование образа постоянства"
 
-#: bin/sb2iso:231
+#: bin/sb2iso:231 bin/sb2iso:301
 msgid "Generating ISO image"
 msgstr "Генерация ISO-образа"
 
-#: bin/sb2iso:257
+#: bin/sb2iso:257 bin/sb2iso:310
 msgid "Cleaning up temporary files"
 msgstr "Очистка временных файлов"
 
@@ -300,3 +300,16 @@ msgstr "Использовать ИМЯ как имя файла для моду
 #: bin/script2sb:19
 msgid "Use FILE as the installation script"
 msgstr "Использовать ФАЙЛ как установочный скрипт"
+
+#: bin/sb2iso:26
+msgid "Increase verbosity level"
+msgstr "Увеличить уровень подробности"
+
+#: bin/sb2iso:215
+msgid ""
+"If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
+msgstr "Если вы загрузили систему в RAM, используйте 'toram=full' в параметрах ядра."
+
+#: bin/sb2iso:263
+msgid "Copying GRUB boot files"
+msgstr "Копирование файлов загрузки GRUB"
