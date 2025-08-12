@@ -2,7 +2,7 @@
 # Author: Tomas M. <http://www.linux-live.org>
 # Author: crims0n. <https://minios.dev>
 
-VERSION="1.4"
+VERSION="1.5"
 SYSTEMNAME="MiniOS"
 export TEXTDOMAIN="minios-tools"
 TEMP=/tmp/minios.iso.$$
@@ -158,35 +158,56 @@ TARGET=${TARGET:-"${PWD}/minios-$(date +%Y%m%d_%H%M).iso"}
 
 if [ -e "$SOURCE/data/minios/boot/isolinux.bin" ]; then
     MINIOS=$SOURCE/data/minios
+elif [ -e "$SOURCE/data/minios/boot/grub/grub.cfg" ]; then
+    MINIOS=$SOURCE/data/minios
 elif [ -e "$SOURCE/iso/minios/boot/isolinux.bin" ]; then
+    MINIOS=$SOURCE/iso/minios
+elif [ -e "$SOURCE/iso/minios/boot/grub/grub.cfg" ]; then
     MINIOS=$SOURCE/iso/minios
 elif [ -e "$SOURCE/toram/boot/isolinux.bin" ]; then
     MINIOS=$SOURCE/toram
+elif [ -e "$SOURCE/toram/boot/grub/grub.cfg" ]; then
+    MINIOS=$SOURCE/toram
 elif [ -e "$SOURCE/data/from/0/minios/boot/isolinux.bin" ]; then
+    MINIOS=$SOURCE/data/from/0/minios
+elif [ -e "$SOURCE/data/from/0/minios/boot/grub/grub.cfg" ]; then
     MINIOS=$SOURCE/data/from/0/minios
 fi
 
 if [ "$MINIOS" = "" ]; then
-    echo "Cannot find boot/isolinux.bin in MiniOS data" >&2
+    echo "Cannot find boot/isolinux.bin or boot/grub/grub.cfg in MiniOS data" >&2
     exit 2
 fi
 
 echo $SYSTEMNAME >/tmp/info
 
 # Check required files
-REQUIRED_FILES=(
-    "$MINIOS/boot/isolinux.bin"
-    "$MINIOS/boot/isohdpfx.bin"
-    "$MINIOS/boot/syslinux.cfg"
+# Detect bootloader type
+if [ -e "$MINIOS/boot/isolinux.bin" ]; then
+    BOOTLOADER_TYPE="isolinux"
+    REQUIRED_FILES=(
+        "$MINIOS/boot/isolinux.bin"
+        "$MINIOS/boot/isohdpfx.bin"
+        "$MINIOS/boot/syslinux.cfg"
+    )
+else
+    BOOTLOADER_TYPE="grub"
+    REQUIRED_FILES=(
+        "$MINIOS/boot/grub/i386-pc/eltorito.img"
+        "$MINIOS/boot/grub/grub.cfg"
+    )
+fi
+
+# Always check for EFI files
+REQUIRED_FILES+=(
     "$MINIOS/boot/grub/efi64.img"
     "$MINIOS/boot/grub/efi32.img"
-    "$MINIOS/boot/grub/grub.cfg"
 )
 
 for FILE in "${REQUIRED_FILES[@]}"; do
     if [ ! -e "$FILE" ]; then
-        error "$(gettext "Required file not found: $FILE.)"
-        information "If you loaded the system into RAM, use 'toram=full' in the kernel parameters.")"
+        error "$(gettext "Required file not found: $FILE")"
+        information "$(gettext "If you loaded the system into RAM, use 'toram=full' in the kernel parameters.")"
         exit 2
     fi
 done
@@ -196,14 +217,29 @@ GRAFT=$(
     find . -type f | sed -r "s:^[.]/::" | egrep -v "^changes/" | egrep -v "$REGEX" | while read LINE; do
             echo "minios/$LINE=$MINIOS/$LINE"
         done
-    cd "$MINIOS/boot/EFI"
-    find . -type f | sed -r "s:^[.]/::" | egrep -v "$REGEX" | while read LINE; do
-            echo "EFI/$LINE=$MINIOS/boot/EFI/$LINE"
-        done
+    if [ -d "$MINIOS/boot/EFI" ]; then
+        cd "$MINIOS/boot/EFI"
+        find . -type f | sed -r "s:^[.]/::" | egrep -v "$REGEX" | while read LINE; do
+                echo "EFI/$LINE=$MINIOS/boot/EFI/$LINE"
+            done
+    fi
     echo ".disk/info=/tmp/info"
-    echo "minios/minios.conf=/etc/minios/minios.conf"
-    echo "minios/boot/grub/grub.cfg=/etc/minios/grub.cfg"
-    echo "minios/boot/syslinux.cfg=/etc/minios/syslinux.cfg"
+    # Add config files if they exist
+    if [ -e "/etc/minios/minios.conf" ]; then
+        echo "minios/minios.conf=/etc/minios/minios.conf"
+    fi
+    if [ -e "/etc/minios/grub.cfg" ]; then
+        echo "minios/boot/grub/grub.cfg=/etc/minios/grub.cfg" 
+    elif [ -e "$MINIOS/boot/grub/grub.cfg" ]; then
+        # Use existing grub.cfg from the image
+        echo "minios/boot/grub/grub.cfg=$MINIOS/boot/grub/grub.cfg"
+    fi
+    if [ -e "/etc/minios/syslinux.cfg" ]; then
+        echo "minios/boot/syslinux.cfg=/etc/minios/syslinux.cfg"
+    elif [ -e "$MINIOS/boot/syslinux.cfg" ]; then
+        # Use existing syslinux.cfg from the image  
+        echo "minios/boot/syslinux.cfg=$MINIOS/boot/syslinux.cfg"
+    fi
 )
 
 # add all modules
@@ -221,38 +257,45 @@ for MOD in "${MODULES[@]}"; do
 done
 
 run_with_spinner "$(gettext "Creating ISO work directory")" mkdir -p "$TEMP/minios/boot" "$TEMP/minios/modules" "$TEMP/minios/changes" "$TEMP/minios/scripts"
-run_with_spinner "$(gettext "Copying boot files (isolinux.bin & isohdpfx.bin)")" sh -c 'cp "$0/boot/isolinux.bin" "$1" && cp "$0/boot/isohdpfx.bin" "$1"' "$MINIOS" "$TEMP/minios/boot"
+if [ "$BOOTLOADER_TYPE" = "isolinux" ]; then
+    run_with_spinner "$(gettext "Copying boot files (isolinux.bin & isohdpfx.bin)")" sh -c 'cp "$0/boot/isolinux.bin" "$1" && cp "$0/boot/isohdpfx.bin" "$1"' "$MINIOS" "$TEMP/minios/boot"
+else
+    run_with_spinner "$(gettext "Copying GRUB boot files")" mkdir -p "$TEMP/minios/boot/grub/i386-pc"
+fi
 
 cd "$TEMP" || exit 4
 
 PERCHIMG=$(mktemp --suffix=.img)
 run_with_spinner "$(gettext "Creating temporary persistence image")" dd if=/dev/zero of="$PERCHIMG" bs=1M count=1
 run_with_spinner "$(gettext "Formatting persistence image")" mkfs.ext2 -L persistence "$PERCHIMG"
-run_with_spinner "$(gettext "Generating ISO image")" xorriso \
-    --as mkisofs \
-    -iso-level 3 \
-    -volid "${SYSTEMNAME^^}" \
-    -A "$SYSTEMNAME" \
-    -joliet -joliet-long -rational-rock \
-    -eltorito-boot "minios/boot/isolinux.bin" \
-    -eltorito-catalog "minios/boot/isolinux.boot" \
-    -no-emul-boot \
-    -boot-load-size 4 \
-    -boot-info-table \
-    -eltorito-alt-boot \
-    -e "minios/boot/grub/efi64.img" \
-    -no-emul-boot \
-    -eltorito-alt-boot \
-    -e "minios/boot/grub/efi32.img" \
-    -no-emul-boot \
-    --isohybrid-mbr "$MINIOS/boot/isohdpfx.bin" \
-    -append_partition 2 0x83 "$PERCHIMG" \
-    -partition_cyl_align on \
-    -partition_offset 16 \
-    -part_like_isohybrid \
-    -graft-points $GRAFT \
-    -quiet \
-    -output "$TARGET"
+# Build xorriso command based on bootloader type
+XORRISO_CMD="xorriso --as mkisofs -iso-level 3 -volid \"${SYSTEMNAME^^}\" -A \"$SYSTEMNAME\" -joliet -joliet-long -rational-rock"
+
+if [ "$BOOTLOADER_TYPE" = "isolinux" ]; then
+    # ISOLINUX/SYSLINUX boot
+    XORRISO_CMD="$XORRISO_CMD -eltorito-boot \"minios/boot/isolinux.bin\" -eltorito-catalog \"minios/boot/isolinux.boot\" -no-emul-boot -boot-load-size 4 -boot-info-table"
+    MBR_FILE="$MINIOS/boot/isohdpfx.bin"
+else
+    # GRUB boot
+    XORRISO_CMD="$XORRISO_CMD -eltorito-boot \"minios/boot/grub/i386-pc/eltorito.img\" -no-emul-boot -boot-load-size 4"
+    MBR_FILE="$MINIOS/boot/isohdpfx.bin"
+    if [ ! -e "$MBR_FILE" ]; then
+        MBR_FILE="$MINIOS/boot/grub/i386-pc/boot_hybrid.img"
+    fi
+fi
+
+# EFI boot (common for both)
+XORRISO_CMD="$XORRISO_CMD -eltorito-alt-boot -e \"minios/boot/grub/efi64.img\" -no-emul-boot"
+XORRISO_CMD="$XORRISO_CMD -eltorito-alt-boot -e \"minios/boot/grub/efi32.img\" -no-emul-boot"
+
+# Hybrid and partitioning
+if [ -e "$MBR_FILE" ]; then
+    XORRISO_CMD="$XORRISO_CMD --isohybrid-mbr \"$MBR_FILE\""
+fi
+XORRISO_CMD="$XORRISO_CMD -append_partition 2 0x83 \"$PERCHIMG\" -partition_cyl_align on -partition_offset 16 -part_like_isohybrid"
+XORRISO_CMD="$XORRISO_CMD -graft-points $GRAFT -quiet -output \"$TARGET\""
+
+run_with_spinner "$(gettext "Generating ISO image")" bash -c "$XORRISO_CMD"
 
 run_with_spinner "$(gettext "Cleaning up temporary files")" rm -rf "$TEMP" "$PERCHIMG"
 
