@@ -23,6 +23,7 @@ help() {
     echo "$(gettext "Options"):"
     echo "  -e, --exclude REGEX   $(gettext "Exclude any existing path or file matching REGEX")"
     echo "  -n, --name NAME       $(gettext "Specify output ISO filename (default"): minios-YYYYMMDD_HHMM.iso)"
+    echo "  -v, --verbose         $(gettext "Increase verbosity level")"
     echo "      --help            $(gettext "Display this help and exit")"
     echo "      --version         $(gettext "Display version information and exit")"
     echo ""
@@ -134,6 +135,10 @@ while [ "$#" -gt 0 ]; do
         TARGET="$(readlink -f "$2")"
         shift 2
         ;;
+    -v | --verbose)
+        VERBOSITY_LEVEL=$((VERBOSITY_LEVEL + 1))
+        shift
+        ;;
     --help)
         help
         ;;
@@ -224,21 +229,16 @@ GRAFT=$(
             done
     fi
     echo ".disk/info=/tmp/info"
-    # Add config files if they exist
-    if [ -e "/etc/minios/minios.conf" ]; then
-        echo "minios/minios.conf=/etc/minios/minios.conf"
+    # Add config file
+    if [ -e "/etc/live/config.conf" ]; then
+        echo "minios/config.conf=/etc/live/config.conf"
     fi
-    if [ -e "/etc/minios/grub.cfg" ]; then
-        echo "minios/boot/grub/grub.cfg=/etc/minios/grub.cfg" 
-    elif [ -e "$MINIOS/boot/grub/grub.cfg" ]; then
-        # Use existing grub.cfg from the image
-        echo "minios/boot/grub/grub.cfg=$MINIOS/boot/grub/grub.cfg"
-    fi
-    if [ -e "/etc/minios/syslinux.cfg" ]; then
-        echo "minios/boot/syslinux.cfg=/etc/minios/syslinux.cfg"
-    elif [ -e "$MINIOS/boot/syslinux.cfg" ]; then
-        # Use existing syslinux.cfg from the image  
-        echo "minios/boot/syslinux.cfg=$MINIOS/boot/syslinux.cfg"
+    # Add config.conf.d directory if it exists
+    if [ -d "/etc/live/config.conf.d" ]; then
+        find /etc/live/config.conf.d -type f | while read LINE; do
+            BASENAME=$(basename "$LINE")
+            echo "minios/config.conf.d/$BASENAME=$LINE"
+        done
     fi
 )
 
@@ -266,8 +266,8 @@ fi
 cd "$TEMP" || exit 4
 
 PERCHIMG=$(mktemp --suffix=.img)
-run_with_spinner "$(gettext "Creating temporary persistence image")" dd if=/dev/zero of="$PERCHIMG" bs=1M count=1
-run_with_spinner "$(gettext "Formatting persistence image")" mkfs.ext2 -L persistence "$PERCHIMG"
+run_with_spinner "$(gettext "Creating temporary persistence image")" dd if=/dev/zero of="$PERCHIMG" bs=1 count=0 seek=128k
+run_with_spinner "$(gettext "Formatting persistence image")" mkfs.ext2 -b 1024 -L resizeme "$PERCHIMG"
 # Build xorriso command based on bootloader type
 XORRISO_CMD="xorriso --as mkisofs -iso-level 3 -volid \"${SYSTEMNAME^^}\" -A \"$SYSTEMNAME\" -joliet -joliet-long -rational-rock"
 
@@ -277,11 +277,8 @@ if [ "$BOOTLOADER_TYPE" = "isolinux" ]; then
     MBR_FILE="$MINIOS/boot/isohdpfx.bin"
 else
     # GRUB boot
-    XORRISO_CMD="$XORRISO_CMD -eltorito-boot \"minios/boot/grub/i386-pc/eltorito.img\" -no-emul-boot -boot-load-size 4"
-    MBR_FILE="$MINIOS/boot/isohdpfx.bin"
-    if [ ! -e "$MBR_FILE" ]; then
-        MBR_FILE="$MINIOS/boot/grub/i386-pc/boot_hybrid.img"
-    fi
+    XORRISO_CMD="$XORRISO_CMD -eltorito-boot \"minios/boot/grub/i386-pc/eltorito.img\" -no-emul-boot -boot-load-size 4 -boot-info-table"
+    MBR_FILE="$MINIOS/boot/grub/i386-pc/boot_hybrid.img"
 fi
 
 # EFI boot (common for both)
@@ -293,11 +290,30 @@ if [ -e "$MBR_FILE" ]; then
     XORRISO_CMD="$XORRISO_CMD --isohybrid-mbr \"$MBR_FILE\""
 fi
 XORRISO_CMD="$XORRISO_CMD -append_partition 2 0x83 \"$PERCHIMG\" -partition_cyl_align on -partition_offset 16 -part_like_isohybrid"
-XORRISO_CMD="$XORRISO_CMD -graft-points $GRAFT -quiet -output \"$TARGET\""
+XORRISO_CMD="$XORRISO_CMD -graft-points $GRAFT -output \"$TARGET\""
 
-run_with_spinner "$(gettext "Generating ISO image")" bash -c "$XORRISO_CMD"
+# Execute with appropriate verbosity
+if [[ "${VERBOSITY_LEVEL}" -ge 1 ]]; then
+    bash -c "$XORRISO_CMD" && information "The image ${CYAN}$TARGET${ENDCOLOR} has been created." || exit 1
+else
+    bash -c "$XORRISO_CMD" >/dev/null 2>&1 &
+    iso_pid=$!
+    spinner "${iso_pid}" "$(gettext "Generating ISO image")"
+    wait "${iso_pid}"
+    if [ $? -eq 0 ]; then
+        information "The image ${CYAN}$TARGET${ENDCOLOR} has been created."
+    else
+        exit 1
+    fi
+fi
 
 run_with_spinner "$(gettext "Cleaning up temporary files")" rm -rf "$TEMP" "$PERCHIMG"
+
+# Generate SHA256 checksum
+if [[ -f "$TARGET" ]]; then
+    sha256sum "$TARGET" > "$TARGET.sha256"
+    information "SHA256 checksum saved to ${CYAN}$TARGET.sha256${ENDCOLOR}."
+fi
 
 information "ISO successfully created: ${CYAN}$TARGET${ENDCOLOR}"
 exit 0
