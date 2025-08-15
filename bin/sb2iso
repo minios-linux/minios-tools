@@ -10,6 +10,7 @@ REGEX='^$'
 MODULES=()
 PWD="$(pwd)"
 VERBOSITY_LEVEL=0
+FORCE_BOOTLOADER=""
 if [ -d "/run/initramfs/memory" ]; then
     SOURCE="/run/initramfs/memory"
 elif [ -d "/memory" ]; then
@@ -21,17 +22,28 @@ help() {
     echo "$(gettext "Generate MiniOS ISO image, adding specified modules.")"
     echo ""
     echo "$(gettext "Options"):"
+    echo "  -b, --bootloader TYPE $(gettext "Force specific BIOS bootloader type (isolinux or grub)")"
+    echo "                        $(gettext "Note: EFI boot always uses GRUB regardless of this setting")"
     echo "  -e, --exclude REGEX   $(gettext "Exclude any existing path or file matching REGEX")"
     echo "  -n, --name NAME       $(gettext "Specify output ISO filename (default"): minios-YYYYMMDD_HHMM.iso)"
     echo "  -v, --verbose         $(gettext "Increase verbosity level")"
     echo "      --help            $(gettext "Display this help and exit")"
     echo "      --version         $(gettext "Display version information and exit")"
     echo ""
+    echo "$(gettext "Bootloader Notes"):"
+    echo "  - $(gettext "BIOS boot: Uses GRUB by default, can be forced to ISOLINUX/SYSLINUX with -b")"
+    echo "  - $(gettext "EFI boot: Always uses GRUB (both 32-bit and 64-bit EFI support)")"
+    echo "  - $(gettext "Hybrid ISOs support both BIOS and EFI boot modes simultaneously")"
+    echo ""
     echo "$(gettext "Examples"):"
     echo "  # $(gettext "Create MiniOS ISO without firefox.sb module:")"
     echo "  $(basename $0) -e 'firefox' -f minios_without_firefox.iso"
     echo "  # $(gettext "Create MiniOS text-mode core only:")"
     echo "  $(basename $0) --exclude='firmware|xorg|desktop|apps|firefox' --file=minios_textmode.iso"
+    echo "  # $(gettext "Force ISOLINUX bootloader for BIOS (EFI still uses GRUB):")"
+    echo "  $(basename $0) --bootloader isolinux -n minios_isolinux.iso"
+    echo "  # $(gettext "Use default GRUB bootloader for both BIOS and EFI:")"
+    echo "  $(basename $0) -n minios_grub.iso"
     exit 0
 }
 
@@ -127,6 +139,16 @@ console_colors
 
 while [ "$#" -gt 0 ]; do
     case "$1" in
+    -b | --bootloader)
+        if [ "$2" = "isolinux" ] || [ "$2" = "grub" ]; then
+            FORCE_BOOTLOADER="$2"
+            shift 2
+        else
+            error "$(gettext "Invalid BIOS bootloader type: $2. Use 'isolinux' or 'grub'.")"
+            information "$(gettext "Note: This option only affects BIOS boot. EFI boot always uses GRUB.")"
+            brief_help
+        fi
+        ;;
     -e | --exclude)
         REGEX="$2"
         shift 2
@@ -188,15 +210,31 @@ echo $SYSTEMNAME >/tmp/info
 
 # Check required files
 # Detect bootloader type
-if [ -e "$MINIOS/boot/isolinux.bin" ]; then
-    BOOTLOADER_TYPE="isolinux"
+if [ "$FORCE_BOOTLOADER" != "" ]; then
+    BOOTLOADER_TYPE="$FORCE_BOOTLOADER"
+    information "$(gettext "Using forced BIOS bootloader type: $BOOTLOADER_TYPE")"
+    information "$(gettext "Note: EFI boot will still use GRUB regardless of this setting")"
+else
+    # Default to GRUB, fallback to isolinux if GRUB files are missing
+    if [ -e "$MINIOS/boot/grub/grub.cfg" ] && [ -e "$MINIOS/boot/grub/i386-pc/eltorito.img" ]; then
+        BOOTLOADER_TYPE="grub"
+        information "$(gettext "Using default GRUB bootloader for BIOS boot")"
+    elif [ -e "$MINIOS/boot/isolinux.bin" ]; then
+        BOOTLOADER_TYPE="isolinux"
+        information "$(gettext "GRUB files not found, falling back to ISOLINUX for BIOS boot")"
+    else
+        BOOTLOADER_TYPE="grub"  # Default fallback
+        information "$(gettext "Using GRUB bootloader (default)")"
+    fi
+fi
+
+if [ "$BOOTLOADER_TYPE" = "isolinux" ]; then
     REQUIRED_FILES=(
         "$MINIOS/boot/isolinux.bin"
         "$MINIOS/boot/isohdpfx.bin"
         "$MINIOS/boot/syslinux.cfg"
     )
 else
-    BOOTLOADER_TYPE="grub"
     REQUIRED_FILES=(
         "$MINIOS/boot/grub/i386-pc/eltorito.img"
         "$MINIOS/boot/grub/grub.cfg"
@@ -211,8 +249,14 @@ REQUIRED_FILES+=(
 
 for FILE in "${REQUIRED_FILES[@]}"; do
     if [ ! -e "$FILE" ]; then
-        error "$(gettext "Required file not found: $FILE")"
-        information "$(gettext "If you loaded the system into RAM, use 'toram=full' in the kernel parameters.")"
+        if [ "$FORCE_BOOTLOADER" != "" ]; then
+            error "$(gettext "Required file for forced BIOS bootloader '$FORCE_BOOTLOADER' not found: $FILE")"
+            information "$(gettext "The selected BIOS bootloader files are missing. Try without --bootloader option for automatic detection.")"
+            information "$(gettext "Remember: This option only affects BIOS boot, EFI boot always uses GRUB.")"
+        else
+            error "$(gettext "Required file not found: $FILE")"
+            information "$(gettext "If you loaded the system into RAM, use 'toram=full' in the kernel parameters.")"
+        fi
         exit 2
     fi
 done
