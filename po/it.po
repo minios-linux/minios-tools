@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.4.2\n"
 "Report-Msgid-Bugs-To: support@minios.dev\n"
-"POT-Creation-Date: 2025-08-12 19:48+0300\n"
+"POT-Creation-Date: 2025-08-15 16:49+0300\n"
 "PO-Revision-Date: 2025-08-11 09:37+0300\n"
 "Last-Translator: crims0n <crims0n@minios.dev>\n"
 "Language-Team: none\n"
@@ -20,7 +20,7 @@ msgstr ""
 #: bin/apt2sb:10 bin/apt2sb:43 bin/dir2sb:11 bin/dir2sb:31 bin/sb:23 bin/sb:52
 #: bin/rmsbdir:9 bin/sb2iso:20 bin/sb2iso:38 bin/savechanges:14
 #: bin/savechanges:30 bin/chroot2sb:10 bin/chroot2sb:30 bin/script2sb:10
-#: bin/script2sb:32 bin/sb2iso:39
+#: bin/script2sb:32 bin/sb2iso:39 bin/sb2iso:21 bin/sb2iso:51
 msgid "Usage"
 msgstr "Utilizzo"
 
@@ -41,7 +41,7 @@ msgid "Upgrade installed packages"
 msgstr "Aggiorna pacchetti installati"
 
 #: bin/apt2sb:17 bin/dir2sb:14 bin/sb2iso:23 bin/savechanges:17
-#: bin/chroot2sb:13 bin/script2sb:13
+#: bin/chroot2sb:13 bin/script2sb:13 bin/sb2iso:24
 msgid "Options"
 msgstr "Opzioni"
 
@@ -64,12 +64,12 @@ msgid "Bundle extension. Default: sb"
 msgstr "Estensione del bundle. Predefinito: sb"
 
 #: bin/apt2sb:22 bin/dir2sb:17 bin/sb:37 bin/sb2iso:26 bin/savechanges:20
-#: bin/chroot2sb:19 bin/script2sb:20 bin/sb2iso:27
+#: bin/chroot2sb:19 bin/script2sb:20 bin/sb2iso:27 bin/sb2iso:30
 msgid "Display this help and exit"
 msgstr "Mostra questa guida ed esci"
 
 #: bin/apt2sb:23 bin/dir2sb:18 bin/sb:38 bin/sb2iso:27 bin/savechanges:21
-#: bin/chroot2sb:20 bin/script2sb:21 bin/sb2iso:28
+#: bin/chroot2sb:20 bin/script2sb:21 bin/sb2iso:28 bin/sb2iso:31
 msgid "Display version information and exit"
 msgstr "Mostra informazioni sulla versione ed esci"
 
@@ -108,17 +108,17 @@ msgid "Default release to install packages from"
 msgstr "Release predefinita da cui installare i pacchetti"
 
 #: bin/apt2sb:34 bin/sb:40 bin/sb2iso:29 bin/chroot2sb:22 bin/script2sb:23
-#: bin/sb2iso:30
+#: bin/sb2iso:30 bin/sb2iso:38
 msgid "Examples"
 msgstr "Esempi"
 
 #: bin/apt2sb:44 bin/dir2sb:32 bin/sb:54 bin/sb2iso:39 bin/savechanges:31
-#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40
+#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52
 msgid "Try"
 msgstr "Prova"
 
 #: bin/apt2sb:44 bin/dir2sb:32 bin/sb:54 bin/sb2iso:39 bin/savechanges:31
-#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40
+#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52
 msgid "for more information."
 msgstr "per maggiori informazioni."
 
@@ -212,47 +212,47 @@ msgstr "La directory non esiste:"
 msgid "Module directory deleted:"
 msgstr "Directory del modulo eliminata:"
 
-#: bin/sb2iso:21
+#: bin/sb2iso:21 bin/sb2iso:22
 msgid "Generate MiniOS ISO image, adding specified modules."
 msgstr "Genera immagine ISO di MiniOS, aggiungendo i moduli specificati."
 
-#: bin/sb2iso:24
+#: bin/sb2iso:24 bin/sb2iso:27
 msgid "Exclude any existing path or file matching REGEX"
 msgstr "Escludi qualsiasi percorso o file esistente che corrisponda a REGEX"
 
-#: bin/sb2iso:25
+#: bin/sb2iso:25 bin/sb2iso:28
 msgid "Specify output ISO filename (default"
 msgstr "Specifica il nome del file ISO di output (predefinito"
 
-#: bin/sb2iso:30 bin/sb2iso:31
+#: bin/sb2iso:30 bin/sb2iso:31 bin/sb2iso:39
 msgid "Create MiniOS ISO without firefox.sb module:"
 msgstr "Crea ISO MiniOS senza il modulo firefox.sb:"
 
-#: bin/sb2iso:32 bin/sb2iso:33
+#: bin/sb2iso:32 bin/sb2iso:33 bin/sb2iso:41
 msgid "Create MiniOS text-mode core only:"
 msgstr "Crea solo il core di MiniOS in modalità testo:"
 
-#: bin/sb2iso:223 bin/sb2iso:259
+#: bin/sb2iso:223 bin/sb2iso:259 bin/sb2iso:303
 msgid "Creating ISO work directory"
 msgstr "Creazione della directory di lavoro ISO"
 
-#: bin/sb2iso:224 bin/sb2iso:261
+#: bin/sb2iso:224 bin/sb2iso:261 bin/sb2iso:305
 msgid "Copying boot files (isolinux.bin & isohdpfx.bin)"
 msgstr "Copia dei file di boot (isolinux.bin & isohdpfx.bin)"
 
-#: bin/sb2iso:229 bin/sb2iso:269
+#: bin/sb2iso:229 bin/sb2iso:269 bin/sb2iso:313
 msgid "Creating temporary persistence image"
 msgstr "Creazione immagine di persistenza temporanea"
 
-#: bin/sb2iso:230 bin/sb2iso:270
+#: bin/sb2iso:230 bin/sb2iso:270 bin/sb2iso:314
 msgid "Formatting persistence image"
 msgstr "Formattazione immagine di persistenza"
 
-#: bin/sb2iso:231 bin/sb2iso:301
+#: bin/sb2iso:231 bin/sb2iso:301 bin/sb2iso:345
 msgid "Generating ISO image"
 msgstr "Generazione immagine ISO"
 
-#: bin/sb2iso:257 bin/sb2iso:310
+#: bin/sb2iso:257 bin/sb2iso:310 bin/sb2iso:354
 msgid "Cleaning up temporary files"
 msgstr "Pulizia dei file temporanei"
 
@@ -307,15 +307,83 @@ msgstr "Usa NOME come nome file per il modulo"
 msgid "Use FILE as the installation script"
 msgstr "Usa FILE come script di installazione"
 
-#: bin/sb2iso:26
+#: bin/sb2iso:26 bin/sb2iso:29
 msgid "Increase verbosity level"
 msgstr "Aumentare il livello di verbosità"
 
-#: bin/sb2iso:215
+#: bin/sb2iso:215 bin/sb2iso:258
 msgid ""
 "If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
-msgstr "Se hai caricato il sistema in RAM, usa 'toram=full' nei parametri del kernel."
+msgstr ""
+"Se hai caricato il sistema in RAM, usa 'toram=full' nei parametri del kernel."
 
-#: bin/sb2iso:263
+#: bin/sb2iso:263 bin/sb2iso:307
 msgid "Copying GRUB boot files"
 msgstr "Copia dei file di avvio GRUB"
+
+#: bin/sb2iso:25
+msgid "Force specific BIOS bootloader type (isolinux or grub)"
+msgstr "Forza il tipo di bootloader BIOS specifico (isolinux o grub)"
+
+#: bin/sb2iso:26
+msgid "Note: EFI boot always uses GRUB regardless of this setting"
+msgstr "Nota: l'avvio EFI usa sempre GRUB indipendentemente da questa impostazione"
+
+#: bin/sb2iso:33
+msgid "Bootloader Notes"
+msgstr "Note sul bootloader"
+
+#: bin/sb2iso:34
+msgid ""
+"BIOS boot: Uses GRUB by default, can be forced to ISOLINUX/SYSLINUX with -b"
+msgstr ""
+"Avvio BIOS: Usa GRUB come predefinito, può essere forzato su ISOLINUX/SYSLINUX con -b"
+
+#: bin/sb2iso:35
+msgid "EFI boot: Always uses GRUB (both 32-bit and 64-bit EFI support)"
+msgstr "Avvio EFI: Usa sempre GRUB (supporto sia EFI 32-bit che 64-bit)"
+
+#: bin/sb2iso:36
+msgid "Hybrid ISOs support both BIOS and EFI boot modes simultaneously"
+msgstr "Le ISO ibride supportano contemporaneamente sia le modalità di avvio BIOS che EFI"
+
+#: bin/sb2iso:43
+msgid "Force ISOLINUX bootloader for BIOS (EFI still uses GRUB):"
+msgstr "Forza il bootloader ISOLINUX per BIOS (EFI usa comunque GRUB):"
+
+#: bin/sb2iso:45
+msgid "Use default GRUB bootloader for both BIOS and EFI:"
+msgstr "Usa il bootloader GRUB predefinito sia per BIOS che per EFI:"
+
+#: bin/sb2iso:148
+msgid "Note: This option only affects BIOS boot. EFI boot always uses GRUB."
+msgstr "Nota: questa opzione influisce solo sull'avvio BIOS. L'avvio EFI usa sempre GRUB."
+
+#: bin/sb2iso:216
+msgid "Note: EFI boot will still use GRUB regardless of this setting"
+msgstr "Nota: l'avvio EFI userà comunque GRUB indipendentemente da questa impostazione"
+
+#: bin/sb2iso:221
+msgid "Using default GRUB bootloader for BIOS boot"
+msgstr "Utilizzo del bootloader GRUB predefinito per l'avvio BIOS"
+
+#: bin/sb2iso:224
+msgid "GRUB files not found, falling back to ISOLINUX for BIOS boot"
+msgstr "File GRUB non trovati, si passa a ISOLINUX per l'avvio BIOS"
+
+#: bin/sb2iso:227
+msgid "Using GRUB bootloader (default)"
+msgstr "Utilizzo del bootloader GRUB (predefinito)"
+
+#: bin/sb2iso:254
+msgid ""
+"The selected BIOS bootloader files are missing. Try without --bootloader "
+"option for automatic detection."
+msgstr ""
+"I file del bootloader BIOS selezionato sono mancanti. Prova senza l'opzione --bootloader per il rilevamento automatico."
+
+#: bin/sb2iso:255
+msgid ""
+"Remember: This option only affects BIOS boot, EFI boot always uses GRUB."
+msgstr ""
+"Ricorda: questa opzione influisce solo sull'avvio BIOS, l'avvio EFI usa sempre GRUB."
