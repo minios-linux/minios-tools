@@ -163,26 +163,26 @@ done
 
 TARGET=${TARGET:-"${PWD}/minios-$(date +%Y%m%d_%H%M).iso"}
 
-if [ -e "$SOURCE/data/minios/boot/isolinux.bin" ]; then
+if [ -e "$SOURCE/data/minios/boot/syslinux/isolinux.bin" ]; then
     MINIOS=$SOURCE/data/minios
 elif [ -e "$SOURCE/data/minios/boot/grub/grub.cfg" ]; then
     MINIOS=$SOURCE/data/minios
-elif [ -e "$SOURCE/iso/minios/boot/isolinux.bin" ]; then
+elif [ -e "$SOURCE/iso/minios/boot/syslinux/isolinux.bin" ]; then
     MINIOS=$SOURCE/iso/minios
 elif [ -e "$SOURCE/iso/minios/boot/grub/grub.cfg" ]; then
     MINIOS=$SOURCE/iso/minios
-elif [ -e "$SOURCE/toram/boot/isolinux.bin" ]; then
+elif [ -e "$SOURCE/toram/boot/syslinux/isolinux.bin" ]; then
     MINIOS=$SOURCE/toram
 elif [ -e "$SOURCE/toram/boot/grub/grub.cfg" ]; then
     MINIOS=$SOURCE/toram
-elif [ -e "$SOURCE/data/from/0/minios/boot/isolinux.bin" ]; then
+elif [ -e "$SOURCE/data/from/0/minios/boot/syslinux/isolinux.bin" ]; then
     MINIOS=$SOURCE/data/from/0/minios
 elif [ -e "$SOURCE/data/from/0/minios/boot/grub/grub.cfg" ]; then
     MINIOS=$SOURCE/data/from/0/minios
 fi
 
 if [ "$MINIOS" = "" ]; then
-    echo "Cannot find boot/isolinux.bin or boot/grub/grub.cfg in MiniOS data" >&2
+    echo "Cannot find boot/syslinux/isolinux.bin or boot/grub/grub.cfg in MiniOS data" >&2
     exit 2
 fi
 
@@ -191,9 +191,9 @@ echo $SYSTEMNAME >/tmp/info
 # Check required files
 # Required SYSLINUX files for BIOS boot
 REQUIRED_FILES=(
-    "$MINIOS/boot/isolinux.bin"
-    "$MINIOS/boot/isohdpfx.bin"
-    "$MINIOS/boot/syslinux.cfg"
+    "$MINIOS/boot/syslinux/isolinux.bin"
+    "$MINIOS/boot/syslinux/isohdpfx.bin"
+    "$MINIOS/boot/syslinux/syslinux.cfg"
     "$MINIOS/boot/grub/i386-pc/lnxboot.img"
     "$MINIOS/boot/grub/i386-pc/core.img"
 )
@@ -252,7 +252,7 @@ for MOD in "${MODULES[@]}"; do
 done
 
 run_with_spinner "$(gettext "Creating ISO work directory")" mkdir -p "$TEMP/minios/boot" "$TEMP/minios/modules" "$TEMP/minios/changes" "$TEMP/minios/scripts"
-run_with_spinner "$(gettext "Copying SYSLINUX boot files (isolinux.bin & isohdpfx.bin)")" sh -c 'cp "$0/boot/isolinux.bin" "$1" && cp "$0/boot/isohdpfx.bin" "$1"' "$MINIOS" "$TEMP/minios/boot"
+run_with_spinner "$(gettext "Copying SYSLINUX boot files (isolinux.bin & isohdpfx.bin)")" sh -c 'mkdir -p "$1/syslinux" && cp "$0/boot/syslinux/isolinux.bin" "$1/syslinux/" && cp "$0/boot/syslinux/isohdpfx.bin" "$1/syslinux/"' "$MINIOS" "$TEMP/minios/boot"
 
 cd "$TEMP" || exit 4
 
@@ -263,8 +263,8 @@ run_with_spinner "$(gettext "Formatting persistence image")" mkfs.ext2 -b 1024 -
 XORRISO_CMD="xorriso --as mkisofs -iso-level 3 -volid \"${SYSTEMNAME^^}\" -A \"$SYSTEMNAME\" -joliet -joliet-long -rational-rock"
 
 # SYSLINUX BIOS boot
-XORRISO_CMD="$XORRISO_CMD -eltorito-boot \"minios/boot/isolinux.bin\" -eltorito-catalog \"minios/boot/isolinux.boot\" -no-emul-boot -boot-load-size 4 -boot-info-table"
-MBR_FILE="$MINIOS/boot/isohdpfx.bin"
+XORRISO_CMD="$XORRISO_CMD -eltorito-boot \"minios/boot/syslinux/isolinux.bin\" -eltorito-catalog \"minios/boot/syslinux/isolinux.boot\" -no-emul-boot -boot-load-size 4 -boot-info-table"
+MBR_FILE="$MINIOS/boot/syslinux/isohdpfx.bin"
 
 # EFI boot (common for both)
 XORRISO_CMD="$XORRISO_CMD -eltorito-alt-boot -e \"minios/boot/grub/efi64.img\" -no-emul-boot"
