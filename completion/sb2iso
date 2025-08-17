@@ -7,16 +7,14 @@ _sb2iso() {
     fi
 
     case $prev in
-    -e|--exclude)
+    -e | --exclude)
         # Regex pattern completion - let user type their own
         return
         ;;
-    -n|--name|-f|--file)
-        _filedir
-        return
-        ;;
-    -b|--bootloader)
-        COMPREPLY=($(compgen -W 'isolinux grub' -- "$cur"))
+    -n | --name)
+        # Complete .iso files for output name
+        local IFS=$'\n'
+        COMPREPLY=($(compgen -f -- "$cur" | grep -Ei '\.iso$' || compgen -f -- "$cur"))
         return
         ;;
     esac
@@ -29,12 +27,10 @@ _sb2iso() {
             # Regex pattern completion - let user type their own
             return
             ;;
-        --name|--file)
-            _filedir
-            return
-            ;;
-        --bootloader)
-            COMPREPLY=($(compgen -W 'isolinux grub' -- "$cur"))
+        --name)
+            # Complete .iso files for output name
+            local IFS=$'\n'
+            COMPREPLY=($(compgen -f -- "$cur" | grep -Ei '\.iso$' || compgen -f -- "$cur"))
             return
             ;;
         *) ;;
@@ -42,12 +38,18 @@ _sb2iso() {
     fi
 
     if [[ "$cur" == --* ]]; then
-        COMPREPLY=($(compgen -W '--bootloader --exclude --name --verbose --help --version' -- "$cur"))
+        COMPREPLY=($(compgen -W '--exclude --name --verbose --help --version' -- "$cur"))
     elif [[ "$cur" == -* ]]; then
-        COMPREPLY=($(compgen -W '-b -e -n -v' -- "$cur"))
+        COMPREPLY=($(compgen -W '-e -n -v --exclude --name --verbose --help --version' -- "$cur"))
     else
-        # Complete .sb module files
-        _filedir '@(sb|SB)'
+        # Complete module files - prioritize .sb files but allow any files
+        local IFS=$'\n'
+        local sb_files=($(compgen -f -- "$cur" | grep -Ei '\.sb$'))
+        if [ ${#sb_files[@]} -gt 0 ]; then
+            COMPREPLY=("${sb_files[@]}")
+        else
+            COMPREPLY=($(compgen -f -- "$cur"))
+        fi
     fi
 
 }
