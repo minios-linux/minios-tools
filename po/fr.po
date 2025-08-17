@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.4.2\n"
 "Report-Msgid-Bugs-To: support@minios.dev\n"
-"POT-Creation-Date: 2025-08-15 16:49+0300\n"
+"POT-Creation-Date: 2025-08-17 15:21+0300\n"
 "PO-Revision-Date: 2025-08-11 09:37+0300\n"
 "Last-Translator: crims0n <crims0n@minios.dev>\n"
 "Language-Team: none\n"
@@ -20,7 +20,7 @@ msgstr ""
 #: bin/apt2sb:10 bin/apt2sb:43 bin/dir2sb:11 bin/dir2sb:31 bin/sb:23 bin/sb:52
 #: bin/rmsbdir:9 bin/sb2iso:20 bin/sb2iso:38 bin/savechanges:14
 #: bin/savechanges:30 bin/chroot2sb:10 bin/chroot2sb:30 bin/script2sb:10
-#: bin/script2sb:32 bin/sb2iso:39 bin/sb2iso:21 bin/sb2iso:51
+#: bin/script2sb:32 bin/sb2iso:39 bin/sb2iso:21 bin/sb2iso:51 bin/sb2iso:41
 msgid "Usage"
 msgstr "Utilisation"
 
@@ -115,12 +115,12 @@ msgid "Examples"
 msgstr "Exemples"
 
 #: bin/apt2sb:44 bin/dir2sb:32 bin/sb:54 bin/sb2iso:39 bin/savechanges:31
-#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52
+#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52 bin/sb2iso:42
 msgid "Try"
 msgstr "Essayez"
 
 #: bin/apt2sb:44 bin/dir2sb:32 bin/sb:54 bin/sb2iso:39 bin/savechanges:31
-#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52
+#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52 bin/sb2iso:42
 msgid "for more information."
 msgstr "pour plus d'informations."
 
@@ -234,7 +234,7 @@ msgstr "Créer une ISO MiniOS sans le module firefox.sb :"
 msgid "Create MiniOS text-mode core only:"
 msgstr "Créer uniquement le noyau MiniOS en mode texte :"
 
-#: bin/sb2iso:223 bin/sb2iso:259 bin/sb2iso:303
+#: bin/sb2iso:223 bin/sb2iso:259 bin/sb2iso:303 bin/sb2iso:254
 msgid "Creating ISO work directory"
 msgstr "Création du répertoire de travail ISO"
 
@@ -242,19 +242,19 @@ msgstr "Création du répertoire de travail ISO"
 msgid "Copying boot files (isolinux.bin & isohdpfx.bin)"
 msgstr "Copie des fichiers de démarrage (isolinux.bin et isohdpfx.bin)"
 
-#: bin/sb2iso:229 bin/sb2iso:269 bin/sb2iso:313
+#: bin/sb2iso:229 bin/sb2iso:269 bin/sb2iso:313 bin/sb2iso:260
 msgid "Creating temporary persistence image"
 msgstr "Création de l'image de persistance temporaire"
 
-#: bin/sb2iso:230 bin/sb2iso:270 bin/sb2iso:314
+#: bin/sb2iso:230 bin/sb2iso:270 bin/sb2iso:314 bin/sb2iso:261
 msgid "Formatting persistence image"
 msgstr "Formatage de l'image de persistance"
 
-#: bin/sb2iso:231 bin/sb2iso:301 bin/sb2iso:345
+#: bin/sb2iso:231 bin/sb2iso:301 bin/sb2iso:345 bin/sb2iso:286
 msgid "Generating ISO image"
 msgstr "Génération de l'image ISO"
 
-#: bin/sb2iso:257 bin/sb2iso:310 bin/sb2iso:354
+#: bin/sb2iso:257 bin/sb2iso:310 bin/sb2iso:354 bin/sb2iso:295
 msgid "Cleaning up temporary files"
 msgstr "Nettoyage des fichiers temporaires"
 
@@ -315,7 +315,7 @@ msgstr "Utiliser FICHIER comme script d'installation"
 msgid "Increase verbosity level"
 msgstr "Augmenter le niveau de verbosité"
 
-#: bin/sb2iso:215 bin/sb2iso:258
+#: bin/sb2iso:215 bin/sb2iso:258 bin/sb2iso:210
 msgid ""
 "If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
 msgstr ""
@@ -328,11 +328,13 @@ msgstr "Copie des fichiers de démarrage GRUB"
 
 #: bin/sb2iso:25
 msgid "Force specific BIOS bootloader type (isolinux or grub)"
-msgstr "Forcer le type de chargeur d'amorçage BIOS spécifique (isolinux ou grub)"
+msgstr ""
+"Forcer le type de chargeur d'amorçage BIOS spécifique (isolinux ou grub)"
 
 #: bin/sb2iso:26
 msgid "Note: EFI boot always uses GRUB regardless of this setting"
-msgstr "Remarque : Le démarrage EFI utilise toujours GRUB, quel que soit ce paramètre"
+msgstr ""
+"Remarque : Le démarrage EFI utilise toujours GRUB, quel que soit ce paramètre"
 
 #: bin/sb2iso:33
 msgid "Bootloader Notes"
@@ -342,35 +344,47 @@ msgstr "Notes sur le chargeur d'amorçage"
 msgid ""
 "BIOS boot: Uses GRUB by default, can be forced to ISOLINUX/SYSLINUX with -b"
 msgstr ""
-"Démarrage BIOS : Utilise GRUB par défaut, peut être forcé sur ISOLINUX/SYSLINUX avec -b"
+"Démarrage BIOS : Utilise GRUB par défaut, peut être forcé sur ISOLINUX/"
+"SYSLINUX avec -b"
 
 #: bin/sb2iso:35
 msgid "EFI boot: Always uses GRUB (both 32-bit and 64-bit EFI support)"
-msgstr "Démarrage EFI : Utilise toujours GRUB (prise en charge EFI 32 et 64 bits)"
+msgstr ""
+"Démarrage EFI : Utilise toujours GRUB (prise en charge EFI 32 et 64 bits)"
 
 #: bin/sb2iso:36
 msgid "Hybrid ISOs support both BIOS and EFI boot modes simultaneously"
-msgstr "Les ISOs hybrides prennent en charge simultanément les modes de démarrage BIOS et EFI"
+msgstr ""
+"Les ISOs hybrides prennent en charge simultanément les modes de démarrage "
+"BIOS et EFI"
 
 #: bin/sb2iso:43
 msgid "Force ISOLINUX bootloader for BIOS (EFI still uses GRUB):"
-msgstr "Forcer le chargeur d'amorçage ISOLINUX pour le BIOS (EFI utilise toujours GRUB) :"
+msgstr ""
+"Forcer le chargeur d'amorçage ISOLINUX pour le BIOS (EFI utilise toujours "
+"GRUB) :"
 
 #: bin/sb2iso:45
 msgid "Use default GRUB bootloader for both BIOS and EFI:"
-msgstr "Utiliser le chargeur d'amorçage GRUB par défaut pour le BIOS et l'EFI :"
+msgstr ""
+"Utiliser le chargeur d'amorçage GRUB par défaut pour le BIOS et l'EFI :"
 
 #: bin/sb2iso:148
 msgid "Note: This option only affects BIOS boot. EFI boot always uses GRUB."
-msgstr "Remarque : Cette option affecte uniquement le démarrage BIOS. Le démarrage EFI utilise toujours GRUB."
+msgstr ""
+"Remarque : Cette option affecte uniquement le démarrage BIOS. Le démarrage "
+"EFI utilise toujours GRUB."
 
 #: bin/sb2iso:216
 msgid "Note: EFI boot will still use GRUB regardless of this setting"
-msgstr "Remarque : Le démarrage EFI utilisera toujours GRUB, quel que soit ce paramètre"
+msgstr ""
+"Remarque : Le démarrage EFI utilisera toujours GRUB, quel que soit ce "
+"paramètre"
 
 #: bin/sb2iso:221
 msgid "Using default GRUB bootloader for BIOS boot"
-msgstr "Utilisation du chargeur d'amorçage GRUB par défaut pour le démarrage BIOS"
+msgstr ""
+"Utilisation du chargeur d'amorçage GRUB par défaut pour le démarrage BIOS"
 
 #: bin/sb2iso:224
 msgid "GRUB files not found, falling back to ISOLINUX for BIOS boot"
@@ -385,10 +399,20 @@ msgid ""
 "The selected BIOS bootloader files are missing. Try without --bootloader "
 "option for automatic detection."
 msgstr ""
-"Les fichiers du chargeur d'amorçage BIOS sélectionnés sont manquants. Essayez sans l'option --bootloader pour une détection automatique."
+"Les fichiers du chargeur d'amorçage BIOS sélectionnés sont manquants. "
+"Essayez sans l'option --bootloader pour une détection automatique."
 
 #: bin/sb2iso:255
 msgid ""
 "Remember: This option only affects BIOS boot, EFI boot always uses GRUB."
 msgstr ""
-"Rappel : Cette option affecte uniquement le démarrage BIOS, le démarrage EFI utilise toujours GRUB."
+"Rappel : Cette option affecte uniquement le démarrage BIOS, le démarrage EFI "
+"utilise toujours GRUB."
+
+#: bin/sb2iso:35
+msgid "Create custom ISO with SYSLINUX (BIOS) and GRUB (EFI):"
+msgstr "Créer une ISO personnalisée avec SYSLINUX (BIOS) et GRUB (EFI) :"
+
+#: bin/sb2iso:255
+msgid "Copying SYSLINUX boot files (isolinux.bin & isohdpfx.bin)"
+msgstr "Copie des fichiers de démarrage SYSLINUX (isolinux.bin & isohdpfx.bin)"

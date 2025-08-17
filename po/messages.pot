@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.4.2\n"
 "Report-Msgid-Bugs-To: support@minios.dev\n"
-"POT-Creation-Date: 2025-08-15 16:58+0300\n"
+"POT-Creation-Date: 2025-08-17 15:22+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,7 +20,7 @@ msgstr ""
 #: bin/apt2sb:10 bin/apt2sb:43 bin/dir2sb:11 bin/dir2sb:31 bin/sb:23 bin/sb:52
 #: bin/rmsbdir:9 bin/sb2iso:20 bin/sb2iso:38 bin/savechanges:14
 #: bin/savechanges:30 bin/chroot2sb:10 bin/chroot2sb:30 bin/script2sb:10
-#: bin/script2sb:32 bin/sb2iso:39 bin/sb2iso:21 bin/sb2iso:51
+#: bin/script2sb:32 bin/sb2iso:39 bin/sb2iso:21 bin/sb2iso:51 bin/sb2iso:41
 msgid "Usage"
 msgstr ""
 
@@ -111,12 +111,12 @@ msgid "Examples"
 msgstr ""
 
 #: bin/apt2sb:44 bin/dir2sb:32 bin/sb:54 bin/sb2iso:39 bin/savechanges:31
-#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52
+#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52 bin/sb2iso:42
 msgid "Try"
 msgstr ""
 
 #: bin/apt2sb:44 bin/dir2sb:32 bin/sb:54 bin/sb2iso:39 bin/savechanges:31
-#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52
+#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52 bin/sb2iso:42
 msgid "for more information."
 msgstr ""
 
@@ -223,7 +223,7 @@ msgstr ""
 msgid "Create MiniOS text-mode core only:"
 msgstr ""
 
-#: bin/sb2iso:223 bin/sb2iso:259 bin/sb2iso:303
+#: bin/sb2iso:223 bin/sb2iso:259 bin/sb2iso:303 bin/sb2iso:254
 msgid "Creating ISO work directory"
 msgstr ""
 
@@ -231,19 +231,19 @@ msgstr ""
 msgid "Copying boot files (isolinux.bin & isohdpfx.bin)"
 msgstr ""
 
-#: bin/sb2iso:229 bin/sb2iso:269 bin/sb2iso:313
+#: bin/sb2iso:229 bin/sb2iso:269 bin/sb2iso:313 bin/sb2iso:260
 msgid "Creating temporary persistence image"
 msgstr ""
 
-#: bin/sb2iso:230 bin/sb2iso:270 bin/sb2iso:314
+#: bin/sb2iso:230 bin/sb2iso:270 bin/sb2iso:314 bin/sb2iso:261
 msgid "Formatting persistence image"
 msgstr ""
 
-#: bin/sb2iso:231 bin/sb2iso:301 bin/sb2iso:345
+#: bin/sb2iso:231 bin/sb2iso:301 bin/sb2iso:345 bin/sb2iso:286
 msgid "Generating ISO image"
 msgstr ""
 
-#: bin/sb2iso:257 bin/sb2iso:310 bin/sb2iso:354
+#: bin/sb2iso:257 bin/sb2iso:310 bin/sb2iso:354 bin/sb2iso:295
 msgid "Cleaning up temporary files"
 msgstr ""
 
@@ -299,7 +299,7 @@ msgstr ""
 msgid "Increase verbosity level"
 msgstr ""
 
-#: bin/sb2iso:215 bin/sb2iso:258
+#: bin/sb2iso:215 bin/sb2iso:258 bin/sb2iso:210
 msgid ""
 "If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
 msgstr ""
@@ -370,4 +370,12 @@ msgstr ""
 #: bin/sb2iso:255
 msgid ""
 "Remember: This option only affects BIOS boot, EFI boot always uses GRUB."
+msgstr ""
+
+#: bin/sb2iso:35
+msgid "Create custom ISO with SYSLINUX (BIOS) and GRUB (EFI):"
+msgstr ""
+
+#: bin/sb2iso:255
+msgid "Copying SYSLINUX boot files (isolinux.bin & isohdpfx.bin)"
 msgstr ""

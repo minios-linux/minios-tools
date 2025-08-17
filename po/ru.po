@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.4.2\n"
 "Report-Msgid-Bugs-To: support@minios.dev\n"
-"POT-Creation-Date: 2025-08-15 16:49+0300\n"
+"POT-Creation-Date: 2025-08-17 15:21+0300\n"
 "PO-Revision-Date: 2025-08-11 09:37+0300\n"
 "Last-Translator: crims0n <crims0n@minios.dev>\n"
 "Language-Team: none\n"
@@ -21,7 +21,7 @@ msgstr ""
 #: bin/apt2sb:10 bin/apt2sb:43 bin/dir2sb:11 bin/dir2sb:31 bin/sb:23 bin/sb:52
 #: bin/rmsbdir:9 bin/sb2iso:20 bin/sb2iso:38 bin/savechanges:14
 #: bin/savechanges:30 bin/chroot2sb:10 bin/chroot2sb:30 bin/script2sb:10
-#: bin/script2sb:32 bin/sb2iso:39 bin/sb2iso:21 bin/sb2iso:51
+#: bin/script2sb:32 bin/sb2iso:39 bin/sb2iso:21 bin/sb2iso:51 bin/sb2iso:41
 msgid "Usage"
 msgstr "Использование"
 
@@ -112,12 +112,12 @@ msgid "Examples"
 msgstr "Примеры"
 
 #: bin/apt2sb:44 bin/dir2sb:32 bin/sb:54 bin/sb2iso:39 bin/savechanges:31
-#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52
+#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52 bin/sb2iso:42
 msgid "Try"
 msgstr "Попробуйте"
 
 #: bin/apt2sb:44 bin/dir2sb:32 bin/sb:54 bin/sb2iso:39 bin/savechanges:31
-#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52
+#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52 bin/sb2iso:42
 msgid "for more information."
 msgstr "для получения дополнительной информации."
 
@@ -229,7 +229,7 @@ msgstr "Создать ISO MiniOS без модуля firefox.sb:"
 msgid "Create MiniOS text-mode core only:"
 msgstr "Создать только ядро MiniOS в текстовом режиме:"
 
-#: bin/sb2iso:223 bin/sb2iso:259 bin/sb2iso:303
+#: bin/sb2iso:223 bin/sb2iso:259 bin/sb2iso:303 bin/sb2iso:254
 msgid "Creating ISO work directory"
 msgstr "Создание рабочего каталога ISO"
 
@@ -237,19 +237,19 @@ msgstr "Создание рабочего каталога ISO"
 msgid "Copying boot files (isolinux.bin & isohdpfx.bin)"
 msgstr "Копирование загрузочных файлов (isolinux.bin и isohdpfx.bin)"
 
-#: bin/sb2iso:229 bin/sb2iso:269 bin/sb2iso:313
+#: bin/sb2iso:229 bin/sb2iso:269 bin/sb2iso:313 bin/sb2iso:260
 msgid "Creating temporary persistence image"
 msgstr "Создание временного образа постоянства"
 
-#: bin/sb2iso:230 bin/sb2iso:270 bin/sb2iso:314
+#: bin/sb2iso:230 bin/sb2iso:270 bin/sb2iso:314 bin/sb2iso:261
 msgid "Formatting persistence image"
 msgstr "Форматирование образа постоянства"
 
-#: bin/sb2iso:231 bin/sb2iso:301 bin/sb2iso:345
+#: bin/sb2iso:231 bin/sb2iso:301 bin/sb2iso:345 bin/sb2iso:286
 msgid "Generating ISO image"
 msgstr "Генерация ISO-образа"
 
-#: bin/sb2iso:257 bin/sb2iso:310 bin/sb2iso:354
+#: bin/sb2iso:257 bin/sb2iso:310 bin/sb2iso:354 bin/sb2iso:295
 msgid "Cleaning up temporary files"
 msgstr "Очистка временных файлов"
 
@@ -305,7 +305,7 @@ msgstr "Использовать ФАЙЛ как установочный скр
 msgid "Increase verbosity level"
 msgstr "Увеличить уровень подробности"
 
-#: bin/sb2iso:215 bin/sb2iso:258
+#: bin/sb2iso:215 bin/sb2iso:258 bin/sb2iso:210
 msgid ""
 "If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
 msgstr ""
@@ -321,7 +321,8 @@ msgstr "Принудительно выбрать тип загрузчика BI
 
 #: bin/sb2iso:26
 msgid "Note: EFI boot always uses GRUB regardless of this setting"
-msgstr "Примечание: загрузка EFI всегда использует GRUB независимо от этого параметра"
+msgstr ""
+"Примечание: загрузка EFI всегда использует GRUB независимо от этого параметра"
 
 #: bin/sb2iso:33
 msgid "Bootloader Notes"
@@ -331,19 +332,26 @@ msgstr "Примечания к загрузчику"
 msgid ""
 "BIOS boot: Uses GRUB by default, can be forced to ISOLINUX/SYSLINUX with -b"
 msgstr ""
-"Загрузка BIOS: по умолчанию используется GRUB, можно принудительно выбрать ISOLINUX/SYSLINUX с помощью -b"
+"Загрузка BIOS: по умолчанию используется GRUB, можно принудительно выбрать "
+"ISOLINUX/SYSLINUX с помощью -b"
 
 #: bin/sb2iso:35
 msgid "EFI boot: Always uses GRUB (both 32-bit and 64-bit EFI support)"
-msgstr "Загрузка EFI: всегда используется GRUB (поддержка как 32-битного, так и 64-битного EFI)"
+msgstr ""
+"Загрузка EFI: всегда используется GRUB (поддержка как 32-битного, так и 64-"
+"битного EFI)"
 
 #: bin/sb2iso:36
 msgid "Hybrid ISOs support both BIOS and EFI boot modes simultaneously"
-msgstr "Гибридные ISO поддерживают одновременную загрузку как в режиме BIOS, так и EFI"
+msgstr ""
+"Гибридные ISO поддерживают одновременную загрузку как в режиме BIOS, так и "
+"EFI"
 
 #: bin/sb2iso:43
 msgid "Force ISOLINUX bootloader for BIOS (EFI still uses GRUB):"
-msgstr "Принудительно использовать загрузчик ISOLINUX для BIOS (EFI всё равно использует GRUB):"
+msgstr ""
+"Принудительно использовать загрузчик ISOLINUX для BIOS (EFI всё равно "
+"использует GRUB):"
 
 #: bin/sb2iso:45
 msgid "Use default GRUB bootloader for both BIOS and EFI:"
@@ -351,11 +359,15 @@ msgstr "Использовать загрузчик GRUB по умолчанию
 
 #: bin/sb2iso:148
 msgid "Note: This option only affects BIOS boot. EFI boot always uses GRUB."
-msgstr "Примечание: этот параметр влияет только на загрузку BIOS. Загрузка EFI всегда использует GRUB."
+msgstr ""
+"Примечание: этот параметр влияет только на загрузку BIOS. Загрузка EFI "
+"всегда использует GRUB."
 
 #: bin/sb2iso:216
 msgid "Note: EFI boot will still use GRUB regardless of this setting"
-msgstr "Примечание: загрузка EFI всё равно будет использовать GRUB независимо от этого параметра"
+msgstr ""
+"Примечание: загрузка EFI всё равно будет использовать GRUB независимо от "
+"этого параметра"
 
 #: bin/sb2iso:221
 msgid "Using default GRUB bootloader for BIOS boot"
@@ -374,10 +386,20 @@ msgid ""
 "The selected BIOS bootloader files are missing. Try without --bootloader "
 "option for automatic detection."
 msgstr ""
-"Выбранные файлы загрузчика BIOS отсутствуют. Попробуйте без параметра --bootloader для автоматического определения."
+"Выбранные файлы загрузчика BIOS отсутствуют. Попробуйте без параметра --"
+"bootloader для автоматического определения."
 
 #: bin/sb2iso:255
 msgid ""
 "Remember: This option only affects BIOS boot, EFI boot always uses GRUB."
 msgstr ""
-"Помните: этот параметр влияет только на загрузку BIOS, загрузка EFI всегда использует GRUB."
+"Помните: этот параметр влияет только на загрузку BIOS, загрузка EFI всегда "
+"использует GRUB."
+
+#: bin/sb2iso:35
+msgid "Create custom ISO with SYSLINUX (BIOS) and GRUB (EFI):"
+msgstr "Создать пользовательский ISO с SYSLINUX (BIOS) и GRUB (EFI):"
+
+#: bin/sb2iso:255
+msgid "Copying SYSLINUX boot files (isolinux.bin & isohdpfx.bin)"
+msgstr "Копирование загрузочных файлов SYSLINUX (isolinux.bin и isohdpfx.bin)"

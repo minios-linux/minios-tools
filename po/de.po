@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.4.2\n"
 "Report-Msgid-Bugs-To: support@minios.dev\n"
-"POT-Creation-Date: 2025-08-15 16:49+0300\n"
+"POT-Creation-Date: 2025-08-17 15:21+0300\n"
 "PO-Revision-Date: 2025-08-11 09:37+0300\n"
 "Last-Translator: crims0n <crims0n@minios.dev>\n"
 "Language-Team: none\n"
@@ -20,7 +20,7 @@ msgstr ""
 #: bin/apt2sb:10 bin/apt2sb:43 bin/dir2sb:11 bin/dir2sb:31 bin/sb:23 bin/sb:52
 #: bin/rmsbdir:9 bin/sb2iso:20 bin/sb2iso:38 bin/savechanges:14
 #: bin/savechanges:30 bin/chroot2sb:10 bin/chroot2sb:30 bin/script2sb:10
-#: bin/script2sb:32 bin/sb2iso:39 bin/sb2iso:21 bin/sb2iso:51
+#: bin/script2sb:32 bin/sb2iso:39 bin/sb2iso:21 bin/sb2iso:51 bin/sb2iso:41
 msgid "Usage"
 msgstr "Verwendung"
 
@@ -111,12 +111,12 @@ msgid "Examples"
 msgstr "Beispiele"
 
 #: bin/apt2sb:44 bin/dir2sb:32 bin/sb:54 bin/sb2iso:39 bin/savechanges:31
-#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52
+#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52 bin/sb2iso:42
 msgid "Try"
 msgstr "Versuchen Sie"
 
 #: bin/apt2sb:44 bin/dir2sb:32 bin/sb:54 bin/sb2iso:39 bin/savechanges:31
-#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52
+#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52 bin/sb2iso:42
 msgid "for more information."
 msgstr "für weitere Informationen."
 
@@ -230,7 +230,7 @@ msgstr "MiniOS ISO ohne firefox.sb-Modul erstellen:"
 msgid "Create MiniOS text-mode core only:"
 msgstr "MiniOS nur im Textmodus-Kern erstellen:"
 
-#: bin/sb2iso:223 bin/sb2iso:259 bin/sb2iso:303
+#: bin/sb2iso:223 bin/sb2iso:259 bin/sb2iso:303 bin/sb2iso:254
 msgid "Creating ISO work directory"
 msgstr "ISO-Arbeitsverzeichnis wird erstellt"
 
@@ -238,19 +238,19 @@ msgstr "ISO-Arbeitsverzeichnis wird erstellt"
 msgid "Copying boot files (isolinux.bin & isohdpfx.bin)"
 msgstr "Boot-Dateien werden kopiert (isolinux.bin & isohdpfx.bin)"
 
-#: bin/sb2iso:229 bin/sb2iso:269 bin/sb2iso:313
+#: bin/sb2iso:229 bin/sb2iso:269 bin/sb2iso:313 bin/sb2iso:260
 msgid "Creating temporary persistence image"
 msgstr "Temporäres Persistenz-Abbild wird erstellt"
 
-#: bin/sb2iso:230 bin/sb2iso:270 bin/sb2iso:314
+#: bin/sb2iso:230 bin/sb2iso:270 bin/sb2iso:314 bin/sb2iso:261
 msgid "Formatting persistence image"
 msgstr "Persistenz-Abbild wird formatiert"
 
-#: bin/sb2iso:231 bin/sb2iso:301 bin/sb2iso:345
+#: bin/sb2iso:231 bin/sb2iso:301 bin/sb2iso:345 bin/sb2iso:286
 msgid "Generating ISO image"
 msgstr "ISO-Abbild wird generiert"
 
-#: bin/sb2iso:257 bin/sb2iso:310 bin/sb2iso:354
+#: bin/sb2iso:257 bin/sb2iso:310 bin/sb2iso:354 bin/sb2iso:295
 msgid "Cleaning up temporary files"
 msgstr "Temporäre Dateien werden aufgeräumt"
 
@@ -310,7 +310,7 @@ msgstr "DATEI als Installationsskript verwenden"
 msgid "Increase verbosity level"
 msgstr "Erhöht das Detailierungslevel der Ausgabe"
 
-#: bin/sb2iso:215 bin/sb2iso:258
+#: bin/sb2iso:215 bin/sb2iso:258 bin/sb2iso:210
 msgid ""
 "If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
 msgstr ""
@@ -327,7 +327,8 @@ msgstr "Spezifischen BIOS-Bootloader-Typ erzwingen (isolinux oder grub)"
 
 #: bin/sb2iso:26
 msgid "Note: EFI boot always uses GRUB regardless of this setting"
-msgstr "Hinweis: EFI-Start verwendet immer GRUB, unabhängig von dieser Einstellung"
+msgstr ""
+"Hinweis: EFI-Start verwendet immer GRUB, unabhängig von dieser Einstellung"
 
 #: bin/sb2iso:33
 msgid "Bootloader Notes"
@@ -337,15 +338,19 @@ msgstr "Bootloader-Hinweise"
 msgid ""
 "BIOS boot: Uses GRUB by default, can be forced to ISOLINUX/SYSLINUX with -b"
 msgstr ""
-"BIOS-Start: Verwendet standardmäßig GRUB, kann mit -b auf ISOLINUX/SYSLINUX erzwungen werden"
+"BIOS-Start: Verwendet standardmäßig GRUB, kann mit -b auf ISOLINUX/SYSLINUX "
+"erzwungen werden"
 
 #: bin/sb2iso:35
 msgid "EFI boot: Always uses GRUB (both 32-bit and 64-bit EFI support)"
-msgstr "EFI-Start: Verwendet immer GRUB (unterstützt sowohl 32-Bit- als auch 64-Bit-EFI)"
+msgstr ""
+"EFI-Start: Verwendet immer GRUB (unterstützt sowohl 32-Bit- als auch 64-Bit-"
+"EFI)"
 
 #: bin/sb2iso:36
 msgid "Hybrid ISOs support both BIOS and EFI boot modes simultaneously"
-msgstr "Hybride ISOs unterstützen gleichzeitig sowohl BIOS- als auch EFI-Startmodi"
+msgstr ""
+"Hybride ISOs unterstützen gleichzeitig sowohl BIOS- als auch EFI-Startmodi"
 
 #: bin/sb2iso:43
 msgid "Force ISOLINUX bootloader for BIOS (EFI still uses GRUB):"
@@ -357,11 +362,15 @@ msgstr "Standard-GRUB-Bootloader für BIOS und EFI verwenden:"
 
 #: bin/sb2iso:148
 msgid "Note: This option only affects BIOS boot. EFI boot always uses GRUB."
-msgstr "Hinweis: Diese Option betrifft nur den BIOS-Start. EFI-Start verwendet immer GRUB."
+msgstr ""
+"Hinweis: Diese Option betrifft nur den BIOS-Start. EFI-Start verwendet immer "
+"GRUB."
 
 #: bin/sb2iso:216
 msgid "Note: EFI boot will still use GRUB regardless of this setting"
-msgstr "Hinweis: EFI-Start verwendet weiterhin GRUB, unabhängig von dieser Einstellung"
+msgstr ""
+"Hinweis: EFI-Start verwendet weiterhin GRUB, unabhängig von dieser "
+"Einstellung"
 
 #: bin/sb2iso:221
 msgid "Using default GRUB bootloader for BIOS boot"
@@ -380,10 +389,20 @@ msgid ""
 "The selected BIOS bootloader files are missing. Try without --bootloader "
 "option for automatic detection."
 msgstr ""
-"Die ausgewählten BIOS-Bootloader-Dateien fehlen. Versuchen Sie es ohne die Option --bootloader für die automatische Erkennung."
+"Die ausgewählten BIOS-Bootloader-Dateien fehlen. Versuchen Sie es ohne die "
+"Option --bootloader für die automatische Erkennung."
 
 #: bin/sb2iso:255
 msgid ""
 "Remember: This option only affects BIOS boot, EFI boot always uses GRUB."
 msgstr ""
-"Denken Sie daran: Diese Option betrifft nur den BIOS-Start, EFI-Start verwendet immer GRUB."
+"Denken Sie daran: Diese Option betrifft nur den BIOS-Start, EFI-Start "
+"verwendet immer GRUB."
+
+#: bin/sb2iso:35
+msgid "Create custom ISO with SYSLINUX (BIOS) and GRUB (EFI):"
+msgstr "Benutzerdefinierte ISO mit SYSLINUX (BIOS) und GRUB (EFI) erstellen:"
+
+#: bin/sb2iso:255
+msgid "Copying SYSLINUX boot files (isolinux.bin & isohdpfx.bin)"
+msgstr "Kopiere SYSLINUX-Boot-Dateien (isolinux.bin & isohdpfx.bin)"
