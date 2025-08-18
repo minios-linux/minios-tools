@@ -17,6 +17,11 @@ _sb2iso() {
         COMPREPLY=($(compgen -f -- "$cur" | grep -Ei '\.iso$' || compgen -f -- "$cur"))
         return
         ;;
+    --grub-menu)
+        # Complete GRUB menu types
+        COMPREPLY=($(compgen -W 'multilang template en_US ru_RU de_DE es_ES it_IT id_ID pt_BR' -- "$cur"))
+        return
+        ;;
     esac
 
     if [[ "$cur" == *=* ]]; then
@@ -33,14 +38,19 @@ _sb2iso() {
             COMPREPLY=($(compgen -f -- "$cur" | grep -Ei '\.iso$' || compgen -f -- "$cur"))
             return
             ;;
+        --grub-menu)
+            # Complete GRUB menu types
+            COMPREPLY=($(compgen -W 'multilang template en_US ru_RU de_DE es_ES it_IT id_ID pt_BR' -- "$cur"))
+            return
+            ;;
         *) ;;
         esac
     fi
 
     if [[ "$cur" == --* ]]; then
-        COMPREPLY=($(compgen -W '--exclude --name --verbose --help --version' -- "$cur"))
+        COMPREPLY=($(compgen -W '--exclude --name --grub-bios --grub-menu --help --version' -- "$cur"))
     elif [[ "$cur" == -* ]]; then
-        COMPREPLY=($(compgen -W '-e -n -v --exclude --name --verbose --help --version' -- "$cur"))
+        COMPREPLY=($(compgen -W '-e -n --exclude --name --grub-bios --grub-menu --help --version' -- "$cur"))
     else
         # Complete module files - prioritize .sb files but allow any files
         local IFS=$'\n'
