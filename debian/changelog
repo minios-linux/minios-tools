@@ -1,7 +1,13 @@
 minios-tools (1.4.2) unstable; urgency=medium
 
-  * Update sb2iso script to version 1.5. Enhance script to support latest
-    MiniOS ISO format
+  * Add support for the latest MiniOS ISO format to sb2iso
+  * Improve apt2sb, script2sb, chroot2sb:
+    - Make overlay mount more reliable by setting
+      LIBMOUNT_FORCE_MOUNT2=always and adjusting mount arguments
+    - Enable strict shell options (set -euo pipefail) so the
+      script fails fast on errors and unset variables
+    - Fix and harden trap/umount/rmdir to avoid leaving temporary
+      directories or mounted points behind
   * Remove `minios-kernelpack`. Its functions are now performed by
     `minios-kernel` and `minios-kernel-manager`
   * Add Indonesian translation
