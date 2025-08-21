@@ -12,7 +12,7 @@ RESOLVCONFLNK=""
 DIRECTORY=""
 FILENAME=""
 INSTALL_SCRIPT=""
-# Force classic mount(2) syscall to work around an overlayfs bug in util-linux >= 2.41.0
+# Force classic mount(2) syscall to work around an overlayfs bug in util-linux >= 2.39.0
 export LIBMOUNT_FORCE_MOUNT2="always"
 export TEXTDOMAIN="minios-tools"
 
@@ -159,7 +159,7 @@ fi
 LOWERS=${LOWERS/%:/}
 
 if aufs_is_supported; then
-    mount -t aufs -o br="$CHANGES"=rw:"$LOWERS" none "$UNION"
+    mount -t aufs -o "br=$CHANGES=rw:$LOWERS" none "$UNION"
 else
     mkdir $TMP/work
     mount -t overlay -o lowerdir="$LOWERS",upperdir="$CHANGES",workdir="$TMP"/work overlay "$UNION"

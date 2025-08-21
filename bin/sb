@@ -9,6 +9,8 @@ if [ "$1" != "help" ] && [ "$1" != "version" ]; then
 fi
 
 VERSION="1.0.2"
+# Force classic mount(2) syscall to work around an overlayfs bug in util-linux >= 2.39.0
+export LIBMOUNT_FORCE_MOUNT2="always"
 export TEXTDOMAIN="minios-tools"
 if [ -d "/run/initramfs/memory/bundles" ]; then
     LIVE="/run/initramfs/memory"
@@ -125,7 +127,7 @@ activate() {
     fi
 
     # add current branch to aufs union
-    mount -t aufs -o remount,add:1:"$TGT=rr+wh" aufs /
+    mount -t aufs -o "remount,add:1:$TGT=rr+wh" aufs /
     if [ $? -ne 0 ]; then
         umount "$TGT"
         rmdir "$TGT"
@@ -163,7 +165,7 @@ deactivate() {
     fi
 
     echo "Attempting to deactivate MiniOS bundle $SB..."
-    mount -t aufs -o remount,verbose,del:"$BUNDLES/$SB" aufs / 2>/dev/null
+    mount -t aufs -o "remount,verbose,del:$BUNDLES/$SB" aufs / 2>/dev/null
     if [ $? -ne 0 ]; then
         die "Unable to deactivate MiniOS Bundle - still in use. See dmesg for more."
     fi
