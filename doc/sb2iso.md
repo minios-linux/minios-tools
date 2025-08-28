@@ -23,7 +23,6 @@ sb2iso - generate MiniOS ISO image with specified modules
 **--grub-menu** *TYPE*
 : Set GRUB menu type. *TYPE* can be:
   **multilang** (default) - menu with language selection
-  **template** - simple themed menu
   *LANG* - specific language code (en_US, ru_RU, de_DE, es_ES, it_IT, id_ID, pt_BR)
 
 **--help**
@@ -52,11 +51,8 @@ The bootloader type is automatically detected based on the boot files present in
 **multilang** (default)
 : Multi-language menu with language selection screen.
 
-**template**
-: Simple themed menu in English.
-
 *Language codes*
-: Fully localized menus with translated text and language-specific themes. Supported languages: en_US, ru_RU, de_DE, es_ES, it_IT, id_ID, pt_BR.
+: Fully localized menus with translated text and language-specific themes. Supported languages: en_US (English), ru_RU (Russian), de_DE (German), es_ES (Spanish), it_IT (Italian), id_ID (Indonesian), pt_BR (Portuguese).
 
 ## EXAMPLES
 

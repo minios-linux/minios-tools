@@ -25,10 +25,9 @@ help() {
     echo "$(gettext "Options"):"
     echo "  -e, --exclude REGEX   $(gettext "Exclude any existing path or file matching REGEX")"
     echo "  -n, --name NAME       $(gettext "Specify output ISO filename (default"): minios-YYYYMMDD_HHMM.iso)"
-    echo "      --grub-menu TYPE  $(gettext "Set GRUB menu type: multilang, template, or language code")"
+    echo "      --grub-menu TYPE  $(gettext "Set GRUB menu type: multilang or language code")"
     echo "                        $(gettext "  multilang: menu with language selection (default)")"
-    echo "                        $(gettext "  template: simple themed menu")"
-    echo "                        $(gettext "  language: specific language (en_US, ru_RU, de_DE, etc.)")"
+    echo "                        $(gettext "  language: specific language (en_US, ru_RU, de_DE, etc.)")""
     echo "                        $(gettext "  Note: bootloader type is automatically detected")"
     echo "      --help            $(gettext "Display this help and exit")"
     echo "      --version         $(gettext "Display version information and exit")"
@@ -299,11 +298,11 @@ while [ "$#" -gt 0 ]; do
         ;;
     --grub-menu)
         case "$2" in
-            multilang|template|en_US|ru_RU|de_DE|es_ES|it_IT|id_ID|pt_BR)
+            multilang|en_US|ru_RU|de_DE|es_ES|it_IT|id_ID|pt_BR)
                 GRUB_MENU_TYPE="$2"
                 ;;
             *)
-                error "$(gettext "Invalid GRUB menu type: $2. Valid types: multilang, template, or language codes (en_US, ru_RU, de_DE, es_ES, it_IT, id_ID, pt_BR)")"
+                error "$(gettext "Invalid GRUB menu type: $2. Valid types: multilang or language codes (en_US, ru_RU, de_DE, es_ES, it_IT, id_ID, pt_BR)")"
                 exit 1
                 ;;
         esac
@@ -481,12 +480,6 @@ case "$GRUB_MENU_TYPE" in
             GRAFT=$(echo "$GRAFT" | sed "s|minios/boot/grub/grub.cfg=$MINIOS/boot/grub/grub.cfg|minios/boot/grub/grub.cfg=$MINIOS/boot/grub/grub.multilang.cfg|")
         fi
         ;;
-    template)
-        # Use simple themed menu (template)
-        if [ -e "$MINIOS/boot/grub/grub.template.cfg" ]; then
-            GRAFT=$(echo "$GRAFT" | sed "s|minios/boot/grub/grub.cfg=$MINIOS/boot/grub/grub.cfg|minios/boot/grub/grub.cfg=$MINIOS/boot/grub/grub.template.cfg|")
-        fi
-        ;;
     en_US|ru_RU|de_DE|es_ES|it_IT|id_ID|pt_BR)
         # Generate localized GRUB configuration
         TEMP_GRUB_CONFIG=$(mktemp --suffix=.cfg)
@@ -494,10 +487,11 @@ case "$GRUB_MENU_TYPE" in
             information "$(gettext "Generated localized GRUB menu for"): $GRUB_MENU_TYPE"
             GRAFT=$(echo "$GRAFT" | sed "s|minios/boot/grub/grub.cfg=$MINIOS/boot/grub/grub.cfg|minios/boot/grub/grub.cfg=$TEMP_GRUB_CONFIG|")
         else
-            # Fallback to template if localized generation failed
-            warning "$(gettext "Failed to generate localized config, falling back to template")"
-            if [ -e "$MINIOS/boot/grub/grub.template.cfg" ]; then
-                GRAFT=$(echo "$GRAFT" | sed "s|minios/boot/grub/grub.cfg=$MINIOS/boot/grub/grub.cfg|minios/boot/grub/grub.cfg=$MINIOS/boot/grub/grub.template.cfg|")
+            # Fallback to English if localized generation failed
+            warning "$(gettext "Failed to generate localized config, falling back to English")"
+            TEMP_GRUB_CONFIG=$(mktemp --suffix=.cfg)
+            if generate_localized_grub_config "$MINIOS/boot/grub" "en_US" "$TEMP_GRUB_CONFIG"; then
+                GRAFT=$(echo "$GRAFT" | sed "s|minios/boot/grub/grub.cfg=$MINIOS/boot/grub/grub.cfg|minios/boot/grub/grub.cfg=$TEMP_GRUB_CONFIG|")
             fi
         fi
         ;;

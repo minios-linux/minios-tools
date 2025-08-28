@@ -19,7 +19,7 @@ _sb2iso() {
         ;;
     --grub-menu)
         # Complete GRUB menu types
-        COMPREPLY=($(compgen -W 'multilang template en_US ru_RU de_DE es_ES it_IT id_ID pt_BR' -- "$cur"))
+        COMPREPLY=($(compgen -W 'multilang en_US ru_RU de_DE es_ES it_IT id_ID pt_BR' -- "$cur"))
         return
         ;;
     esac
@@ -40,7 +40,7 @@ _sb2iso() {
             ;;
         --grub-menu)
             # Complete GRUB menu types
-            COMPREPLY=($(compgen -W 'multilang template en_US ru_RU de_DE es_ES it_IT id_ID pt_BR' -- "$cur"))
+            COMPREPLY=($(compgen -W 'multilang en_US ru_RU de_DE es_ES it_IT id_ID pt_BR' -- "$cur"))
             return
             ;;
         *) ;;
