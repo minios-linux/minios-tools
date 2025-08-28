@@ -6,11 +6,11 @@ sb2iso - generate MiniOS ISO image with specified modules
 
 ## SYNOPSIS
 
-**sb2iso** [**-e** *REGEX*] [**-n** *NAME*] [**--grub-bios**] [**--grub-menu** *TYPE*] [**--help**] [**--version**] *MODULE*...
+**sb2iso** [**-e** *REGEX*] [**-n** *NAME*] [**--grub-menu** *TYPE*] [**--help**] [**--version**] *MODULE*...
 
 ## DESCRIPTION
 
-**sb2iso** generates MiniOS ISO image, adding specified modules. The tool supports both SYSLINUX and GRUB bootloaders with customizable menu types and full localization support.
+**sb2iso** generates MiniOS ISO image, adding specified modules. The tool automatically detects the bootloader type (SYSLINUX, GRUB, or mixed) from the source system and supports customizable menu types with full localization support.
 
 ## OPTIONS
 
@@ -19,9 +19,6 @@ sb2iso - generate MiniOS ISO image with specified modules
 
 **-n**, **--name** *NAME*  
 : Specify output ISO filename. Default is minios-YYYYMMDD_HHMM.iso.
-
-**--grub-bios**
-: Use GRUB for BIOS boot instead of SYSLINUX.
 
 **--grub-menu** *TYPE*
 : Set GRUB menu type. *TYPE* can be:
@@ -37,13 +34,18 @@ sb2iso - generate MiniOS ISO image with specified modules
 
 ## BOOTLOADER SUPPORT
 
-The tool supports two bootloader types:
+The tool automatically detects and supports three bootloader configurations:
 
-**SYSLINUX** (default)
-: Standard BIOS bootloader compatible with all systems. Uses isolinux.bin for booting.
+**syslinux-grub** (most common)
+: Uses SYSLINUX as the primary bootloader which then loads GRUB. This provides compatibility with both legacy BIOS and UEFI systems.
 
-**GRUB BIOS**
-: Alternative BIOS bootloader with more advanced features. Uses eltorito.img for booting. Enabled with **--grub-bios**.
+**grub-only**
+: Uses GRUB directly for all boot scenarios. Detected when only GRUB BIOS components are present.
+
+**syslinux-native**
+: Uses SYSLINUX natively without GRUB components. Detected when only SYSLINUX files are present.
+
+The bootloader type is automatically detected based on the boot files present in the source MiniOS system.
 
 ## MENU TYPES
 
@@ -58,29 +60,33 @@ The tool supports two bootloader types:
 
 ## EXAMPLES
 
-Create ISO with default settings:
+Create basic ISO from current live system:
 
-    sb2iso module1.sb module2.sb
+    sb2iso
 
-Exclude specific modules:
+Create ISO with custom name:
 
-    sb2iso --exclude='firefox' --name minios_without_firefox.iso module1.sb module2.sb
+    sb2iso --name my_custom_minios.iso
 
-Create text-mode core only:
+Exclude heavy applications:
 
-    sb2iso --exclude='firmware|xorg|desktop|apps|firefox' --name minios_textmode.iso module1.sb module2.sb
+    sb2iso --exclude 'firefox|libreoffice|gimp' --name minios_lite.iso
 
-Use GRUB BIOS instead of SYSLINUX:
+Create minimal text-mode ISO:
 
-    sb2iso --grub-bios --name minios_grub.iso module1.sb module2.sb
+    sb2iso --exclude 'desktop|xorg|apps' --name minios_minimal.iso
 
-Create Russian localized menu:
+Add extra modules to current system:
 
-    sb2iso --grub-menu ru_RU --name minios_russian.iso module1.sb module2.sb
+    sb2iso development_tools.sb games.sb --name minios_extended.iso
 
-Combined GRUB BIOS with localization:
+Create localized Russian ISO:
 
-    sb2iso --grub-bios --grub-menu ru_RU --name minios_grub_russian.iso module1.sb module2.sb
+    sb2iso --grub-menu ru_RU --name minios_ru.iso
+
+Combine exclusions with additions:
+
+    sb2iso --exclude 'games' extra_productivity.sb --name minios_work.iso
 
 ## FILES
 

@@ -1,3 +1,11 @@
+minios-tools (1.4.3) unstable; urgency=medium
+
+  * Refactor sb2iso script to automatically detect bootloader type and simplify
+    usage
+  * Update help messages and examples
+
+ -- crims0n <crims0n@minios.dev>  Thu, 28 Aug 2025 15:45:25 +0300
+
 minios-tools (1.4.2) unstable; urgency=medium
 
   * Add support for the latest MiniOS ISO format to sb2iso

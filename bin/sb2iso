@@ -2,7 +2,7 @@
 # Author: Tomas M. <http://www.linux-live.org>
 # Author: crims0n. <https://minios.dev>
 
-VERSION="1.5"
+VERSION="1.6"
 SYSTEMNAME="MiniOS"
 export TEXTDOMAIN="minios-tools"
 TEMP=/tmp/minios.iso.$$
@@ -10,7 +10,7 @@ REGEX='^$'
 MODULES=()
 PWD="$(pwd)"
 VERBOSITY_LEVEL=0
-USE_GRUB_BIOS=false
+BOOTLOADER_TYPE="auto"
 GRUB_MENU_TYPE="multilang"
 TEMP_GRUB_CONFIG=""
 if [ -d "/run/initramfs/memory" ]; then
@@ -26,27 +26,27 @@ help() {
     echo "$(gettext "Options"):"
     echo "  -e, --exclude REGEX   $(gettext "Exclude any existing path or file matching REGEX")"
     echo "  -n, --name NAME       $(gettext "Specify output ISO filename (default"): minios-YYYYMMDD_HHMM.iso)"
-    echo "      --grub-bios       $(gettext "Use GRUB for BIOS boot instead of SYSLINUX")"
     echo "      --grub-menu TYPE  $(gettext "Set GRUB menu type: multilang, template, or language code")"
     echo "                        $(gettext "  multilang: menu with language selection (default)")"
-    echo "                        $(gettext "  template: simple themed menu")"  
+    echo "                        $(gettext "  template: simple themed menu")"
     echo "                        $(gettext "  language: specific language (en_US, ru_RU, de_DE, etc.)")"
+    echo "                        $(gettext "  Note: bootloader type is automatically detected")"
     echo "      --help            $(gettext "Display this help and exit")"
     echo "      --version         $(gettext "Display version information and exit")"
     echo ""
     echo "$(gettext "Examples"):"
-    echo "  # $(gettext "Create MiniOS ISO without firefox.sb module:")"
-    echo "  $(basename $0) -e 'firefox' -n minios_without_firefox.iso"
-    echo "  # $(gettext "Create MiniOS text-mode core only:")"
-    echo "  $(basename $0) --exclude='firmware|xorg|desktop|apps|firefox' --name=minios_textmode.iso"
-    echo "  # $(gettext "Create ISO with GRUB BIOS boot:")"
-    echo "  $(basename $0) --grub-bios --name=minios_grub.iso"
-    echo "  # $(gettext "Create ISO with multilingual GRUB menu:")"
-    echo "  $(basename $0) --grub-menu multilang --name=minios_multilang.iso"
-    echo "  # $(gettext "Create ISO with template GRUB menu:")"
-    echo "  $(basename $0) --grub-menu template --name=minios_template.iso"
-    echo "  # $(gettext "Create ISO with Russian GRUB menu:")"
-    echo "  $(basename $0) --grub-menu ru_RU --name=minios_russian.iso"
+    echo "  # $(gettext "Create basic MiniOS ISO with current system:")"
+    echo "  $(basename $0)"
+    echo "  # $(gettext "Create ISO with custom filename:")"
+    echo "  $(basename $0) --name my_minios.iso"
+    echo "  # $(gettext "Create ISO excluding specific modules:")"
+    echo "  $(basename $0) --exclude 'firefox|libreoffice' --name minios_slim.iso"
+    echo "  # $(gettext "Create minimal text-mode ISO:")"
+    echo "  $(basename $0) --exclude 'desktop|xorg|apps' --name minios_minimal.iso"
+    echo "  # $(gettext "Create ISO with additional modules:")"
+    echo "  $(basename $0) extra_module.sb another_module.sb"
+    echo "  # $(gettext "Create Russian localized ISO:")"
+    echo "  $(basename $0) --grub-menu ru_RU --name minios_ru.iso"
     exit 0
 }
 
@@ -142,37 +142,37 @@ run_with_spinner() {
 parse_po_file() {
     local po_file="$1"
     local temp_file=$(mktemp)
-    
+
     if [ ! -e "$po_file" ]; then
         rm -f "$temp_file"
         return 1
     fi
-    
+
     # Extract msgid and msgstr pairs, handling multiline strings
     awk '
     BEGIN { msgid = ""; msgstr = ""; in_msgid = 0; in_msgstr = 0; }
-    
-    /^msgid / { 
+
+    /^msgid / {
         if (msgid != "" && msgstr != "") {
             # Remove quotes and unescape
             gsub(/^"|"$/, "", msgid); gsub(/\\n/, "\n", msgid); gsub(/\\"/, "\"", msgid);
             gsub(/^"|"$/, "", msgstr); gsub(/\\n/, "\n", msgstr); gsub(/\\"/, "\"", msgstr);
             if (msgid != "" && msgstr != "") print msgid "|||" msgstr;
         }
-        msgid = substr($0, 7); in_msgid = 1; in_msgstr = 0; 
+        msgid = substr($0, 7); in_msgid = 1; in_msgstr = 0;
     }
-    
-    /^msgstr / { 
-        msgstr = substr($0, 8); in_msgstr = 1; in_msgid = 0; 
+
+    /^msgstr / {
+        msgstr = substr($0, 8); in_msgstr = 1; in_msgid = 0;
     }
-    
+
     /^"/ {
         if (in_msgid) msgid = msgid substr($0, 2, length($0) - 2);
         else if (in_msgstr) msgstr = msgstr substr($0, 2, length($0) - 2);
     }
-    
+
     /^$/ { in_msgid = 0; in_msgstr = 0; }
-    
+
     END {
         if (msgid != "" && msgstr != "") {
             gsub(/^"|"$/, "", msgid); gsub(/\\n/, "\n", msgid); gsub(/\\"/, "\"", msgid);
@@ -181,7 +181,7 @@ parse_po_file() {
         }
     }
     ' "$po_file" > "$temp_file"
-    
+
     if [ -s "$temp_file" ]; then
         echo "$temp_file"
         return 0
@@ -195,12 +195,12 @@ parse_po_file() {
 get_translation() {
     local translations_file="$1"
     local msgid="$2"
-    
+
     if [ ! -e "$translations_file" ]; then
         echo "$msgid"
         return
     fi
-    
+
     local result=$(grep -F "${msgid}|||" "$translations_file" 2>/dev/null | head -n1 | cut -d'|' -f4-)
     if [ -n "$result" ]; then
         echo "$result"
@@ -214,16 +214,16 @@ generate_localized_grub_config() {
     local grub_dir="$1"
     local lang_code="$2"
     local output_file="$3"
-    
+
     # Parse po file for the language
     local po_file="$grub_dir/po/${lang_code}.po"
     local translations_file
-    
+
     if ! translations_file=$(parse_po_file "$po_file"); then
         warning "$(gettext "No translations found for $lang_code, using English fallback")"
         return 1
     fi
-    
+
     # Get template config
     local template_cfg="$grub_dir/grub.template.cfg"
     if [ ! -e "$template_cfg" ]; then
@@ -231,22 +231,22 @@ generate_localized_grub_config() {
         rm -f "$translations_file"
         return 1
     fi
-    
+
     # Read template content
     local template_content=$(cat "$template_cfg")
     local localized_content="$template_content"
-    
+
     # Define menu entries to translate (same as installer)
     local english_texts=(
         "Resume previous session"
-        "Start a new session" 
+        "Start a new session"
         "Choose session during startup"
         "Fresh start"
         "Copy to RAM"
         "Loading kernel and ramdisk..."
         "MiniOS"
     )
-    
+
     local var_names=(
         "resume"
         "newsession"
@@ -256,13 +256,13 @@ generate_localized_grub_config() {
         "loading"
         "OS"
     )
-    
+
     # Replace English menu text with localized versions
     for i in "${!english_texts[@]}"; do
         local english_text="${english_texts[$i]}"
         local var_name="${var_names[$i]}"
         local localized_text=$(get_translation "$translations_file" "$english_text")
-        
+
         if [ "$localized_text" != "$english_text" ]; then
             # Replace menuentry labels
             localized_content=$(echo "$localized_content" | sed "s/menuentry \"$english_text\"/menuentry \"$localized_text\"/g")
@@ -270,17 +270,17 @@ generate_localized_grub_config() {
             localized_content=$(echo "$localized_content" | sed "s/set ${var_name}=\"$english_text\"/set ${var_name}=\"$localized_text\"/g")
         fi
     done
-    
+
     # Set localized theme if available
     local theme_path="/minios/boot/grub/minios-theme/theme_${lang_code}.txt"
     if [ -e "$grub_dir/minios-theme/theme_${lang_code}.txt" ]; then
         # Replace theme setting with localized version
         localized_content=$(echo "$localized_content" | sed "s|set theme=/minios/boot/grub/minios-theme/theme\.txt|set theme=$theme_path|g")
     fi
-    
+
     # Write localized config
     echo "$localized_content" > "$output_file"
-    
+
     # Cleanup
     rm -f "$translations_file"
     return 0
@@ -297,10 +297,6 @@ while [ "$#" -gt 0 ]; do
     -n | --name)
         TARGET="$(readlink -f "$2")"
         shift 2
-        ;;
-    --grub-bios)
-        USE_GRUB_BIOS=true
-        shift
         ;;
     --grub-menu)
         case "$2" in
@@ -336,50 +332,126 @@ done
 
 TARGET=${TARGET:-"${PWD}/minios-$(date +%Y%m%d_%H%M).iso"}
 
-if [ -e "$SOURCE/data/minios/boot/syslinux/isolinux.bin" ]; then
-    MINIOS=$SOURCE/data/minios
-elif [ -e "$SOURCE/data/minios/boot/grub/grub.cfg" ]; then
-    MINIOS=$SOURCE/data/minios
-elif [ -e "$SOURCE/iso/minios/boot/syslinux/isolinux.bin" ]; then
-    MINIOS=$SOURCE/iso/minios
-elif [ -e "$SOURCE/iso/minios/boot/grub/grub.cfg" ]; then
-    MINIOS=$SOURCE/iso/minios
-elif [ -e "$SOURCE/toram/boot/syslinux/isolinux.bin" ]; then
-    MINIOS=$SOURCE/toram
-elif [ -e "$SOURCE/toram/boot/grub/grub.cfg" ]; then
-    MINIOS=$SOURCE/toram
-elif [ -e "$SOURCE/data/from/0/minios/boot/syslinux/isolinux.bin" ]; then
-    MINIOS=$SOURCE/data/from/0/minios
-elif [ -e "$SOURCE/data/from/0/minios/boot/grub/grub.cfg" ]; then
-    MINIOS=$SOURCE/data/from/0/minios
-fi
+# Function to detect bootloader type based on files present in the boot directory
+detect_bootloader_type() {
+    local MINIOS_SOURCE="$1"
+
+    if [ ! -d "$MINIOS_SOURCE" ]; then
+        echo "syslinux-grub"
+        return
+    fi
+
+    local BOOT_DIR="$MINIOS_SOURCE/boot"
+    if [ ! -d "$BOOT_DIR" ]; then
+        echo "syslinux-grub"
+        return
+    fi
+
+    # Check for SYSLINUX directory
+    local SYSLINUX_DIR="$BOOT_DIR/syslinux"
+    local HAS_SYSLINUX=false
+    if [ -d "$SYSLINUX_DIR" ]; then
+        HAS_SYSLINUX=true
+    fi
+
+    # Check for GRUB BIOS components
+    local GRUB_BIOS_DIR="$BOOT_DIR/grub/i386-pc"
+    local HAS_GRUB_BIOS=false
+    if [ -d "$GRUB_BIOS_DIR" ]; then
+        HAS_GRUB_BIOS=true
+    fi
+
+    # Determine bootloader type based on what's present
+    if [ "$HAS_SYSLINUX" = "true" ] && [ "$HAS_GRUB_BIOS" = "true" ]; then
+        echo "syslinux-grub"
+    elif [ "$HAS_SYSLINUX" = "true" ] && [ "$HAS_GRUB_BIOS" = "false" ]; then
+        echo "syslinux-native"
+    elif [ "$HAS_SYSLINUX" = "false" ] && [ "$HAS_GRUB_BIOS" = "true" ]; then
+        echo "grub-only"
+    else
+        # Fallback
+        echo "syslinux-grub"
+    fi
+}
+
+# Find MiniOS source directory
+find_minios_source() {
+    local CANDIDATES=(
+        "$SOURCE/data/minios"
+        "$SOURCE/iso/minios"
+        "$SOURCE/toram"
+        "$SOURCE/data/from/0/minios"
+    )
+
+    for CANDIDATE in "${CANDIDATES[@]}"; do
+        if [ -d "$CANDIDATE" ]; then
+            local BOOT_DIR="$CANDIDATE/boot"
+            if [ -d "$BOOT_DIR" ]; then
+                # Check for generic vmlinuz file
+                if [ -e "$BOOT_DIR/vmlinuz" ]; then
+                    echo "$CANDIDATE"
+                    return
+                fi
+
+                # Check for any vmlinuz* files
+                if ls "$BOOT_DIR"/vmlinuz* >/dev/null 2>&1; then
+                    # Also check for initramfs files
+                    if ls "$BOOT_DIR"/initrfs* >/dev/null 2>&1 || ls "$BOOT_DIR"/initrd* >/dev/null 2>&1; then
+                        echo "$CANDIDATE"
+                        return
+                    fi
+                fi
+            fi
+        fi
+    done
+
+    return 1
+}
+
+MINIOS=$(find_minios_source)
 
 if [ "$MINIOS" = "" ]; then
-    echo "Cannot find boot/syslinux/isolinux.bin in MiniOS data" >&2
+    error "$(gettext "Cannot find MiniOS source directory with boot files")"
     exit 2
 fi
 
+# Detect bootloader type automatically
+BOOTLOADER_TYPE=$(detect_bootloader_type "$MINIOS")
+information "$(gettext "Detected bootloader type"): $BOOTLOADER_TYPE"
+
 echo $SYSTEMNAME >/tmp/info
 
-# Check required files based on bootloader type
-if [ "$USE_GRUB_BIOS" = "true" ]; then
-    REQUIRED_FILES=(
-        "$MINIOS/boot/grub/i386-pc/eltorito.img"
-        "$MINIOS/boot/grub/i386-pc/boot_hybrid.img"
-        "$MINIOS/boot/grub/efi64.img"
-        "$MINIOS/boot/grub/efi32.img"
-        "$MINIOS/boot/grub/grub.cfg"
-    )
-else
-    REQUIRED_FILES=(
-        "$MINIOS/boot/syslinux/isolinux.bin"
-        "$MINIOS/boot/syslinux/isohdpfx.bin"
-        "$MINIOS/boot/syslinux/syslinux.cfg"
-        "$MINIOS/boot/grub/efi64.img"
-        "$MINIOS/boot/grub/efi32.img"
-        "$MINIOS/boot/grub/grub.cfg"
-    )
-fi
+# Check required files based on detected bootloader type
+case "$BOOTLOADER_TYPE" in
+    "grub-only")
+        REQUIRED_FILES=(
+            "$MINIOS/boot/grub/i386-pc/eltorito.img"
+            "$MINIOS/boot/grub/i386-pc/boot_hybrid.img"
+            "$MINIOS/boot/grub/efi64.img"
+            "$MINIOS/boot/grub/efi32.img"
+            "$MINIOS/boot/grub/grub.cfg"
+        )
+        ;;
+    "syslinux-native")
+        REQUIRED_FILES=(
+            "$MINIOS/boot/syslinux/isolinux.bin"
+            "$MINIOS/boot/syslinux/isohdpfx.bin"
+            "$MINIOS/boot/syslinux/syslinux.cfg"
+            "$MINIOS/boot/grub/efi64.img"
+            "$MINIOS/boot/grub/efi32.img"
+        )
+        ;;
+    *) # syslinux-grub (default)
+        REQUIRED_FILES=(
+            "$MINIOS/boot/syslinux/isolinux.bin"
+            "$MINIOS/boot/syslinux/isohdpfx.bin"
+            "$MINIOS/boot/syslinux/syslinux.cfg"
+            "$MINIOS/boot/grub/efi64.img"
+            "$MINIOS/boot/grub/efi32.img"
+            "$MINIOS/boot/grub/grub.cfg"
+        )
+        ;;
+esac
 
 for FILE in "${REQUIRED_FILES[@]}"; do
     if [ ! -e "$FILE" ]; then
@@ -448,31 +520,40 @@ done
 
 run_with_spinner "$(gettext "Creating ISO work directory")" mkdir -p "$TEMP/minios/boot" "$TEMP/minios/modules" "$TEMP/minios/changes" "$TEMP/minios/scripts"
 
-if [ "$USE_GRUB_BIOS" = "true" ]; then
-    run_with_spinner "$(gettext "Copying boot files (GRUB BIOS)")" mkdir -p "$TEMP/minios/boot/grub/i386-pc"
-else
-    run_with_spinner "$(gettext "Copying boot files (SYSLINUX)")" sh -c 'mkdir -p "$1/syslinux" && cp "$0/boot/syslinux/isolinux.bin" "$1/syslinux/" && cp "$0/boot/syslinux/isohdpfx.bin" "$1/syslinux/"' "$MINIOS" "$TEMP/minios/boot"
-fi
+case "$BOOTLOADER_TYPE" in
+    "grub-only")
+        run_with_spinner "$(gettext "Copying boot files (GRUB BIOS only)")" mkdir -p "$TEMP/minios/boot/grub/i386-pc"
+        ;;
+    "syslinux-native")
+        run_with_spinner "$(gettext "Copying boot files (SYSLINUX native)")" sh -c 'mkdir -p "$1/syslinux" && cp "$0/boot/syslinux/isolinux.bin" "$1/syslinux/" && cp "$0/boot/syslinux/isohdpfx.bin" "$1/syslinux/"' "$MINIOS" "$TEMP/minios/boot"
+        ;;
+    *) # syslinux-grub (default)
+        run_with_spinner "$(gettext "Copying boot files (SYSLINUX + GRUB)")" sh -c 'mkdir -p "$1/syslinux" && cp "$0/boot/syslinux/isolinux.bin" "$1/syslinux/" && cp "$0/boot/syslinux/isohdpfx.bin" "$1/syslinux/"' "$MINIOS" "$TEMP/minios/boot"
+        ;;
+esac
 
 cd "$TEMP" || exit 4
 
 PERCHIMG=$(mktemp --suffix=.img)
 run_with_spinner "$(gettext "Creating temporary persistence image")" dd if=/dev/zero of="$PERCHIMG" bs=1M count=1
 run_with_spinner "$(gettext "Formatting persistence image")" mkfs.ext2 -L persistence "$PERCHIMG"
-# Set bootloader-specific parameters
-if [ "$USE_GRUB_BIOS" = "true" ]; then
-    # GRUB parameters
-    BIOS_BOOT_IMG="minios/boot/grub/i386-pc/eltorito.img"
-    BIOS_BOOT_CATALOG="minios/boot/grub/boot.cat"
-    BIOS_MBR_IMG="$MINIOS/boot/grub/i386-pc/boot_hybrid.img"
-    BIOS_BOOT_PARAMS="-eltorito-catalog ${BIOS_BOOT_CATALOG}"
-else
-    # SYSLINUX/ISOLINUX parameters
-    BIOS_BOOT_IMG="minios/boot/syslinux/isolinux.bin"
-    BIOS_BOOT_CATALOG="minios/boot/syslinux/isolinux.boot"
-    BIOS_MBR_IMG="$MINIOS/boot/syslinux/isohdpfx.bin"
-    BIOS_BOOT_PARAMS="-eltorito-catalog ${BIOS_BOOT_CATALOG}"
-fi
+# Set bootloader-specific parameters based on detected type
+case "$BOOTLOADER_TYPE" in
+    "grub-only")
+        # GRUB only parameters
+        BIOS_BOOT_IMG="minios/boot/grub/i386-pc/eltorito.img"
+        BIOS_BOOT_CATALOG="minios/boot/grub/boot.cat"
+        BIOS_MBR_IMG="$MINIOS/boot/grub/i386-pc/boot_hybrid.img"
+        BIOS_BOOT_PARAMS="-eltorito-catalog ${BIOS_BOOT_CATALOG}"
+        ;;
+    *) # syslinux-grub or syslinux-native (use same ISO parameters)
+        # SYSLINUX/ISOLINUX parameters
+        BIOS_BOOT_IMG="minios/boot/syslinux/isolinux.bin"
+        BIOS_BOOT_CATALOG="minios/boot/syslinux/isolinux.boot"
+        BIOS_MBR_IMG="$MINIOS/boot/syslinux/isohdpfx.bin"
+        BIOS_BOOT_PARAMS="-eltorito-catalog ${BIOS_BOOT_CATALOG}"
+        ;;
+esac
 
 run_with_spinner "$(gettext "Generating ISO image")" xorriso \
     --as mkisofs \
