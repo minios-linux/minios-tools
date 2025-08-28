@@ -10,7 +10,6 @@ REGEX='^$'
 MODULES=()
 PWD="$(pwd)"
 VERBOSITY_LEVEL=0
-BOOTLOADER_TYPE="auto"
 GRUB_MENU_TYPE="multilang"
 TEMP_GRUB_CONFIG=""
 if [ -d "/run/initramfs/memory" ]; then
