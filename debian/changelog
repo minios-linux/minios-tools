@@ -1,3 +1,15 @@
+minios-tools (1.4.4) unstable; urgency=medium
+
+  * Refactor sb2iso script to unify menu type handling
+  * Update sb2iso help messages and improve bootloader type detection
+  * Update sb2iso translations
+  * Enhance sb2iso completion options
+  * Update sb2iso documentation to unify menu type option
+  * Enhance sb2iso language support details
+  * Add bash completion functions for dir2sb, rmsbdir, savechanges, and sb2dir
+
+ -- crims0n <crims0n@minios.dev>  Sat, 30 Aug 2025 15:48:31 +0300
+
 minios-tools (1.4.3) unstable; urgency=medium
 
   * Refactor sb2iso script to automatically detect bootloader type and simplify

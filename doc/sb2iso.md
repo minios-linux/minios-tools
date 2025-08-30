@@ -6,7 +6,7 @@ sb2iso - generate MiniOS ISO image with specified modules
 
 ## SYNOPSIS
 
-**sb2iso** [**-e** *REGEX*] [**-n** *NAME*] [**--grub-menu** *TYPE*] [**--help**] [**--version**] *MODULE*...
+**sb2iso** [**-e** *REGEX*] [**-n** *NAME*] [**--menu** *TYPE*] [**--help**] [**--version**] *MODULE*...
 
 ## DESCRIPTION
 
@@ -20,10 +20,10 @@ sb2iso - generate MiniOS ISO image with specified modules
 **-n**, **--name** *NAME*  
 : Specify output ISO filename. Default is minios-YYYYMMDD_HHMM.iso.
 
-**--grub-menu** *TYPE*
-: Set GRUB menu type. *TYPE* can be:
+**--menu** *TYPE*
+: Set menu type for both GRUB and SYSLINUX. *TYPE* can be:
   **multilang** (default) - menu with language selection
-  *LANG* - specific language code (en_US, ru_RU, de_DE, es_ES, it_IT, id_ID, pt_BR)
+  *LANG* - specific language code (en_US, ru_RU, de_DE, es_ES, it_IT, id_ID, pt_BR, pt_PT, fr_FR)
 
 **--help**
 : Display help message and exit.
@@ -52,7 +52,7 @@ The bootloader type is automatically detected based on the boot files present in
 : Multi-language menu with language selection screen.
 
 *Language codes*
-: Fully localized menus with translated text and language-specific themes. Supported languages: en_US (English), ru_RU (Russian), de_DE (German), es_ES (Spanish), it_IT (Italian), id_ID (Indonesian), pt_BR (Portuguese).
+: Fully localized menus with translated text and language-specific themes. Supported languages: en_US (English), ru_RU (Russian), de_DE (German), es_ES (Spanish), it_IT (Italian), id_ID (Indonesian), pt_BR (Portuguese Brazil), pt_PT (Portuguese Portugal), fr_FR (French).
 
 ## EXAMPLES
 
@@ -78,7 +78,7 @@ Add extra modules to current system:
 
 Create localized Russian ISO:
 
-    sb2iso --grub-menu ru_RU --name minios_ru.iso
+    sb2iso --menu ru_RU --name minios_ru.iso
 
 Combine exclusions with additions:
 
