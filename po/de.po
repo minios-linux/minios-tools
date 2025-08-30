@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.4.2\n"
 "Report-Msgid-Bugs-To: support@minios.dev\n"
-"POT-Creation-Date: 2025-08-17 15:21+0300\n"
+"POT-Creation-Date: 2025-08-30 15:34+0300\n"
 "PO-Revision-Date: 2025-08-11 09:37+0300\n"
 "Last-Translator: crims0n <crims0n@minios.dev>\n"
 "Language-Team: none\n"
@@ -17,108 +17,324 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: bin/apt2sb:10 bin/apt2sb:43 bin/dir2sb:11 bin/dir2sb:31 bin/sb:23 bin/sb:52
-#: bin/rmsbdir:9 bin/sb2iso:20 bin/sb2iso:38 bin/savechanges:14
-#: bin/savechanges:30 bin/chroot2sb:10 bin/chroot2sb:30 bin/script2sb:10
-#: bin/script2sb:32 bin/sb2iso:39 bin/sb2iso:21 bin/sb2iso:51 bin/sb2iso:41
+#: bin/rmsbdir:8
+msgid "Erase module directory created by sb2dir"
+msgstr "Modulverzeichnis, das von sb2dir erstellt wurde, löschen"
+
+#: bin/rmsbdir:9 bin/apt2sb:20 bin/apt2sb:53 bin/script2sb:20 bin/script2sb:42
+#: bin/savechanges:14 bin/savechanges:30 bin/sb2iso:22 bin/sb2iso:51
+#: bin/dir2sb:11 bin/dir2sb:31 bin/sb:25 bin/sb:54 bin/chroot2sb:19
+#: bin/chroot2sb:39
 msgid "Usage"
 msgstr "Verwendung"
 
-#: bin/apt2sb:11
+#: bin/rmsbdir:9
+msgid "source_directory.sb"
+msgstr "quellverzeichnis.sb"
+
+#: bin/rmsbdir:18 bin/sb2dir:35
+msgid "Directory does not exist:"
+msgstr "Verzeichnis existiert nicht:"
+
+#: bin/rmsbdir:25
+msgid "Module directory deleted:"
+msgstr "Modulverzeichnis gelöscht:"
+
+#: bin/apt2sb:21
 msgid "Installs packages from repositories and packages them into a module."
 msgstr "Installiert Pakete aus Repositories und packt sie in ein Modul."
 
-#: bin/apt2sb:13 bin/sb:27
+#: bin/apt2sb:23 bin/sb:29
 msgid "Commands"
 msgstr "Befehle"
 
-#: bin/apt2sb:14
+#: bin/apt2sb:24
 msgid "Install package(s)"
 msgstr "Paket(e) installieren"
 
-#: bin/apt2sb:15
+#: bin/apt2sb:25
 msgid "Upgrade installed packages"
 msgstr "Installierte Pakete aktualisieren"
 
-#: bin/apt2sb:17 bin/dir2sb:14 bin/sb2iso:23 bin/savechanges:17
-#: bin/chroot2sb:13 bin/script2sb:13 bin/sb2iso:24
+#: bin/apt2sb:27 bin/script2sb:23 bin/savechanges:17 bin/sb2iso:25
+#: bin/dir2sb:14 bin/chroot2sb:22
 msgid "Options"
 msgstr "Optionen"
 
-#: bin/apt2sb:18
+#: bin/apt2sb:28
 msgid "Use NAME as the filename for the module instead of PACKAGE1"
 msgstr "NAME als Dateinamen für das Modul statt PAKET1 verwenden"
 
-#: bin/apt2sb:19 bin/chroot2sb:16 bin/script2sb:18
+#: bin/apt2sb:29 bin/script2sb:28 bin/chroot2sb:25
 msgid "Use LEVEL as the filter level"
 msgstr "LEVEL als Filterstufe verwenden"
 
-#: bin/apt2sb:20 bin/dir2sb:16 bin/savechanges:18 bin/chroot2sb:17
-#: bin/script2sb:15
+#: bin/apt2sb:30 bin/script2sb:25 bin/savechanges:18 bin/dir2sb:16
+#: bin/chroot2sb:26
 msgid "Compression type (zstd, gzip, lzo, xz). Default: zstd"
 msgstr "Komprimierungstyp (zstd, gzip, lzo, xz). Standard: zstd"
 
-#: bin/apt2sb:21 bin/dir2sb:15 bin/savechanges:19 bin/chroot2sb:18
-#: bin/script2sb:14
+#: bin/apt2sb:31 bin/script2sb:24 bin/savechanges:19 bin/dir2sb:15
+#: bin/chroot2sb:27
 msgid "Bundle extension. Default: sb"
 msgstr "Bundle-Erweiterung. Standard: sb"
 
-#: bin/apt2sb:22 bin/dir2sb:17 bin/sb:37 bin/sb2iso:26 bin/savechanges:20
-#: bin/chroot2sb:19 bin/script2sb:20 bin/sb2iso:27 bin/sb2iso:30
+#: bin/apt2sb:32 bin/script2sb:30 bin/savechanges:20 bin/sb2iso:31
+#: bin/dir2sb:17 bin/sb:39 bin/chroot2sb:28
 msgid "Display this help and exit"
 msgstr "Diese Hilfe anzeigen und beenden"
 
-#: bin/apt2sb:23 bin/dir2sb:18 bin/sb:38 bin/sb2iso:27 bin/savechanges:21
-#: bin/chroot2sb:20 bin/script2sb:21 bin/sb2iso:28 bin/sb2iso:31
+#: bin/apt2sb:33 bin/script2sb:31 bin/savechanges:21 bin/sb2iso:32
+#: bin/dir2sb:18 bin/sb:40 bin/chroot2sb:29
 msgid "Display version information and exit"
 msgstr "Versionsinformationen anzeigen und beenden"
 
-#: bin/apt2sb:25
+#: bin/apt2sb:35
 msgid "Apt Options (for install/upgrade command)"
 msgstr "Apt-Optionen (für Installieren-/Aktualisieren-Befehl)"
 
-#: bin/apt2sb:26
+#: bin/apt2sb:36
 msgid "Automatic yes to prompts"
 msgstr "Automatische Ja-Antwort auf Abfragen"
 
-#: bin/apt2sb:27
+#: bin/apt2sb:37
 msgid "Allow downgrades of packages"
 msgstr "Downgrades von Paketen erlauben"
 
-#: bin/apt2sb:28
+#: bin/apt2sb:38
 msgid "Consider recommended packages as a dependency for installing"
 msgstr "Empfohlene Pakete als Installationsabhängigkeit betrachten"
 
-#: bin/apt2sb:29
+#: bin/apt2sb:39
 msgid "Consider suggested packages as a dependency for installing"
 msgstr "Vorgeschlagene Pakete als Installationsabhängigkeit betrachten"
 
-#: bin/apt2sb:30
+#: bin/apt2sb:40
 msgid "Do not consider recommended packages as a dependency for installing"
 msgstr "Empfohlene Pakete nicht als Installationsabhängigkeit betrachten"
 
-#: bin/apt2sb:31
+#: bin/apt2sb:41
 msgid "Do not consider suggested packages as a dependency for installing"
 msgstr "Vorgeschlagene Pakete nicht als Installationsabhängigkeit betrachten"
 
-#: bin/apt2sb:32
+#: bin/apt2sb:42
 msgid "Default release to install packages from"
 msgstr "Standard-Release, von dem Pakete installiert werden sollen"
 
-#: bin/apt2sb:34 bin/sb:40 bin/sb2iso:29 bin/chroot2sb:22 bin/script2sb:23
-#: bin/sb2iso:30 bin/sb2iso:38
+#: bin/apt2sb:44 bin/script2sb:33 bin/sb2iso:34 bin/sb:42 bin/chroot2sb:31
 msgid "Examples"
 msgstr "Beispiele"
 
-#: bin/apt2sb:44 bin/dir2sb:32 bin/sb:54 bin/sb2iso:39 bin/savechanges:31
-#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52 bin/sb2iso:42
+#: bin/apt2sb:54 bin/script2sb:43 bin/savechanges:31 bin/sb2iso:52
+#: bin/dir2sb:32 bin/sb:56 bin/chroot2sb:40
 msgid "Try"
 msgstr "Versuchen Sie"
 
-#: bin/apt2sb:44 bin/dir2sb:32 bin/sb:54 bin/sb2iso:39 bin/savechanges:31
-#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52 bin/sb2iso:42
+#: bin/apt2sb:54 bin/script2sb:43 bin/savechanges:31 bin/sb2iso:52
+#: bin/dir2sb:32 bin/sb:56 bin/chroot2sb:40
 msgid "for more information."
 msgstr "für weitere Informationen."
+
+#: bin/script2sb:21 bin/chroot2sb:20
+msgid "Packages a module from changes made by an installation script"
+msgstr ""
+"Packt ein Modul aus Änderungen, die von einem Installationsskript "
+"vorgenommen wurden"
+
+#: bin/script2sb:26 bin/chroot2sb:23
+msgid "Copy contents of DIR to the root of the module"
+msgstr "Inhalt von VERZEICHNIS in das Wurzelverzeichnis des Moduls kopieren"
+
+#: bin/script2sb:27 bin/chroot2sb:24
+msgid "Use NAME as the filename for the module"
+msgstr "NAME als Dateiname für das Modul verwenden"
+
+#: bin/script2sb:29
+msgid "Use FILE as the installation script"
+msgstr "DATEI als Installationsskript verwenden"
+
+#: bin/savechanges:15
+msgid "Saves all changed files in a compressed filesystem bundle."
+msgstr ""
+"Speichert alle geänderten Dateien in einem komprimierten Dateisystem-Bundle."
+
+#: bin/savechanges:23
+msgid "If changes_directory is not specified,"
+msgstr "Wenn 'Änderungsverzeichnis' nicht angegeben ist,"
+
+#: bin/savechanges:24
+msgid "/run/initramfs/memory/changes is used."
+msgstr "/run/initramfs/memory/changes wird verwendet."
+
+#: bin/sb2iso:23
+msgid "Generate MiniOS ISO image, adding specified modules."
+msgstr "MiniOS ISO-Abbild generieren und dabei angegebene Module hinzufügen."
+
+#: bin/sb2iso:26
+msgid "Exclude any existing path or file matching REGEX"
+msgstr "Vorhandene Pfade oder Dateien, die REGEX entsprechen, ausschließen"
+
+#: bin/sb2iso:27
+msgid "Specify output ISO filename (default"
+msgstr "Ausgabe-ISO-Dateiname angeben (Standard"
+
+#: bin/sb2iso:28
+msgid "Set menu type: multilang or language code"
+msgstr "Menütyp festlegen: Mehrsprachig oder Sprachcode"
+
+#: bin/sb2iso:29
+msgid "  multilang: menu with language selection (default)"
+msgstr "  mehrsprachig: Menü mit Sprachauswahl (Standard)"
+
+#: bin/sb2iso:30
+msgid "  language: specific language (en_US, ru_RU, de_DE, etc.)"
+msgstr "  Sprache: bestimmte Sprache (en_US, ru_RU, de_DE, usw.)"
+
+#: bin/sb2iso:35
+msgid "Create basic MiniOS ISO with current system:"
+msgstr "Basis-MiniOS-ISO mit aktuellem System erstellen:"
+
+#: bin/sb2iso:37
+msgid "Create ISO with custom filename:"
+msgstr "ISO mit benutzerdefiniertem Dateinamen erstellen:"
+
+#: bin/sb2iso:39
+msgid "Create ISO excluding specific modules:"
+msgstr "ISO erstellen und bestimmte Module ausschließen:"
+
+#: bin/sb2iso:41
+msgid "Create minimal text-mode ISO:"
+msgstr "Minimale ISO im Textmodus erstellen:"
+
+#: bin/sb2iso:43
+msgid "Create ISO with additional modules:"
+msgstr "ISO mit zusätzlichen Modulen erstellen:"
+
+#: bin/sb2iso:45
+msgid "Create Russian localized ISO:"
+msgstr "Russisch lokalisierte ISO erstellen:"
+
+#: bin/sb2iso:227
+msgid "grub.template.cfg template not found"
+msgstr "grub.template.cfg-Vorlage nicht gefunden"
+
+#: bin/sb2iso:411
+msgid "Cannot find MiniOS source directory with boot files"
+msgstr "MiniOS-Quellverzeichnis mit Boot-Dateien kann nicht gefunden werden"
+
+#: bin/sb2iso:417
+msgid "Detected bootloader type"
+msgstr "Erkannter Bootloader-Typ"
+
+#: bin/sb2iso:452
+msgid "Unknown bootloader type"
+msgstr "Unbekannter Bootloader-Typ"
+
+#: bin/sb2iso:453
+msgid "Valid types: grub-only, syslinux-native, syslinux-grub"
+msgstr "Gültige Typen: grub-only, syslinux-native, syslinux-grub"
+
+#: bin/sb2iso:461
+msgid ""
+"If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
+msgstr ""
+"Wenn Sie das System in den RAM geladen haben, verwenden Sie 'toram=full' in "
+"den Kernel-Parametern."
+
+#: bin/sb2iso:484
+msgid "Using multilingual menu"
+msgstr "Mehrsprachiges Menü wird verwendet"
+
+#: bin/sb2iso:492
+msgid "Configuring localized menu for"
+msgstr "Lokales Menü wird konfiguriert für"
+
+#: bin/sb2iso:497
+msgid "Generated localized GRUB menu for"
+msgstr "Lokales GRUB-Menü generiert für"
+
+#: bin/sb2iso:501
+msgid "Failed to generate localized GRUB config, falling back to English"
+msgstr ""
+"Lokalisierte GRUB-Konfiguration konnte nicht erstellt werden, es wird auf "
+"Englisch zurückgegriffen"
+
+#: bin/sb2iso:514
+msgid "Using localized SYSLINUX configuration for"
+msgstr "Lokalisierte SYSLINUX-Konfiguration wird verwendet für"
+
+#: bin/sb2iso:518
+msgid "Localized configuration not found for"
+msgstr "Lokalisierte Konfiguration nicht gefunden für"
+
+#: bin/sb2iso:518
+msgid "using English"
+msgstr "Englisch wird verwendet"
+
+#: bin/sb2iso:540
+msgid "Creating ISO work directory"
+msgstr "ISO-Arbeitsverzeichnis wird erstellt"
+
+#: bin/sb2iso:544
+msgid "Copying boot files (GRUB BIOS only)"
+msgstr "Boot-Dateien werden kopiert (nur GRUB BIOS)"
+
+#: bin/sb2iso:547
+msgid "Copying boot files (SYSLINUX native)"
+msgstr "Boot-Dateien werden kopiert (SYSLINUX nativ)"
+
+#: bin/sb2iso:550
+msgid "Copying boot files (SYSLINUX + GRUB)"
+msgstr "Boot-Dateien werden kopiert (SYSLINUX + GRUB)"
+
+#: bin/sb2iso:554
+msgid "Internal error: invalid bootloader type for boot files"
+msgstr "Interner Fehler: Ungültiger Bootloader-Typ für Boot-Dateien"
+
+#: bin/sb2iso:562
+msgid "Creating temporary persistence image"
+msgstr "Temporäres Persistenz-Abbild wird erstellt"
+
+#: bin/sb2iso:563
+msgid "Formatting persistence image"
+msgstr "Persistenz-Abbild wird formatiert"
+
+#: bin/sb2iso:582
+msgid "Internal error: invalid bootloader type for ISO parameters"
+msgstr "Interner Fehler: Ungültiger Bootloader-Typ für ISO-Parameter"
+
+#: bin/sb2iso:587
+msgid "Generating ISO image"
+msgstr "ISO-Abbild wird generiert"
+
+#: bin/sb2iso:612
+msgid "Cleaning up temporary files"
+msgstr "Temporäre Dateien werden aufgeräumt"
+
+#: bin/sb2iso:622
+msgid "Failed to create ISO image"
+msgstr "Fehler beim Erstellen des ISO-Abbilds"
+
+#: bin/sb2dir:9
+msgid "Usage:"
+msgstr "Verwendung:"
+
+#: bin/sb2dir:10
+msgid "If the output_directory is specified, it must exist"
+msgstr "Wenn das Ausgabeverzeichnis angegeben ist, muss es existieren"
+
+#: bin/sb2dir:11
+msgid "If the output_directory is not specified, the name source_file.sb"
+msgstr ""
+"Wenn das Ausgabeverzeichnis nicht angegeben ist, wird der Name quell_datei.sb"
+
+#: bin/sb2dir:12
+msgid "is used and the directory is overmounted with tmpfs"
+msgstr "verwendet und das Verzeichnis mit tmpfs überlagert."
+
+#: bin/sb2dir:17
+msgid "File does not exist:"
+msgstr "Datei existiert nicht:"
 
 #: bin/dir2sb:12
 msgid "Converts a directory to a compressed .sb module"
@@ -158,11 +374,11 @@ msgstr ""
 "Falls ZIELDATEI nicht angegeben ist, wird QUELLVERZEICHNIS durch die neue "
 "Moduldatei ersetzt."
 
-#: bin/sb:24
+#: bin/sb:26
 msgid "Manage MiniOS bundles."
 msgstr "MiniOS-Bundles verwalten."
 
-#: bin/sb:25 bin/sb:53
+#: bin/sb:27 bin/sb:55
 msgid ""
 "To run some of the commands in this script, your Linux kernel must support "
 "AUFS."
@@ -170,239 +386,139 @@ msgstr ""
 "Um einige der Befehle in diesem Skript auszuführen, muss Ihr Linux-Kernel "
 "AUFS unterstützen."
 
-#: bin/sb:28
+#: bin/sb:30
 msgid "Activate a MiniOS bundle"
 msgstr "Ein MiniOS-Bundle aktivieren"
 
-#: bin/sb:29
+#: bin/sb:31
 msgid "Deactivate an active MiniOS bundle"
 msgstr "Ein aktives MiniOS-Bundle deaktivieren"
 
-#: bin/sb:30
+#: bin/sb:32
 msgid "List active MiniOS bundles"
 msgstr "Aktive MiniOS-Bundles auflisten"
 
-#: bin/sb:31
+#: bin/sb:33
 msgid "Save changes made at runtime to the bundle"
 msgstr "Zur Laufzeit vorgenommene Änderungen im Bundle speichern"
 
-#: bin/sb:33 bin/sb:34
+#: bin/sb:35 bin/sb:36
 msgid "Remove an unpacked bundle directory"
 msgstr "Ein entpacktes Bundle-Verzeichnis entfernen"
 
-#: bin/sb:35
+#: bin/sb:37
 msgid "Convert an .sb bundle to directory or vice versa"
 msgstr "Ein .sb-Bundle in ein Verzeichnis umwandeln oder umgekehrt"
 
-#: bin/rmsbdir:8
-msgid "Erase module directory created by sb2dir"
-msgstr "Modulverzeichnis, das von sb2dir erstellt wurde, löschen"
+#~ msgid "Create MiniOS ISO without firefox.sb module:"
+#~ msgstr "MiniOS ISO ohne firefox.sb-Modul erstellen:"
 
-#: bin/rmsbdir:9
-msgid "source_directory.sb"
-msgstr "quellverzeichnis.sb"
+#~ msgid "Create MiniOS text-mode core only:"
+#~ msgstr "MiniOS nur im Textmodus-Kern erstellen:"
 
-#: bin/rmsbdir:18 bin/sb2dir:35
-msgid "Directory does not exist:"
-msgstr "Verzeichnis existiert nicht:"
+#~ msgid "Copying boot files (isolinux.bin & isohdpfx.bin)"
+#~ msgstr "Boot-Dateien werden kopiert (isolinux.bin & isohdpfx.bin)"
 
-#: bin/rmsbdir:25
-msgid "Module directory deleted:"
-msgstr "Modulverzeichnis gelöscht:"
+#~ msgid "Increase verbosity level"
+#~ msgstr "Erhöht das Detailierungslevel der Ausgabe"
 
-#: bin/sb2iso:21 bin/sb2iso:22
-msgid "Generate MiniOS ISO image, adding specified modules."
-msgstr "MiniOS ISO-Abbild generieren und dabei angegebene Module hinzufügen."
+#~ msgid "Copying GRUB boot files"
+#~ msgstr "GRUB-Boot-Dateien werden kopiert"
 
-#: bin/sb2iso:24 bin/sb2iso:27
-msgid "Exclude any existing path or file matching REGEX"
-msgstr "Vorhandene Pfade oder Dateien, die REGEX entsprechen, ausschließen"
+#~ msgid "Force specific BIOS bootloader type (isolinux or grub)"
+#~ msgstr "Spezifischen BIOS-Bootloader-Typ erzwingen (isolinux oder grub)"
 
-#: bin/sb2iso:25 bin/sb2iso:28
-msgid "Specify output ISO filename (default"
-msgstr "Ausgabe-ISO-Dateiname angeben (Standard"
+#~ msgid "Note: EFI boot always uses GRUB regardless of this setting"
+#~ msgstr ""
+#~ "Hinweis: EFI-Start verwendet immer GRUB, unabhängig von dieser Einstellung"
 
-#: bin/sb2iso:30 bin/sb2iso:31 bin/sb2iso:39
-msgid "Create MiniOS ISO without firefox.sb module:"
-msgstr "MiniOS ISO ohne firefox.sb-Modul erstellen:"
+#~ msgid "Bootloader Notes"
+#~ msgstr "Bootloader-Hinweise"
 
-#: bin/sb2iso:32 bin/sb2iso:33 bin/sb2iso:41
-msgid "Create MiniOS text-mode core only:"
-msgstr "MiniOS nur im Textmodus-Kern erstellen:"
+#~ msgid ""
+#~ "BIOS boot: Uses GRUB by default, can be forced to ISOLINUX/SYSLINUX with "
+#~ "-b"
+#~ msgstr ""
+#~ "BIOS-Start: Verwendet standardmäßig GRUB, kann mit -b auf ISOLINUX/"
+#~ "SYSLINUX erzwungen werden"
 
-#: bin/sb2iso:223 bin/sb2iso:259 bin/sb2iso:303 bin/sb2iso:254
-msgid "Creating ISO work directory"
-msgstr "ISO-Arbeitsverzeichnis wird erstellt"
+#~ msgid "EFI boot: Always uses GRUB (both 32-bit and 64-bit EFI support)"
+#~ msgstr ""
+#~ "EFI-Start: Verwendet immer GRUB (unterstützt sowohl 32-Bit- als auch 64-"
+#~ "Bit-EFI)"
 
-#: bin/sb2iso:224 bin/sb2iso:261 bin/sb2iso:305
-msgid "Copying boot files (isolinux.bin & isohdpfx.bin)"
-msgstr "Boot-Dateien werden kopiert (isolinux.bin & isohdpfx.bin)"
+#~ msgid "Hybrid ISOs support both BIOS and EFI boot modes simultaneously"
+#~ msgstr ""
+#~ "Hybride ISOs unterstützen gleichzeitig sowohl BIOS- als auch EFI-Startmodi"
 
-#: bin/sb2iso:229 bin/sb2iso:269 bin/sb2iso:313 bin/sb2iso:260
-msgid "Creating temporary persistence image"
-msgstr "Temporäres Persistenz-Abbild wird erstellt"
+#~ msgid "Force ISOLINUX bootloader for BIOS (EFI still uses GRUB):"
+#~ msgstr ""
+#~ "ISOLINUX-Bootloader für BIOS erzwingen (EFI verwendet weiterhin GRUB):"
 
-#: bin/sb2iso:230 bin/sb2iso:270 bin/sb2iso:314 bin/sb2iso:261
-msgid "Formatting persistence image"
-msgstr "Persistenz-Abbild wird formatiert"
+#~ msgid "Use default GRUB bootloader for both BIOS and EFI:"
+#~ msgstr "Standard-GRUB-Bootloader für BIOS und EFI verwenden:"
 
-#: bin/sb2iso:231 bin/sb2iso:301 bin/sb2iso:345 bin/sb2iso:286
-msgid "Generating ISO image"
-msgstr "ISO-Abbild wird generiert"
+#~ msgid "Note: This option only affects BIOS boot. EFI boot always uses GRUB."
+#~ msgstr ""
+#~ "Hinweis: Diese Option betrifft nur den BIOS-Start. EFI-Start verwendet "
+#~ "immer GRUB."
 
-#: bin/sb2iso:257 bin/sb2iso:310 bin/sb2iso:354 bin/sb2iso:295
-msgid "Cleaning up temporary files"
-msgstr "Temporäre Dateien werden aufgeräumt"
+#~ msgid "Note: EFI boot will still use GRUB regardless of this setting"
+#~ msgstr ""
+#~ "Hinweis: EFI-Start verwendet weiterhin GRUB, unabhängig von dieser "
+#~ "Einstellung"
 
-#: bin/sb2dir:9
-msgid "Usage:"
-msgstr "Verwendung:"
+#~ msgid "Using default GRUB bootloader for BIOS boot"
+#~ msgstr "Standard-GRUB-Bootloader für BIOS-Start wird verwendet"
 
-#: bin/sb2dir:10
-msgid "If the output_directory is specified, it must exist"
-msgstr "Wenn das Ausgabeverzeichnis angegeben ist, muss es existieren"
+#~ msgid "GRUB files not found, falling back to ISOLINUX for BIOS boot"
+#~ msgstr "GRUB-Dateien nicht gefunden, wechsle zu ISOLINUX für BIOS-Start"
 
-#: bin/sb2dir:11
-msgid "If the output_directory is not specified, the name source_file.sb"
-msgstr ""
-"Wenn das Ausgabeverzeichnis nicht angegeben ist, wird der Name quell_datei.sb"
+#~ msgid "Using GRUB bootloader (default)"
+#~ msgstr "GRUB-Bootloader wird verwendet (Standard)"
 
-#: bin/sb2dir:12
-msgid "is used and the directory is overmounted with tmpfs"
-msgstr "verwendet und das Verzeichnis mit tmpfs überlagert."
+#~ msgid ""
+#~ "The selected BIOS bootloader files are missing. Try without --bootloader "
+#~ "option for automatic detection."
+#~ msgstr ""
+#~ "Die ausgewählten BIOS-Bootloader-Dateien fehlen. Versuchen Sie es ohne "
+#~ "die Option --bootloader für die automatische Erkennung."
 
-#: bin/sb2dir:17
-msgid "File does not exist:"
-msgstr "Datei existiert nicht:"
+#~ msgid ""
+#~ "Remember: This option only affects BIOS boot, EFI boot always uses GRUB."
+#~ msgstr ""
+#~ "Denken Sie daran: Diese Option betrifft nur den BIOS-Start, EFI-Start "
+#~ "verwendet immer GRUB."
 
-#: bin/savechanges:15
-msgid "Saves all changed files in a compressed filesystem bundle."
-msgstr ""
-"Speichert alle geänderten Dateien in einem komprimierten Dateisystem-Bundle."
+#~ msgid "Create custom ISO with SYSLINUX (BIOS) and GRUB (EFI):"
+#~ msgstr ""
+#~ "Benutzerdefinierte ISO mit SYSLINUX (BIOS) und GRUB (EFI) erstellen:"
 
-#: bin/savechanges:23
-msgid "If changes_directory is not specified,"
-msgstr "Wenn 'Änderungsverzeichnis' nicht angegeben ist,"
+#~ msgid "Copying SYSLINUX boot files (isolinux.bin & isohdpfx.bin)"
+#~ msgstr "Kopiere SYSLINUX-Boot-Dateien (isolinux.bin & isohdpfx.bin)"
 
-#: bin/savechanges:24
-msgid "/run/initramfs/memory/changes is used."
-msgstr "/run/initramfs/memory/changes wird verwendet."
+#~ msgid "Set GRUB menu type: multilang or language code"
+#~ msgstr "GRUB-Menütyp festlegen: Mehrsprachig oder Sprachcode"
 
-#: bin/chroot2sb:11 bin/script2sb:11
-msgid "Packages a module from changes made by an installation script"
-msgstr ""
-"Packt ein Modul aus Änderungen, die von einem Installationsskript "
-"vorgenommen wurden"
+#~ msgid "  Note: bootloader type is automatically detected"
+#~ msgstr "  Hinweis: Bootloader-Typ wird automatisch erkannt"
 
-#: bin/chroot2sb:14 bin/script2sb:16
-msgid "Copy contents of DIR to the root of the module"
-msgstr "Inhalt von VERZEICHNIS in das Wurzelverzeichnis des Moduls kopieren"
+#~ msgid "Failed to generate localized config, falling back to English"
+#~ msgstr ""
+#~ "Lokalisierte Konfiguration konnte nicht erstellt werden, es wird auf "
+#~ "Englisch zurückgegriffen"
 
-#: bin/chroot2sb:15 bin/script2sb:17
-msgid "Use NAME as the filename for the module"
-msgstr "NAME als Dateiname für das Modul verwenden"
+#~ msgid "No SYSLINUX help files found"
+#~ msgstr "Keine SYSLINUX-Hilfedateien gefunden"
 
-#: bin/script2sb:19
-msgid "Use FILE as the installation script"
-msgstr "DATEI als Installationsskript verwenden"
+#~ msgid "Generated help file for"
+#~ msgstr "Hilfedatei generiert für"
 
-#: bin/sb2iso:26 bin/sb2iso:29
-msgid "Increase verbosity level"
-msgstr "Erhöht das Detailierungslevel der Ausgabe"
+#~ msgid "Generated localized menu for"
+#~ msgstr "Lokales Menü generiert für"
 
-#: bin/sb2iso:215 bin/sb2iso:258 bin/sb2iso:210
-msgid ""
-"If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
-msgstr ""
-"Wenn Sie das System in den RAM geladen haben, verwenden Sie 'toram=full' in "
-"den Kernel-Parametern."
+#~ msgid "Generated localized help for"
+#~ msgstr "Lokalisierte Hilfe generiert für"
 
-#: bin/sb2iso:263 bin/sb2iso:307
-msgid "Copying GRUB boot files"
-msgstr "GRUB-Boot-Dateien werden kopiert"
-
-#: bin/sb2iso:25
-msgid "Force specific BIOS bootloader type (isolinux or grub)"
-msgstr "Spezifischen BIOS-Bootloader-Typ erzwingen (isolinux oder grub)"
-
-#: bin/sb2iso:26
-msgid "Note: EFI boot always uses GRUB regardless of this setting"
-msgstr ""
-"Hinweis: EFI-Start verwendet immer GRUB, unabhängig von dieser Einstellung"
-
-#: bin/sb2iso:33
-msgid "Bootloader Notes"
-msgstr "Bootloader-Hinweise"
-
-#: bin/sb2iso:34
-msgid ""
-"BIOS boot: Uses GRUB by default, can be forced to ISOLINUX/SYSLINUX with -b"
-msgstr ""
-"BIOS-Start: Verwendet standardmäßig GRUB, kann mit -b auf ISOLINUX/SYSLINUX "
-"erzwungen werden"
-
-#: bin/sb2iso:35
-msgid "EFI boot: Always uses GRUB (both 32-bit and 64-bit EFI support)"
-msgstr ""
-"EFI-Start: Verwendet immer GRUB (unterstützt sowohl 32-Bit- als auch 64-Bit-"
-"EFI)"
-
-#: bin/sb2iso:36
-msgid "Hybrid ISOs support both BIOS and EFI boot modes simultaneously"
-msgstr ""
-"Hybride ISOs unterstützen gleichzeitig sowohl BIOS- als auch EFI-Startmodi"
-
-#: bin/sb2iso:43
-msgid "Force ISOLINUX bootloader for BIOS (EFI still uses GRUB):"
-msgstr "ISOLINUX-Bootloader für BIOS erzwingen (EFI verwendet weiterhin GRUB):"
-
-#: bin/sb2iso:45
-msgid "Use default GRUB bootloader for both BIOS and EFI:"
-msgstr "Standard-GRUB-Bootloader für BIOS und EFI verwenden:"
-
-#: bin/sb2iso:148
-msgid "Note: This option only affects BIOS boot. EFI boot always uses GRUB."
-msgstr ""
-"Hinweis: Diese Option betrifft nur den BIOS-Start. EFI-Start verwendet immer "
-"GRUB."
-
-#: bin/sb2iso:216
-msgid "Note: EFI boot will still use GRUB regardless of this setting"
-msgstr ""
-"Hinweis: EFI-Start verwendet weiterhin GRUB, unabhängig von dieser "
-"Einstellung"
-
-#: bin/sb2iso:221
-msgid "Using default GRUB bootloader for BIOS boot"
-msgstr "Standard-GRUB-Bootloader für BIOS-Start wird verwendet"
-
-#: bin/sb2iso:224
-msgid "GRUB files not found, falling back to ISOLINUX for BIOS boot"
-msgstr "GRUB-Dateien nicht gefunden, wechsle zu ISOLINUX für BIOS-Start"
-
-#: bin/sb2iso:227
-msgid "Using GRUB bootloader (default)"
-msgstr "GRUB-Bootloader wird verwendet (Standard)"
-
-#: bin/sb2iso:254
-msgid ""
-"The selected BIOS bootloader files are missing. Try without --bootloader "
-"option for automatic detection."
-msgstr ""
-"Die ausgewählten BIOS-Bootloader-Dateien fehlen. Versuchen Sie es ohne die "
-"Option --bootloader für die automatische Erkennung."
-
-#: bin/sb2iso:255
-msgid ""
-"Remember: This option only affects BIOS boot, EFI boot always uses GRUB."
-msgstr ""
-"Denken Sie daran: Diese Option betrifft nur den BIOS-Start, EFI-Start "
-"verwendet immer GRUB."
-
-#: bin/sb2iso:35
-msgid "Create custom ISO with SYSLINUX (BIOS) and GRUB (EFI):"
-msgstr "Benutzerdefinierte ISO mit SYSLINUX (BIOS) und GRUB (EFI) erstellen:"
-
-#: bin/sb2iso:255
-msgid "Copying SYSLINUX boot files (isolinux.bin & isohdpfx.bin)"
-msgstr "Kopiere SYSLINUX-Boot-Dateien (isolinux.bin & isohdpfx.bin)"
+#~ msgid "Generated localized SYSLINUX help for"
+#~ msgstr "Lokalisierte SYSLINUX-Hilfe generiert für"

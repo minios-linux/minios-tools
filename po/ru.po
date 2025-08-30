@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.4.2\n"
 "Report-Msgid-Bugs-To: support@minios.dev\n"
-"POT-Creation-Date: 2025-08-17 15:21+0300\n"
+"POT-Creation-Date: 2025-08-30 15:34+0300\n"
 "PO-Revision-Date: 2025-08-11 09:37+0300\n"
 "Last-Translator: crims0n <crims0n@minios.dev>\n"
 "Language-Team: none\n"
@@ -18,108 +18,321 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: bin/apt2sb:10 bin/apt2sb:43 bin/dir2sb:11 bin/dir2sb:31 bin/sb:23 bin/sb:52
-#: bin/rmsbdir:9 bin/sb2iso:20 bin/sb2iso:38 bin/savechanges:14
-#: bin/savechanges:30 bin/chroot2sb:10 bin/chroot2sb:30 bin/script2sb:10
-#: bin/script2sb:32 bin/sb2iso:39 bin/sb2iso:21 bin/sb2iso:51 bin/sb2iso:41
+#: bin/rmsbdir:8
+msgid "Erase module directory created by sb2dir"
+msgstr "Удалить каталог модуля, созданный sb2dir"
+
+#: bin/rmsbdir:9 bin/apt2sb:20 bin/apt2sb:53 bin/script2sb:20 bin/script2sb:42
+#: bin/savechanges:14 bin/savechanges:30 bin/sb2iso:22 bin/sb2iso:51
+#: bin/dir2sb:11 bin/dir2sb:31 bin/sb:25 bin/sb:54 bin/chroot2sb:19
+#: bin/chroot2sb:39
 msgid "Usage"
 msgstr "Использование"
 
-#: bin/apt2sb:11
+#: bin/rmsbdir:9
+msgid "source_directory.sb"
+msgstr "исходный_каталог.sb"
+
+#: bin/rmsbdir:18 bin/sb2dir:35
+msgid "Directory does not exist:"
+msgstr "Каталог не существует:"
+
+#: bin/rmsbdir:25
+msgid "Module directory deleted:"
+msgstr "Каталог модуля удален:"
+
+#: bin/apt2sb:21
 msgid "Installs packages from repositories and packages them into a module."
 msgstr "Устанавливает пакеты из репозиториев и упаковывает их в модуль."
 
-#: bin/apt2sb:13 bin/sb:27
+#: bin/apt2sb:23 bin/sb:29
 msgid "Commands"
 msgstr "Команды"
 
-#: bin/apt2sb:14
+#: bin/apt2sb:24
 msgid "Install package(s)"
 msgstr "Установить пакет(ы)"
 
-#: bin/apt2sb:15
+#: bin/apt2sb:25
 msgid "Upgrade installed packages"
 msgstr "Обновить установленные пакеты"
 
-#: bin/apt2sb:17 bin/dir2sb:14 bin/sb2iso:23 bin/savechanges:17
-#: bin/chroot2sb:13 bin/script2sb:13 bin/sb2iso:24
+#: bin/apt2sb:27 bin/script2sb:23 bin/savechanges:17 bin/sb2iso:25
+#: bin/dir2sb:14 bin/chroot2sb:22
 msgid "Options"
 msgstr "Опции"
 
-#: bin/apt2sb:18
+#: bin/apt2sb:28
 msgid "Use NAME as the filename for the module instead of PACKAGE1"
 msgstr "Использовать ИМЯ как имя файла для модуля вместо ПАКЕТ1"
 
-#: bin/apt2sb:19 bin/chroot2sb:16 bin/script2sb:18
+#: bin/apt2sb:29 bin/script2sb:28 bin/chroot2sb:25
 msgid "Use LEVEL as the filter level"
 msgstr "Использовать УРОВЕНЬ в качестве уровня фильтрации"
 
-#: bin/apt2sb:20 bin/dir2sb:16 bin/savechanges:18 bin/chroot2sb:17
-#: bin/script2sb:15
+#: bin/apt2sb:30 bin/script2sb:25 bin/savechanges:18 bin/dir2sb:16
+#: bin/chroot2sb:26
 msgid "Compression type (zstd, gzip, lzo, xz). Default: zstd"
 msgstr "Тип сжатия (zstd, gzip, lzo, xz). По умолчанию: zstd"
 
-#: bin/apt2sb:21 bin/dir2sb:15 bin/savechanges:19 bin/chroot2sb:18
-#: bin/script2sb:14
+#: bin/apt2sb:31 bin/script2sb:24 bin/savechanges:19 bin/dir2sb:15
+#: bin/chroot2sb:27
 msgid "Bundle extension. Default: sb"
 msgstr "Расширение пакета. По умолчанию: sb"
 
-#: bin/apt2sb:22 bin/dir2sb:17 bin/sb:37 bin/sb2iso:26 bin/savechanges:20
-#: bin/chroot2sb:19 bin/script2sb:20 bin/sb2iso:27 bin/sb2iso:30
+#: bin/apt2sb:32 bin/script2sb:30 bin/savechanges:20 bin/sb2iso:31
+#: bin/dir2sb:17 bin/sb:39 bin/chroot2sb:28
 msgid "Display this help and exit"
 msgstr "Отобразить эту справку и выйти"
 
-#: bin/apt2sb:23 bin/dir2sb:18 bin/sb:38 bin/sb2iso:27 bin/savechanges:21
-#: bin/chroot2sb:20 bin/script2sb:21 bin/sb2iso:28 bin/sb2iso:31
+#: bin/apt2sb:33 bin/script2sb:31 bin/savechanges:21 bin/sb2iso:32
+#: bin/dir2sb:18 bin/sb:40 bin/chroot2sb:29
 msgid "Display version information and exit"
 msgstr "Отобразить информацию о версии и выйти"
 
-#: bin/apt2sb:25
+#: bin/apt2sb:35
 msgid "Apt Options (for install/upgrade command)"
 msgstr "Параметры Apt (для команды установки/обновления)"
 
-#: bin/apt2sb:26
+#: bin/apt2sb:36
 msgid "Automatic yes to prompts"
 msgstr "Автоматический ответ «да» на запросы"
 
-#: bin/apt2sb:27
+#: bin/apt2sb:37
 msgid "Allow downgrades of packages"
 msgstr "Разрешить понижение версий пакетов"
 
-#: bin/apt2sb:28
+#: bin/apt2sb:38
 msgid "Consider recommended packages as a dependency for installing"
 msgstr "Рассматривать рекомендованные пакеты как зависимость при установке"
 
-#: bin/apt2sb:29
+#: bin/apt2sb:39
 msgid "Consider suggested packages as a dependency for installing"
 msgstr "Рассматривать предлагаемые пакеты как зависимость при установке"
 
-#: bin/apt2sb:30
+#: bin/apt2sb:40
 msgid "Do not consider recommended packages as a dependency for installing"
 msgstr "Не рассматривать рекомендованные пакеты как зависимость при установке"
 
-#: bin/apt2sb:31
+#: bin/apt2sb:41
 msgid "Do not consider suggested packages as a dependency for installing"
 msgstr "Не рассматривать предлагаемые пакеты как зависимость при установке"
 
-#: bin/apt2sb:32
+#: bin/apt2sb:42
 msgid "Default release to install packages from"
 msgstr "Выпуск по умолчанию для установки пакетов"
 
-#: bin/apt2sb:34 bin/sb:40 bin/sb2iso:29 bin/chroot2sb:22 bin/script2sb:23
-#: bin/sb2iso:30 bin/sb2iso:38
+#: bin/apt2sb:44 bin/script2sb:33 bin/sb2iso:34 bin/sb:42 bin/chroot2sb:31
 msgid "Examples"
 msgstr "Примеры"
 
-#: bin/apt2sb:44 bin/dir2sb:32 bin/sb:54 bin/sb2iso:39 bin/savechanges:31
-#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52 bin/sb2iso:42
+#: bin/apt2sb:54 bin/script2sb:43 bin/savechanges:31 bin/sb2iso:52
+#: bin/dir2sb:32 bin/sb:56 bin/chroot2sb:40
 msgid "Try"
 msgstr "Попробуйте"
 
-#: bin/apt2sb:44 bin/dir2sb:32 bin/sb:54 bin/sb2iso:39 bin/savechanges:31
-#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52 bin/sb2iso:42
+#: bin/apt2sb:54 bin/script2sb:43 bin/savechanges:31 bin/sb2iso:52
+#: bin/dir2sb:32 bin/sb:56 bin/chroot2sb:40
 msgid "for more information."
 msgstr "для получения дополнительной информации."
+
+#: bin/script2sb:21 bin/chroot2sb:20
+msgid "Packages a module from changes made by an installation script"
+msgstr "Упаковывает модуль из изменений, внесенных установочным скриптом"
+
+#: bin/script2sb:26 bin/chroot2sb:23
+msgid "Copy contents of DIR to the root of the module"
+msgstr "Скопировать содержимое КАТАЛОГА в корень модуля"
+
+#: bin/script2sb:27 bin/chroot2sb:24
+msgid "Use NAME as the filename for the module"
+msgstr "Использовать ИМЯ как имя файла для модуля"
+
+#: bin/script2sb:29
+msgid "Use FILE as the installation script"
+msgstr "Использовать ФАЙЛ как установочный скрипт"
+
+#: bin/savechanges:15
+msgid "Saves all changed files in a compressed filesystem bundle."
+msgstr "Сохраняет все измененные файлы в сжатый пакет файловой системы."
+
+#: bin/savechanges:23
+msgid "If changes_directory is not specified,"
+msgstr "Если changes_directory не указан,"
+
+#: bin/savechanges:24
+msgid "/run/initramfs/memory/changes is used."
+msgstr "используется /run/initramfs/memory/changes."
+
+#: bin/sb2iso:23
+msgid "Generate MiniOS ISO image, adding specified modules."
+msgstr "Генерировать ISO-образ MiniOS, добавляя указанные модули."
+
+#: bin/sb2iso:26
+msgid "Exclude any existing path or file matching REGEX"
+msgstr "Исключить любой существующий путь или файл, соответствующий REGEX"
+
+#: bin/sb2iso:27
+msgid "Specify output ISO filename (default"
+msgstr "Укажите имя выходного ISO-файла (по умолчанию"
+
+#: bin/sb2iso:28
+msgid "Set menu type: multilang or language code"
+msgstr "Установить тип меню: multilang или код языка"
+
+#: bin/sb2iso:29
+msgid "  multilang: menu with language selection (default)"
+msgstr "  multilang: меню с выбором языка (по умолчанию)"
+
+#: bin/sb2iso:30
+msgid "  language: specific language (en_US, ru_RU, de_DE, etc.)"
+msgstr "  language: конкретный язык (en_US, ru_RU, de_DE и т.д.)"
+
+#: bin/sb2iso:35
+msgid "Create basic MiniOS ISO with current system:"
+msgstr "Создать базовый ISO MiniOS с текущей системой:"
+
+#: bin/sb2iso:37
+msgid "Create ISO with custom filename:"
+msgstr "Создать ISO с пользовательским именем файла:"
+
+#: bin/sb2iso:39
+msgid "Create ISO excluding specific modules:"
+msgstr "Создать ISO исключая определенные модули:"
+
+#: bin/sb2iso:41
+msgid "Create minimal text-mode ISO:"
+msgstr "Создать минимальный ISO в текстовом режиме:"
+
+#: bin/sb2iso:43
+msgid "Create ISO with additional modules:"
+msgstr "Создать ISO с дополнительными модулями:"
+
+#: bin/sb2iso:45
+msgid "Create Russian localized ISO:"
+msgstr "Создать русифицированный ISO:"
+
+#: bin/sb2iso:227
+msgid "grub.template.cfg template not found"
+msgstr "шаблон grub.template.cfg не найден"
+
+#: bin/sb2iso:411
+msgid "Cannot find MiniOS source directory with boot files"
+msgstr "Не удается найти исходный каталог MiniOS с загрузочными файлами"
+
+#: bin/sb2iso:417
+msgid "Detected bootloader type"
+msgstr "Обнаружен тип загрузчика"
+
+#: bin/sb2iso:452
+msgid "Unknown bootloader type"
+msgstr "Неизвестный тип загрузчика"
+
+#: bin/sb2iso:453
+msgid "Valid types: grub-only, syslinux-native, syslinux-grub"
+msgstr "Допустимые типы: grub-only, syslinux-native, syslinux-grub"
+
+#: bin/sb2iso:461
+msgid ""
+"If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
+msgstr ""
+"Если вы загрузили систему в RAM, используйте 'toram=full' в параметрах "
+"ядра.Если вы загрузили систему в RAM, используйте 'toram=full' в параметрах "
+"ядра."
+
+#: bin/sb2iso:484
+msgid "Using multilingual menu"
+msgstr "Используется многоязычное меню"
+
+#: bin/sb2iso:492
+msgid "Configuring localized menu for"
+msgstr "Настройка локализованного меню для"
+
+#: bin/sb2iso:497
+msgid "Generated localized GRUB menu for"
+msgstr "Создано локализованное меню GRUB для"
+
+#: bin/sb2iso:501
+msgid "Failed to generate localized GRUB config, falling back to English"
+msgstr ""
+"Не удалось создать локализованную конфигурацию GRUB, используется английский "
+"язык"
+
+#: bin/sb2iso:514
+msgid "Using localized SYSLINUX configuration for"
+msgstr "Используется локализованная конфигурация SYSLINUX для"
+
+#: bin/sb2iso:518
+msgid "Localized configuration not found for"
+msgstr "Локализованная конфигурация не найдена для"
+
+#: bin/sb2iso:518
+msgid "using English"
+msgstr "используется английский"
+
+#: bin/sb2iso:540
+msgid "Creating ISO work directory"
+msgstr "Создание рабочего каталога ISO"
+
+#: bin/sb2iso:544
+msgid "Copying boot files (GRUB BIOS only)"
+msgstr "Копирование загрузочных файлов (только GRUB BIOS)"
+
+#: bin/sb2iso:547
+msgid "Copying boot files (SYSLINUX native)"
+msgstr "Копирование загрузочных файлов (нативный SYSLINUX)"
+
+#: bin/sb2iso:550
+msgid "Copying boot files (SYSLINUX + GRUB)"
+msgstr "Копирование загрузочных файлов (SYSLINUX + GRUB)"
+
+#: bin/sb2iso:554
+msgid "Internal error: invalid bootloader type for boot files"
+msgstr "Внутренняя ошибка: недопустимый тип загрузчика для загрузочных файлов"
+
+#: bin/sb2iso:562
+msgid "Creating temporary persistence image"
+msgstr "Создание временного образа постоянства"
+
+#: bin/sb2iso:563
+msgid "Formatting persistence image"
+msgstr "Форматирование образа постоянства"
+
+#: bin/sb2iso:582
+msgid "Internal error: invalid bootloader type for ISO parameters"
+msgstr "Внутренняя ошибка: недопустимый тип загрузчика для параметров ISO"
+
+#: bin/sb2iso:587
+msgid "Generating ISO image"
+msgstr "Генерация ISO-образа"
+
+#: bin/sb2iso:612
+msgid "Cleaning up temporary files"
+msgstr "Очистка временных файлов"
+
+#: bin/sb2iso:622
+msgid "Failed to create ISO image"
+msgstr "Не удалось создать ISO-образ"
+
+#: bin/sb2dir:9
+msgid "Usage:"
+msgstr "Использование:"
+
+#: bin/sb2dir:10
+msgid "If the output_directory is specified, it must exist"
+msgstr "Если output_directory указан, он должен существовать"
+
+#: bin/sb2dir:11
+msgid "If the output_directory is not specified, the name source_file.sb"
+msgstr "Если output_directory не указан, используется имя source_file.sb"
+
+#: bin/sb2dir:12
+msgid "is used and the directory is overmounted with tmpfs"
+msgstr "и каталог монтируется поверх с помощью tmpfs"
+
+#: bin/sb2dir:17
+msgid "File does not exist:"
+msgstr "Файл не существует:"
 
 #: bin/dir2sb:12
 msgid "Converts a directory to a compressed .sb module"
@@ -148,258 +361,180 @@ msgid ""
 "is required."
 msgstr ""
 "Если ИСХОДНЫЙ_КАТАЛОГ не имеет расширения .sb и не является 'squashfs-root', "
-"то сам каталог включается в модуль, и ЦЕЛЕВОЙ_ФАЙЛ является обязательным."
+"то сам каталог включается в модуль, и ЦЕЛЕВОЙ_ФАЙЛ является "
+"обязательным.Если ИСХОДНЫЙ_КАТАЛОГ не имеет расширения .sb и не является "
+"'squashfs-root', то сам каталог включается в модуль, и ЦЕЛЕВОЙ_ФАЙЛ является "
+"обязательным."
 
 #: bin/dir2sb:26
 msgid ""
 "If TARGET_FILE is not specified, SOURCE_DIRECTORY is replaced by the new "
 "module file."
 msgstr ""
-"Если ЦЕЛЕВОЙ_ФАЙЛ не указан, ИСХОДНЫЙ_КАТАЛОГ заменяется новым файлом модуля."
+"Если ЦЕЛЕВОЙ_ФАЙЛ не указан, ИСХОДНЫЙ_КАТАЛОГ заменяется новым файлом "
+"модуля.Если ЦЕЛЕВОЙ_ФАЙЛ не указан, ИСХОДНЫЙ_КАТАЛОГ заменяется новым файлом "
+"модуля."
 
-#: bin/sb:24
+#: bin/sb:26
 msgid "Manage MiniOS bundles."
 msgstr "Управление пакетами MiniOS."
 
-#: bin/sb:25 bin/sb:53
+#: bin/sb:27 bin/sb:55
 msgid ""
 "To run some of the commands in this script, your Linux kernel must support "
 "AUFS."
 msgstr ""
 "Для выполнения некоторых команд в этом скрипте ваше ядро Linux должно "
-"поддерживать AUFS."
+"поддерживать AUFS.Для выполнения некоторых команд в этом скрипте ваше ядро "
+"Linux должно поддерживать AUFS."
 
-#: bin/sb:28
+#: bin/sb:30
 msgid "Activate a MiniOS bundle"
 msgstr "Активировать пакет MiniOS"
 
-#: bin/sb:29
+#: bin/sb:31
 msgid "Deactivate an active MiniOS bundle"
 msgstr "Деактивировать активный пакет MiniOS"
 
-#: bin/sb:30
+#: bin/sb:32
 msgid "List active MiniOS bundles"
 msgstr "Список активных пакетов MiniOS"
 
-#: bin/sb:31
+#: bin/sb:33
 msgid "Save changes made at runtime to the bundle"
 msgstr "Сохранить изменения, сделанные во время выполнения, в пакет"
 
-#: bin/sb:33 bin/sb:34
+#: bin/sb:35 bin/sb:36
 msgid "Remove an unpacked bundle directory"
 msgstr "Удалить распакованный каталог пакета"
 
-#: bin/sb:35
+#: bin/sb:37
 msgid "Convert an .sb bundle to directory or vice versa"
 msgstr "Преобразовать пакет .sb в каталог или наоборот"
 
-#: bin/rmsbdir:8
-msgid "Erase module directory created by sb2dir"
-msgstr "Удалить каталог модуля, созданный sb2dir"
+#~ msgid "Create MiniOS ISO without firefox.sb module:"
+#~ msgstr "Создать ISO MiniOS без модуля firefox.sb:"
 
-#: bin/rmsbdir:9
-msgid "source_directory.sb"
-msgstr "исходный_каталог.sb"
+#~ msgid "Create MiniOS text-mode core only:"
+#~ msgstr "Создать только ядро MiniOS в текстовом режиме:"
 
-#: bin/rmsbdir:18 bin/sb2dir:35
-msgid "Directory does not exist:"
-msgstr "Каталог не существует:"
+#~ msgid "Copying boot files (isolinux.bin & isohdpfx.bin)"
+#~ msgstr "Копирование загрузочных файлов (isolinux.bin и isohdpfx.bin)"
 
-#: bin/rmsbdir:25
-msgid "Module directory deleted:"
-msgstr "Каталог модуля удален:"
+#~ msgid "Increase verbosity level"
+#~ msgstr "Увеличить уровень подробности"
 
-#: bin/sb2iso:21 bin/sb2iso:22
-msgid "Generate MiniOS ISO image, adding specified modules."
-msgstr "Генерировать ISO-образ MiniOS, добавляя указанные модули."
+#~ msgid "Copying GRUB boot files"
+#~ msgstr "Копирование файлов загрузки GRUB"
 
-#: bin/sb2iso:24 bin/sb2iso:27
-msgid "Exclude any existing path or file matching REGEX"
-msgstr "Исключить любой существующий путь или файл, соответствующий REGEX"
+#~ msgid "Force specific BIOS bootloader type (isolinux or grub)"
+#~ msgstr "Принудительно выбрать тип загрузчика BIOS (isolinux или grub)"
 
-#: bin/sb2iso:25 bin/sb2iso:28
-msgid "Specify output ISO filename (default"
-msgstr "Укажите имя выходного ISO-файла (по умолчанию"
+#~ msgid "Note: EFI boot always uses GRUB regardless of this setting"
+#~ msgstr ""
+#~ "Примечание: загрузка EFI всегда использует GRUB независимо от этого "
+#~ "параметраПримечание: загрузка EFI всегда использует GRUB независимо от "
+#~ "этого параметра"
 
-#: bin/sb2iso:30 bin/sb2iso:31 bin/sb2iso:39
-msgid "Create MiniOS ISO without firefox.sb module:"
-msgstr "Создать ISO MiniOS без модуля firefox.sb:"
+#~ msgid "Bootloader Notes"
+#~ msgstr "Примечания к загрузчику"
 
-#: bin/sb2iso:32 bin/sb2iso:33 bin/sb2iso:41
-msgid "Create MiniOS text-mode core only:"
-msgstr "Создать только ядро MiniOS в текстовом режиме:"
+#~ msgid ""
+#~ "BIOS boot: Uses GRUB by default, can be forced to ISOLINUX/SYSLINUX with "
+#~ "-b"
+#~ msgstr ""
+#~ "Загрузка BIOS: по умолчанию используется GRUB, можно принудительно "
+#~ "выбрать ISOLINUX/SYSLINUX с помощью -bЗагрузка BIOS: по умолчанию "
+#~ "используется GRUB, можно принудительно выбрать ISOLINUX/SYSLINUX с "
+#~ "помощью -b"
 
-#: bin/sb2iso:223 bin/sb2iso:259 bin/sb2iso:303 bin/sb2iso:254
-msgid "Creating ISO work directory"
-msgstr "Создание рабочего каталога ISO"
+#~ msgid "EFI boot: Always uses GRUB (both 32-bit and 64-bit EFI support)"
+#~ msgstr ""
+#~ "Загрузка EFI: всегда используется GRUB (поддержка как 32-битного, так и "
+#~ "64-битного EFI)Загрузка EFI: всегда используется GRUB (поддержка как 32-"
+#~ "битного, так и 64-битного EFI)"
 
-#: bin/sb2iso:224 bin/sb2iso:261 bin/sb2iso:305
-msgid "Copying boot files (isolinux.bin & isohdpfx.bin)"
-msgstr "Копирование загрузочных файлов (isolinux.bin и isohdpfx.bin)"
+#~ msgid "Hybrid ISOs support both BIOS and EFI boot modes simultaneously"
+#~ msgstr ""
+#~ "Гибридные ISO поддерживают одновременную загрузку как в режиме BIOS, так "
+#~ "и EFIГибридные ISO поддерживают одновременную загрузку как в режиме BIOS, "
+#~ "так и EFI"
 
-#: bin/sb2iso:229 bin/sb2iso:269 bin/sb2iso:313 bin/sb2iso:260
-msgid "Creating temporary persistence image"
-msgstr "Создание временного образа постоянства"
+#~ msgid "Force ISOLINUX bootloader for BIOS (EFI still uses GRUB):"
+#~ msgstr ""
+#~ "Принудительно использовать загрузчик ISOLINUX для BIOS (EFI всё равно "
+#~ "использует GRUB):Принудительно использовать загрузчик ISOLINUX для BIOS "
+#~ "(EFI всё равно использует GRUB):"
 
-#: bin/sb2iso:230 bin/sb2iso:270 bin/sb2iso:314 bin/sb2iso:261
-msgid "Formatting persistence image"
-msgstr "Форматирование образа постоянства"
+#~ msgid "Use default GRUB bootloader for both BIOS and EFI:"
+#~ msgstr "Использовать загрузчик GRUB по умолчанию для BIOS и EFI:"
 
-#: bin/sb2iso:231 bin/sb2iso:301 bin/sb2iso:345 bin/sb2iso:286
-msgid "Generating ISO image"
-msgstr "Генерация ISO-образа"
+#~ msgid "Note: This option only affects BIOS boot. EFI boot always uses GRUB."
+#~ msgstr ""
+#~ "Примечание: этот параметр влияет только на загрузку BIOS. Загрузка EFI "
+#~ "всегда использует GRUB.Примечание: этот параметр влияет только на "
+#~ "загрузку BIOS. Загрузка EFI всегда использует GRUB."
 
-#: bin/sb2iso:257 bin/sb2iso:310 bin/sb2iso:354 bin/sb2iso:295
-msgid "Cleaning up temporary files"
-msgstr "Очистка временных файлов"
+#~ msgid "Note: EFI boot will still use GRUB regardless of this setting"
+#~ msgstr ""
+#~ "Примечание: загрузка EFI всё равно будет использовать GRUB независимо от "
+#~ "этого параметраПримечание: загрузка EFI всё равно будет использовать GRUB "
+#~ "независимо от этого параметра"
 
-#: bin/sb2dir:9
-msgid "Usage:"
-msgstr "Использование:"
+#~ msgid "Using default GRUB bootloader for BIOS boot"
+#~ msgstr "Используется загрузчик GRUB по умолчанию для загрузки BIOS"
 
-#: bin/sb2dir:10
-msgid "If the output_directory is specified, it must exist"
-msgstr "Если output_directory указан, он должен существовать"
+#~ msgid "GRUB files not found, falling back to ISOLINUX for BIOS boot"
+#~ msgstr "Файлы GRUB не найдены, используется ISOLINUX для загрузки BIOS"
 
-#: bin/sb2dir:11
-msgid "If the output_directory is not specified, the name source_file.sb"
-msgstr "Если output_directory не указан, используется имя source_file.sb"
+#~ msgid "Using GRUB bootloader (default)"
+#~ msgstr "Используется загрузчик GRUB (по умолчанию)"
 
-#: bin/sb2dir:12
-msgid "is used and the directory is overmounted with tmpfs"
-msgstr "и каталог монтируется поверх с помощью tmpfs"
+#~ msgid ""
+#~ "The selected BIOS bootloader files are missing. Try without --bootloader "
+#~ "option for automatic detection."
+#~ msgstr ""
+#~ "Выбранные файлы загрузчика BIOS отсутствуют. Попробуйте без параметра --"
+#~ "bootloader для автоматического определения.Выбранные файлы загрузчика "
+#~ "BIOS отсутствуют. Попробуйте без параметра --bootloader для "
+#~ "автоматического определения."
 
-#: bin/sb2dir:17
-msgid "File does not exist:"
-msgstr "Файл не существует:"
+#~ msgid ""
+#~ "Remember: This option only affects BIOS boot, EFI boot always uses GRUB."
+#~ msgstr ""
+#~ "Помните: этот параметр влияет только на загрузку BIOS, загрузка EFI "
+#~ "всегда использует GRUB.Помните: этот параметр влияет только на загрузку "
+#~ "BIOS, загрузка EFI всегда использует GRUB."
 
-#: bin/savechanges:15
-msgid "Saves all changed files in a compressed filesystem bundle."
-msgstr "Сохраняет все измененные файлы в сжатый пакет файловой системы."
+#~ msgid "Create custom ISO with SYSLINUX (BIOS) and GRUB (EFI):"
+#~ msgstr "Создать пользовательский ISO с SYSLINUX (BIOS) и GRUB (EFI):"
 
-#: bin/savechanges:23
-msgid "If changes_directory is not specified,"
-msgstr "Если changes_directory не указан,"
+#~ msgid "Copying SYSLINUX boot files (isolinux.bin & isohdpfx.bin)"
+#~ msgstr ""
+#~ "Копирование загрузочных файлов SYSLINUX (isolinux.bin и isohdpfx.bin)"
 
-#: bin/savechanges:24
-msgid "/run/initramfs/memory/changes is used."
-msgstr "используется /run/initramfs/memory/changes."
+#~ msgid "Set GRUB menu type: multilang or language code"
+#~ msgstr "Установить тип меню GRUB: multilang или код языка"
 
-#: bin/chroot2sb:11 bin/script2sb:11
-msgid "Packages a module from changes made by an installation script"
-msgstr "Упаковывает модуль из изменений, внесенных установочным скриптом"
+#~ msgid "  Note: bootloader type is automatically detected"
+#~ msgstr "  Примечание: тип загрузчика определяется автоматически"
 
-#: bin/chroot2sb:14 bin/script2sb:16
-msgid "Copy contents of DIR to the root of the module"
-msgstr "Скопировать содержимое КАТАЛОГА в корень модуля"
+#~ msgid "Failed to generate localized config, falling back to English"
+#~ msgstr ""
+#~ "Не удалось создать локализованную конфигурацию, используется английский "
+#~ "язык"
 
-#: bin/chroot2sb:15 bin/script2sb:17
-msgid "Use NAME as the filename for the module"
-msgstr "Использовать ИМЯ как имя файла для модуля"
+#~ msgid "No SYSLINUX help files found"
+#~ msgstr "Файлы справки SYSLINUX не найдены"
 
-#: bin/script2sb:19
-msgid "Use FILE as the installation script"
-msgstr "Использовать ФАЙЛ как установочный скрипт"
+#~ msgid "Generated help file for"
+#~ msgstr "Создан файл справки для"
 
-#: bin/sb2iso:26 bin/sb2iso:29
-msgid "Increase verbosity level"
-msgstr "Увеличить уровень подробности"
+#~ msgid "Generated localized menu for"
+#~ msgstr "Создано локализованное меню для"
 
-#: bin/sb2iso:215 bin/sb2iso:258 bin/sb2iso:210
-msgid ""
-"If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
-msgstr ""
-"Если вы загрузили систему в RAM, используйте 'toram=full' в параметрах ядра."
+#~ msgid "Generated localized help for"
+#~ msgstr "Создана локализованная справка для"
 
-#: bin/sb2iso:263 bin/sb2iso:307
-msgid "Copying GRUB boot files"
-msgstr "Копирование файлов загрузки GRUB"
-
-#: bin/sb2iso:25
-msgid "Force specific BIOS bootloader type (isolinux or grub)"
-msgstr "Принудительно выбрать тип загрузчика BIOS (isolinux или grub)"
-
-#: bin/sb2iso:26
-msgid "Note: EFI boot always uses GRUB regardless of this setting"
-msgstr ""
-"Примечание: загрузка EFI всегда использует GRUB независимо от этого параметра"
-
-#: bin/sb2iso:33
-msgid "Bootloader Notes"
-msgstr "Примечания к загрузчику"
-
-#: bin/sb2iso:34
-msgid ""
-"BIOS boot: Uses GRUB by default, can be forced to ISOLINUX/SYSLINUX with -b"
-msgstr ""
-"Загрузка BIOS: по умолчанию используется GRUB, можно принудительно выбрать "
-"ISOLINUX/SYSLINUX с помощью -b"
-
-#: bin/sb2iso:35
-msgid "EFI boot: Always uses GRUB (both 32-bit and 64-bit EFI support)"
-msgstr ""
-"Загрузка EFI: всегда используется GRUB (поддержка как 32-битного, так и 64-"
-"битного EFI)"
-
-#: bin/sb2iso:36
-msgid "Hybrid ISOs support both BIOS and EFI boot modes simultaneously"
-msgstr ""
-"Гибридные ISO поддерживают одновременную загрузку как в режиме BIOS, так и "
-"EFI"
-
-#: bin/sb2iso:43
-msgid "Force ISOLINUX bootloader for BIOS (EFI still uses GRUB):"
-msgstr ""
-"Принудительно использовать загрузчик ISOLINUX для BIOS (EFI всё равно "
-"использует GRUB):"
-
-#: bin/sb2iso:45
-msgid "Use default GRUB bootloader for both BIOS and EFI:"
-msgstr "Использовать загрузчик GRUB по умолчанию для BIOS и EFI:"
-
-#: bin/sb2iso:148
-msgid "Note: This option only affects BIOS boot. EFI boot always uses GRUB."
-msgstr ""
-"Примечание: этот параметр влияет только на загрузку BIOS. Загрузка EFI "
-"всегда использует GRUB."
-
-#: bin/sb2iso:216
-msgid "Note: EFI boot will still use GRUB regardless of this setting"
-msgstr ""
-"Примечание: загрузка EFI всё равно будет использовать GRUB независимо от "
-"этого параметра"
-
-#: bin/sb2iso:221
-msgid "Using default GRUB bootloader for BIOS boot"
-msgstr "Используется загрузчик GRUB по умолчанию для загрузки BIOS"
-
-#: bin/sb2iso:224
-msgid "GRUB files not found, falling back to ISOLINUX for BIOS boot"
-msgstr "Файлы GRUB не найдены, используется ISOLINUX для загрузки BIOS"
-
-#: bin/sb2iso:227
-msgid "Using GRUB bootloader (default)"
-msgstr "Используется загрузчик GRUB (по умолчанию)"
-
-#: bin/sb2iso:254
-msgid ""
-"The selected BIOS bootloader files are missing. Try without --bootloader "
-"option for automatic detection."
-msgstr ""
-"Выбранные файлы загрузчика BIOS отсутствуют. Попробуйте без параметра --"
-"bootloader для автоматического определения."
-
-#: bin/sb2iso:255
-msgid ""
-"Remember: This option only affects BIOS boot, EFI boot always uses GRUB."
-msgstr ""
-"Помните: этот параметр влияет только на загрузку BIOS, загрузка EFI всегда "
-"использует GRUB."
-
-#: bin/sb2iso:35
-msgid "Create custom ISO with SYSLINUX (BIOS) and GRUB (EFI):"
-msgstr "Создать пользовательский ISO с SYSLINUX (BIOS) и GRUB (EFI):"
-
-#: bin/sb2iso:255
-msgid "Copying SYSLINUX boot files (isolinux.bin & isohdpfx.bin)"
-msgstr "Копирование загрузочных файлов SYSLINUX (isolinux.bin и isohdpfx.bin)"
+#~ msgid "Generated localized SYSLINUX help for"
+#~ msgstr "Создана локализованная справка SYSLINUX для"

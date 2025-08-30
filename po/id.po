@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.4.2\n"
 "Report-Msgid-Bugs-To: support@minios.dev\n"
-"POT-Creation-Date: 2025-08-17 15:21+0300\n"
+"POT-Creation-Date: 2025-08-30 15:34+0300\n"
 "PO-Revision-Date: 2025-08-11 09:28+0300\n"
 "Last-Translator: crims0n <crims0n@minios.dev>\n"
 "Language-Team: none\n"
@@ -16,112 +16,323 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: bin/apt2sb:10 bin/apt2sb:43 bin/dir2sb:11 bin/dir2sb:31 bin/sb:23 bin/sb:52
-#: bin/rmsbdir:9 bin/sb2iso:20 bin/sb2iso:38 bin/savechanges:14
-#: bin/savechanges:30 bin/chroot2sb:10 bin/chroot2sb:30 bin/script2sb:10
-#: bin/script2sb:32 bin/sb2iso:39 bin/sb2iso:21 bin/sb2iso:51 bin/sb2iso:41
+#: bin/rmsbdir:8
+msgid "Erase module directory created by sb2dir"
+msgstr "Hapus direktori modul yang dibuat oleh sb2dir"
+
+#: bin/rmsbdir:9 bin/apt2sb:20 bin/apt2sb:53 bin/script2sb:20 bin/script2sb:42
+#: bin/savechanges:14 bin/savechanges:30 bin/sb2iso:22 bin/sb2iso:51
+#: bin/dir2sb:11 bin/dir2sb:31 bin/sb:25 bin/sb:54 bin/chroot2sb:19
+#: bin/chroot2sb:39
 msgid "Usage"
 msgstr "Penggunaan"
 
-#: bin/apt2sb:11
+#: bin/rmsbdir:9
+msgid "source_directory.sb"
+msgstr "direktori_sumber.sb"
+
+#: bin/rmsbdir:18 bin/sb2dir:35
+msgid "Directory does not exist:"
+msgstr "Direktori tidak ada:"
+
+#: bin/rmsbdir:25
+msgid "Module directory deleted:"
+msgstr "Direktori modul dihapus:"
+
+#: bin/apt2sb:21
 msgid "Installs packages from repositories and packages them into a module."
 msgstr "Menginstal paket dari repositori dan mengemasnya ke dalam modul."
 
-#: bin/apt2sb:13 bin/sb:27
+#: bin/apt2sb:23 bin/sb:29
 msgid "Commands"
 msgstr "Perintah"
 
-#: bin/apt2sb:14
+#: bin/apt2sb:24
 msgid "Install package(s)"
 msgstr "Instal paket"
 
-#: bin/apt2sb:15
+#: bin/apt2sb:25
 msgid "Upgrade installed packages"
 msgstr "Tingkatkan paket yang terinstal"
 
-#: bin/apt2sb:17 bin/dir2sb:14 bin/sb2iso:23 bin/savechanges:17
-#: bin/chroot2sb:13 bin/script2sb:13 bin/sb2iso:24
+#: bin/apt2sb:27 bin/script2sb:23 bin/savechanges:17 bin/sb2iso:25
+#: bin/dir2sb:14 bin/chroot2sb:22
 msgid "Options"
 msgstr "Pilihan"
 
-#: bin/apt2sb:18
+#: bin/apt2sb:28
 msgid "Use NAME as the filename for the module instead of PACKAGE1"
 msgstr "Gunakan NAMA sebagai nama file untuk modul, bukan PAKET1"
 
-#: bin/apt2sb:19 bin/chroot2sb:16 bin/script2sb:18
+#: bin/apt2sb:29 bin/script2sb:28 bin/chroot2sb:25
 msgid "Use LEVEL as the filter level"
 msgstr "Gunakan LEVEL sebagai tingkat filter"
 
-#: bin/apt2sb:20 bin/dir2sb:16 bin/savechanges:18 bin/chroot2sb:17
-#: bin/script2sb:15
+#: bin/apt2sb:30 bin/script2sb:25 bin/savechanges:18 bin/dir2sb:16
+#: bin/chroot2sb:26
 msgid "Compression type (zstd, gzip, lzo, xz). Default: zstd"
 msgstr "Jenis kompresi (zstd, gzip, lzo, xz). Default: zstd"
 
-#: bin/apt2sb:21 bin/dir2sb:15 bin/savechanges:19 bin/chroot2sb:18
-#: bin/script2sb:14
+#: bin/apt2sb:31 bin/script2sb:24 bin/savechanges:19 bin/dir2sb:15
+#: bin/chroot2sb:27
 msgid "Bundle extension. Default: sb"
 msgstr "Ekstensi bundel. Default: sb"
 
-#: bin/apt2sb:22 bin/dir2sb:17 bin/sb:37 bin/sb2iso:26 bin/savechanges:20
-#: bin/chroot2sb:19 bin/script2sb:20 bin/sb2iso:27 bin/sb2iso:30
+#: bin/apt2sb:32 bin/script2sb:30 bin/savechanges:20 bin/sb2iso:31
+#: bin/dir2sb:17 bin/sb:39 bin/chroot2sb:28
 msgid "Display this help and exit"
 msgstr "Tampilkan bantuan ini dan keluar"
 
-#: bin/apt2sb:23 bin/dir2sb:18 bin/sb:38 bin/sb2iso:27 bin/savechanges:21
-#: bin/chroot2sb:20 bin/script2sb:21 bin/sb2iso:28 bin/sb2iso:31
+#: bin/apt2sb:33 bin/script2sb:31 bin/savechanges:21 bin/sb2iso:32
+#: bin/dir2sb:18 bin/sb:40 bin/chroot2sb:29
 msgid "Display version information and exit"
 msgstr "Tampilkan informasi versi dan keluar"
 
-#: bin/apt2sb:25
+#: bin/apt2sb:35
 msgid "Apt Options (for install/upgrade command)"
 msgstr "Opsi Apt (untuk perintah instal/tingkatkan)"
 
-#: bin/apt2sb:26
+#: bin/apt2sb:36
 msgid "Automatic yes to prompts"
 msgstr "Otomatis 'ya' untuk prompt"
 
-#: bin/apt2sb:27
+#: bin/apt2sb:37
 msgid "Allow downgrades of packages"
 msgstr "Izinkan penurunan versi paket"
 
-#: bin/apt2sb:28
+#: bin/apt2sb:38
 msgid "Consider recommended packages as a dependency for installing"
 msgstr ""
 "Pertimbangkan paket yang direkomendasikan sebagai dependensi untuk instalasi"
 
-#: bin/apt2sb:29
+#: bin/apt2sb:39
 msgid "Consider suggested packages as a dependency for installing"
 msgstr "Pertimbangkan paket yang disarankan sebagai dependensi untuk instalasi"
 
-#: bin/apt2sb:30
+#: bin/apt2sb:40
 msgid "Do not consider recommended packages as a dependency for installing"
 msgstr ""
 "Jangan pertimbangkan paket yang direkomendasikan sebagai dependensi untuk "
 "instalasi"
 
-#: bin/apt2sb:31
+#: bin/apt2sb:41
 msgid "Do not consider suggested packages as a dependency for installing"
 msgstr ""
 "Jangan pertimbangkan paket yang disarankan sebagai dependensi untuk instalasi"
 
-#: bin/apt2sb:32
+#: bin/apt2sb:42
 msgid "Default release to install packages from"
 msgstr "Rilis default untuk menginstal paket dari"
 
-#: bin/apt2sb:34 bin/sb:40 bin/sb2iso:29 bin/chroot2sb:22 bin/script2sb:23
-#: bin/sb2iso:30 bin/sb2iso:38
+#: bin/apt2sb:44 bin/script2sb:33 bin/sb2iso:34 bin/sb:42 bin/chroot2sb:31
 msgid "Examples"
 msgstr "Contoh"
 
-#: bin/apt2sb:44 bin/dir2sb:32 bin/sb:54 bin/sb2iso:39 bin/savechanges:31
-#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52 bin/sb2iso:42
+#: bin/apt2sb:54 bin/script2sb:43 bin/savechanges:31 bin/sb2iso:52
+#: bin/dir2sb:32 bin/sb:56 bin/chroot2sb:40
 msgid "Try"
 msgstr "Coba"
 
-#: bin/apt2sb:44 bin/dir2sb:32 bin/sb:54 bin/sb2iso:39 bin/savechanges:31
-#: bin/chroot2sb:31 bin/script2sb:33 bin/sb2iso:40 bin/sb2iso:52 bin/sb2iso:42
+#: bin/apt2sb:54 bin/script2sb:43 bin/savechanges:31 bin/sb2iso:52
+#: bin/dir2sb:32 bin/sb:56 bin/chroot2sb:40
 msgid "for more information."
 msgstr "untuk informasi lebih lanjut."
+
+#: bin/script2sb:21 bin/chroot2sb:20
+msgid "Packages a module from changes made by an installation script"
+msgstr "Mengemas modul dari perubahan yang dibuat oleh skrip instalasi"
+
+#: bin/script2sb:26 bin/chroot2sb:23
+msgid "Copy contents of DIR to the root of the module"
+msgstr "Salin isi DIR ke root modul"
+
+#: bin/script2sb:27 bin/chroot2sb:24
+msgid "Use NAME as the filename for the module"
+msgstr "Gunakan NAMA sebagai nama file untuk modul"
+
+#: bin/script2sb:29
+msgid "Use FILE as the installation script"
+msgstr "Gunakan FILE sebagai skrip instalasi"
+
+#: bin/savechanges:15
+msgid "Saves all changed files in a compressed filesystem bundle."
+msgstr ""
+"Menyimpan semua file yang diubah dalam bundel sistem berkas terkompresi."
+
+#: bin/savechanges:23
+msgid "If changes_directory is not specified,"
+msgstr "Jika direktori_perubahan tidak ditentukan,"
+
+#: bin/savechanges:24
+msgid "/run/initramfs/memory/changes is used."
+msgstr "/run/initramfs/memory/changes digunakan."
+
+#: bin/sb2iso:23
+msgid "Generate MiniOS ISO image, adding specified modules."
+msgstr "Hasilkan citra ISO MiniOS, tambahkan modul yang ditentukan."
+
+#: bin/sb2iso:26
+msgid "Exclude any existing path or file matching REGEX"
+msgstr "Kecualikan jalur atau file yang ada yang cocok dengan REGEX"
+
+#: bin/sb2iso:27
+msgid "Specify output ISO filename (default"
+msgstr "Tentukan nama file ISO keluaran (default"
+
+#: bin/sb2iso:28
+msgid "Set menu type: multilang or language code"
+msgstr "Atur tipe menu: multibahasa atau kode bahasa"
+
+#: bin/sb2iso:29
+msgid "  multilang: menu with language selection (default)"
+msgstr "  multibahasa: menu dengan pilihan bahasa (default)"
+
+#: bin/sb2iso:30
+msgid "  language: specific language (en_US, ru_RU, de_DE, etc.)"
+msgstr "  bahasa: bahasa spesifik (en_US, ru_RU, de_DE, dll.)"
+
+#: bin/sb2iso:35
+msgid "Create basic MiniOS ISO with current system:"
+msgstr "Buat ISO MiniOS dasar dengan sistem saat ini:"
+
+#: bin/sb2iso:37
+msgid "Create ISO with custom filename:"
+msgstr "Buat ISO dengan nama file khusus:"
+
+#: bin/sb2iso:39
+msgid "Create ISO excluding specific modules:"
+msgstr "Buat ISO dengan mengecualikan modul tertentu:"
+
+#: bin/sb2iso:41
+msgid "Create minimal text-mode ISO:"
+msgstr "Buat ISO mode teks minimal:"
+
+#: bin/sb2iso:43
+msgid "Create ISO with additional modules:"
+msgstr "Buat ISO dengan modul tambahan:"
+
+#: bin/sb2iso:45
+msgid "Create Russian localized ISO:"
+msgstr "Buat ISO dengan lokal Rusia:"
+
+#: bin/sb2iso:227
+msgid "grub.template.cfg template not found"
+msgstr "Template grub.template.cfg tidak ditemukan"
+
+#: bin/sb2iso:411
+msgid "Cannot find MiniOS source directory with boot files"
+msgstr "Tidak dapat menemukan direktori sumber MiniOS dengan file boot"
+
+#: bin/sb2iso:417
+msgid "Detected bootloader type"
+msgstr "Tipe bootloader terdeteksi"
+
+#: bin/sb2iso:452
+msgid "Unknown bootloader type"
+msgstr "Tipe bootloader tidak dikenal"
+
+#: bin/sb2iso:453
+msgid "Valid types: grub-only, syslinux-native, syslinux-grub"
+msgstr "Tipe valid: grub-only, syslinux-native, syslinux-grub"
+
+#: bin/sb2iso:461
+msgid ""
+"If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
+msgstr ""
+"Jika Anda memuat sistem ke dalam RAM, gunakan 'toram=full' dalam parameter "
+"kernel."
+
+#: bin/sb2iso:484
+msgid "Using multilingual menu"
+msgstr "Menggunakan menu multibahasa"
+
+#: bin/sb2iso:492
+msgid "Configuring localized menu for"
+msgstr "Mengonfigurasi menu terlokalisasi untuk"
+
+#: bin/sb2iso:497
+msgid "Generated localized GRUB menu for"
+msgstr "Menu GRUB terlokalisasi dibuat untuk"
+
+#: bin/sb2iso:501
+msgid "Failed to generate localized GRUB config, falling back to English"
+msgstr "Gagal membuat konfigurasi GRUB lokal, kembali ke bahasa Inggris"
+
+#: bin/sb2iso:514
+msgid "Using localized SYSLINUX configuration for"
+msgstr "Menggunakan konfigurasi SYSLINUX terlokalisasi untuk"
+
+#: bin/sb2iso:518
+msgid "Localized configuration not found for"
+msgstr "Konfigurasi lokal tidak ditemukan untuk"
+
+#: bin/sb2iso:518
+msgid "using English"
+msgstr "menggunakan bahasa Inggris"
+
+#: bin/sb2iso:540
+msgid "Creating ISO work directory"
+msgstr "Membuat direktori kerja ISO"
+
+#: bin/sb2iso:544
+msgid "Copying boot files (GRUB BIOS only)"
+msgstr "Menyalin file boot (hanya GRUB BIOS)"
+
+#: bin/sb2iso:547
+msgid "Copying boot files (SYSLINUX native)"
+msgstr "Menyalin file boot (SYSLINUX native)"
+
+#: bin/sb2iso:550
+msgid "Copying boot files (SYSLINUX + GRUB)"
+msgstr "Menyalin file boot (SYSLINUX + GRUB)"
+
+#: bin/sb2iso:554
+msgid "Internal error: invalid bootloader type for boot files"
+msgstr "Kesalahan internal: tipe bootloader tidak valid untuk file boot"
+
+#: bin/sb2iso:562
+msgid "Creating temporary persistence image"
+msgstr "Membuat citra persistensi sementara"
+
+#: bin/sb2iso:563
+msgid "Formatting persistence image"
+msgstr "Memformat citra persistensi"
+
+#: bin/sb2iso:582
+msgid "Internal error: invalid bootloader type for ISO parameters"
+msgstr "Kesalahan internal: tipe bootloader tidak valid untuk parameter ISO"
+
+#: bin/sb2iso:587
+msgid "Generating ISO image"
+msgstr "Membuat citra ISO"
+
+#: bin/sb2iso:612
+msgid "Cleaning up temporary files"
+msgstr "Membersihkan file sementara"
+
+#: bin/sb2iso:622
+msgid "Failed to create ISO image"
+msgstr "Gagal membuat citra ISO"
+
+#: bin/sb2dir:9
+msgid "Usage:"
+msgstr "Penggunaan:"
+
+#: bin/sb2dir:10
+msgid "If the output_directory is specified, it must exist"
+msgstr "Jika direktori_keluaran ditentukan, direktori tersebut harus ada"
+
+#: bin/sb2dir:11
+msgid "If the output_directory is not specified, the name source_file.sb"
+msgstr "Jika direktori_keluaran tidak ditentukan, nama file_sumber.sb"
+
+#: bin/sb2dir:12
+msgid "is used and the directory is overmounted with tmpfs"
+msgstr "digunakan dan direktori ditumpang-mount dengan tmpfs"
+
+#: bin/sb2dir:17
+msgid "File does not exist:"
+msgstr "File tidak ada:"
 
 #: bin/dir2sb:12
 msgid "Converts a directory to a compressed .sb module"
@@ -161,11 +372,11 @@ msgstr ""
 "Jika TARGET_FILE tidak ditentukan, SOURCE_DIRECTORY akan diganti dengan file "
 "modul baru."
 
-#: bin/sb:24
+#: bin/sb:26
 msgid "Manage MiniOS bundles."
 msgstr "Kelola bundel MiniOS."
 
-#: bin/sb:25 bin/sb:53
+#: bin/sb:27 bin/sb:55
 msgid ""
 "To run some of the commands in this script, your Linux kernel must support "
 "AUFS."
@@ -173,232 +384,132 @@ msgstr ""
 "Untuk menjalankan beberapa perintah dalam skrip ini, kernel Linux Anda harus "
 "mendukung AUFS."
 
-#: bin/sb:28
+#: bin/sb:30
 msgid "Activate a MiniOS bundle"
 msgstr "Aktifkan bundel MiniOS"
 
-#: bin/sb:29
+#: bin/sb:31
 msgid "Deactivate an active MiniOS bundle"
 msgstr "Nonaktifkan bundel MiniOS yang aktif"
 
-#: bin/sb:30
+#: bin/sb:32
 msgid "List active MiniOS bundles"
 msgstr "Daftar bundel MiniOS yang aktif"
 
-#: bin/sb:31
+#: bin/sb:33
 msgid "Save changes made at runtime to the bundle"
 msgstr "Simpan perubahan yang dibuat saat runtime ke bundel"
 
-#: bin/sb:33 bin/sb:34
+#: bin/sb:35 bin/sb:36
 msgid "Remove an unpacked bundle directory"
 msgstr "Hapus direktori bundel yang belum dibongkar"
 
-#: bin/sb:35
+#: bin/sb:37
 msgid "Convert an .sb bundle to directory or vice versa"
 msgstr "Konversi bundel .sb ke direktori atau sebaliknya"
 
-#: bin/rmsbdir:8
-msgid "Erase module directory created by sb2dir"
-msgstr "Hapus direktori modul yang dibuat oleh sb2dir"
+#~ msgid "Create MiniOS ISO without firefox.sb module:"
+#~ msgstr "Buat ISO MiniOS tanpa modul firefox.sb:"
 
-#: bin/rmsbdir:9
-msgid "source_directory.sb"
-msgstr "direktori_sumber.sb"
+#~ msgid "Create MiniOS text-mode core only:"
+#~ msgstr "Buat inti mode teks MiniOS saja:"
 
-#: bin/rmsbdir:18 bin/sb2dir:35
-msgid "Directory does not exist:"
-msgstr "Direktori tidak ada:"
+#~ msgid "Copying boot files (isolinux.bin & isohdpfx.bin)"
+#~ msgstr "Menyalin file boot (isolinux.bin & isohdpfx.bin)"
 
-#: bin/rmsbdir:25
-msgid "Module directory deleted:"
-msgstr "Direktori modul dihapus:"
+#~ msgid "Increase verbosity level"
+#~ msgstr "Tingkatkan level detail keluaran"
 
-#: bin/sb2iso:21 bin/sb2iso:22
-msgid "Generate MiniOS ISO image, adding specified modules."
-msgstr "Hasilkan citra ISO MiniOS, tambahkan modul yang ditentukan."
+#~ msgid "Copying GRUB boot files"
+#~ msgstr "Menyalin file boot GRUB"
 
-#: bin/sb2iso:24 bin/sb2iso:27
-msgid "Exclude any existing path or file matching REGEX"
-msgstr "Kecualikan jalur atau file yang ada yang cocok dengan REGEX"
+#~ msgid "Force specific BIOS bootloader type (isolinux or grub)"
+#~ msgstr "Paksa tipe bootloader BIOS tertentu (isolinux atau grub)"
 
-#: bin/sb2iso:25 bin/sb2iso:28
-msgid "Specify output ISO filename (default"
-msgstr "Tentukan nama file ISO keluaran (default"
+#~ msgid "Note: EFI boot always uses GRUB regardless of this setting"
+#~ msgstr ""
+#~ "Catatan: Boot EFI selalu menggunakan GRUB terlepas dari pengaturan ini"
 
-#: bin/sb2iso:30 bin/sb2iso:31 bin/sb2iso:39
-msgid "Create MiniOS ISO without firefox.sb module:"
-msgstr "Buat ISO MiniOS tanpa modul firefox.sb:"
+#~ msgid "Bootloader Notes"
+#~ msgstr "Catatan Bootloader"
 
-#: bin/sb2iso:32 bin/sb2iso:33 bin/sb2iso:41
-msgid "Create MiniOS text-mode core only:"
-msgstr "Buat inti mode teks MiniOS saja:"
+#~ msgid ""
+#~ "BIOS boot: Uses GRUB by default, can be forced to ISOLINUX/SYSLINUX with "
+#~ "-b"
+#~ msgstr ""
+#~ "Boot BIOS: Menggunakan GRUB secara default, dapat dipaksa ke ISOLINUX/"
+#~ "SYSLINUX dengan -b"
 
-#: bin/sb2iso:223 bin/sb2iso:259 bin/sb2iso:303 bin/sb2iso:254
-msgid "Creating ISO work directory"
-msgstr "Membuat direktori kerja ISO"
+#~ msgid "EFI boot: Always uses GRUB (both 32-bit and 64-bit EFI support)"
+#~ msgstr "Boot EFI: Selalu menggunakan GRUB (mendukung EFI 32-bit dan 64-bit)"
 
-#: bin/sb2iso:224 bin/sb2iso:261 bin/sb2iso:305
-msgid "Copying boot files (isolinux.bin & isohdpfx.bin)"
-msgstr "Menyalin file boot (isolinux.bin & isohdpfx.bin)"
+#~ msgid "Hybrid ISOs support both BIOS and EFI boot modes simultaneously"
+#~ msgstr "ISO Hybrid mendukung mode boot BIOS dan EFI secara bersamaan"
 
-#: bin/sb2iso:229 bin/sb2iso:269 bin/sb2iso:313 bin/sb2iso:260
-msgid "Creating temporary persistence image"
-msgstr "Membuat citra persistensi sementara"
+#~ msgid "Force ISOLINUX bootloader for BIOS (EFI still uses GRUB):"
+#~ msgstr "Paksa bootloader ISOLINUX untuk BIOS (EFI tetap menggunakan GRUB):"
 
-#: bin/sb2iso:230 bin/sb2iso:270 bin/sb2iso:314 bin/sb2iso:261
-msgid "Formatting persistence image"
-msgstr "Memformat citra persistensi"
+#~ msgid "Use default GRUB bootloader for both BIOS and EFI:"
+#~ msgstr "Gunakan bootloader GRUB default untuk BIOS dan EFI:"
 
-#: bin/sb2iso:231 bin/sb2iso:301 bin/sb2iso:345 bin/sb2iso:286
-msgid "Generating ISO image"
-msgstr "Membuat citra ISO"
+#~ msgid "Note: This option only affects BIOS boot. EFI boot always uses GRUB."
+#~ msgstr ""
+#~ "Catatan: Opsi ini hanya memengaruhi boot BIOS. Boot EFI selalu "
+#~ "menggunakan GRUB."
 
-#: bin/sb2iso:257 bin/sb2iso:310 bin/sb2iso:354 bin/sb2iso:295
-msgid "Cleaning up temporary files"
-msgstr "Membersihkan file sementara"
+#~ msgid "Note: EFI boot will still use GRUB regardless of this setting"
+#~ msgstr ""
+#~ "Catatan: Boot EFI tetap akan menggunakan GRUB terlepas dari pengaturan ini"
 
-#: bin/sb2dir:9
-msgid "Usage:"
-msgstr "Penggunaan:"
+#~ msgid "Using default GRUB bootloader for BIOS boot"
+#~ msgstr "Menggunakan bootloader GRUB default untuk boot BIOS"
 
-#: bin/sb2dir:10
-msgid "If the output_directory is specified, it must exist"
-msgstr "Jika direktori_keluaran ditentukan, direktori tersebut harus ada"
+#~ msgid "GRUB files not found, falling back to ISOLINUX for BIOS boot"
+#~ msgstr ""
+#~ "File GRUB tidak ditemukan, kembali menggunakan ISOLINUX untuk boot BIOS"
 
-#: bin/sb2dir:11
-msgid "If the output_directory is not specified, the name source_file.sb"
-msgstr "Jika direktori_keluaran tidak ditentukan, nama file_sumber.sb"
+#~ msgid "Using GRUB bootloader (default)"
+#~ msgstr "Menggunakan bootloader GRUB (default)"
 
-#: bin/sb2dir:12
-msgid "is used and the directory is overmounted with tmpfs"
-msgstr "digunakan dan direktori ditumpang-mount dengan tmpfs"
+#~ msgid ""
+#~ "The selected BIOS bootloader files are missing. Try without --bootloader "
+#~ "option for automatic detection."
+#~ msgstr ""
+#~ "File bootloader BIOS yang dipilih tidak ditemukan. Coba tanpa opsi --"
+#~ "bootloader untuk deteksi otomatis."
 
-#: bin/sb2dir:17
-msgid "File does not exist:"
-msgstr "File tidak ada:"
+#~ msgid ""
+#~ "Remember: This option only affects BIOS boot, EFI boot always uses GRUB."
+#~ msgstr ""
+#~ "Ingat: Opsi ini hanya memengaruhi boot BIOS, boot EFI selalu menggunakan "
+#~ "GRUB."
 
-#: bin/savechanges:15
-msgid "Saves all changed files in a compressed filesystem bundle."
-msgstr ""
-"Menyimpan semua file yang diubah dalam bundel sistem berkas terkompresi."
+#~ msgid "Create custom ISO with SYSLINUX (BIOS) and GRUB (EFI):"
+#~ msgstr "Buat ISO kustom dengan SYSLINUX (BIOS) dan GRUB (EFI):"
 
-#: bin/savechanges:23
-msgid "If changes_directory is not specified,"
-msgstr "Jika direktori_perubahan tidak ditentukan,"
+#~ msgid "Copying SYSLINUX boot files (isolinux.bin & isohdpfx.bin)"
+#~ msgstr "Menyalin file boot SYSLINUX (isolinux.bin & isohdpfx.bin)"
 
-#: bin/savechanges:24
-msgid "/run/initramfs/memory/changes is used."
-msgstr "/run/initramfs/memory/changes digunakan."
+#~ msgid "Set GRUB menu type: multilang or language code"
+#~ msgstr "Atur tipe menu GRUB: multibahasa atau kode bahasa"
 
-#: bin/chroot2sb:11 bin/script2sb:11
-msgid "Packages a module from changes made by an installation script"
-msgstr "Mengemas modul dari perubahan yang dibuat oleh skrip instalasi"
+#~ msgid "  Note: bootloader type is automatically detected"
+#~ msgstr "  Catatan: tipe bootloader terdeteksi secara otomatis"
 
-#: bin/chroot2sb:14 bin/script2sb:16
-msgid "Copy contents of DIR to the root of the module"
-msgstr "Salin isi DIR ke root modul"
+#~ msgid "Failed to generate localized config, falling back to English"
+#~ msgstr "Gagal membuat konfigurasi lokal, kembali ke bahasa Inggris"
 
-#: bin/chroot2sb:15 bin/script2sb:17
-msgid "Use NAME as the filename for the module"
-msgstr "Gunakan NAMA sebagai nama file untuk modul"
+#~ msgid "No SYSLINUX help files found"
+#~ msgstr "Tidak ditemukan file bantuan SYSLINUX"
 
-#: bin/script2sb:19
-msgid "Use FILE as the installation script"
-msgstr "Gunakan FILE sebagai skrip instalasi"
+#~ msgid "Generated help file for"
+#~ msgstr "File bantuan dibuat untuk"
 
-#: bin/sb2iso:26 bin/sb2iso:29
-msgid "Increase verbosity level"
-msgstr "Tingkatkan level detail keluaran"
+#~ msgid "Generated localized menu for"
+#~ msgstr "Menu terlokalisasi dibuat untuk"
 
-#: bin/sb2iso:215 bin/sb2iso:258 bin/sb2iso:210
-msgid ""
-"If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
-msgstr ""
-"Jika Anda memuat sistem ke dalam RAM, gunakan 'toram=full' dalam parameter "
-"kernel."
+#~ msgid "Generated localized help for"
+#~ msgstr "Bantuan terlokalisasi dibuat untuk"
 
-#: bin/sb2iso:263 bin/sb2iso:307
-msgid "Copying GRUB boot files"
-msgstr "Menyalin file boot GRUB"
-
-#: bin/sb2iso:25
-msgid "Force specific BIOS bootloader type (isolinux or grub)"
-msgstr "Paksa tipe bootloader BIOS tertentu (isolinux atau grub)"
-
-#: bin/sb2iso:26
-msgid "Note: EFI boot always uses GRUB regardless of this setting"
-msgstr "Catatan: Boot EFI selalu menggunakan GRUB terlepas dari pengaturan ini"
-
-#: bin/sb2iso:33
-msgid "Bootloader Notes"
-msgstr "Catatan Bootloader"
-
-#: bin/sb2iso:34
-msgid ""
-"BIOS boot: Uses GRUB by default, can be forced to ISOLINUX/SYSLINUX with -b"
-msgstr ""
-"Boot BIOS: Menggunakan GRUB secara default, dapat dipaksa ke ISOLINUX/"
-"SYSLINUX dengan -b"
-
-#: bin/sb2iso:35
-msgid "EFI boot: Always uses GRUB (both 32-bit and 64-bit EFI support)"
-msgstr "Boot EFI: Selalu menggunakan GRUB (mendukung EFI 32-bit dan 64-bit)"
-
-#: bin/sb2iso:36
-msgid "Hybrid ISOs support both BIOS and EFI boot modes simultaneously"
-msgstr "ISO Hybrid mendukung mode boot BIOS dan EFI secara bersamaan"
-
-#: bin/sb2iso:43
-msgid "Force ISOLINUX bootloader for BIOS (EFI still uses GRUB):"
-msgstr "Paksa bootloader ISOLINUX untuk BIOS (EFI tetap menggunakan GRUB):"
-
-#: bin/sb2iso:45
-msgid "Use default GRUB bootloader for both BIOS and EFI:"
-msgstr "Gunakan bootloader GRUB default untuk BIOS dan EFI:"
-
-#: bin/sb2iso:148
-msgid "Note: This option only affects BIOS boot. EFI boot always uses GRUB."
-msgstr ""
-"Catatan: Opsi ini hanya memengaruhi boot BIOS. Boot EFI selalu menggunakan "
-"GRUB."
-
-#: bin/sb2iso:216
-msgid "Note: EFI boot will still use GRUB regardless of this setting"
-msgstr ""
-"Catatan: Boot EFI tetap akan menggunakan GRUB terlepas dari pengaturan ini"
-
-#: bin/sb2iso:221
-msgid "Using default GRUB bootloader for BIOS boot"
-msgstr "Menggunakan bootloader GRUB default untuk boot BIOS"
-
-#: bin/sb2iso:224
-msgid "GRUB files not found, falling back to ISOLINUX for BIOS boot"
-msgstr ""
-"File GRUB tidak ditemukan, kembali menggunakan ISOLINUX untuk boot BIOS"
-
-#: bin/sb2iso:227
-msgid "Using GRUB bootloader (default)"
-msgstr "Menggunakan bootloader GRUB (default)"
-
-#: bin/sb2iso:254
-msgid ""
-"The selected BIOS bootloader files are missing. Try without --bootloader "
-"option for automatic detection."
-msgstr ""
-"File bootloader BIOS yang dipilih tidak ditemukan. Coba tanpa opsi --"
-"bootloader untuk deteksi otomatis."
-
-#: bin/sb2iso:255
-msgid ""
-"Remember: This option only affects BIOS boot, EFI boot always uses GRUB."
-msgstr ""
-"Ingat: Opsi ini hanya memengaruhi boot BIOS, boot EFI selalu menggunakan "
-"GRUB."
-
-#: bin/sb2iso:35
-msgid "Create custom ISO with SYSLINUX (BIOS) and GRUB (EFI):"
-msgstr "Buat ISO kustom dengan SYSLINUX (BIOS) dan GRUB (EFI):"
-
-#: bin/sb2iso:255
-msgid "Copying SYSLINUX boot files (isolinux.bin & isohdpfx.bin)"
-msgstr "Menyalin file boot SYSLINUX (isolinux.bin & isohdpfx.bin)"
+#~ msgid "Generated localized SYSLINUX help for"
+#~ msgstr "Bantuan SYSLINUX terlokalisasi dibuat untuk"
