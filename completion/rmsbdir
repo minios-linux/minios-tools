@@ -1,0 +1,15 @@
+_rmsbdir() {
+    local cur prev words cword
+    _init_completion || return
+
+    # Complete directories that look like .sb module directories
+    local IFS=$'\n'
+    local sb_dirs=($(compgen -d -- "$cur" | grep -E '\.sb$|squashfs-root$'))
+    if [ ${#sb_dirs[@]} -gt 0 ]; then
+        COMPREPLY=("${sb_dirs[@]}")
+    else
+        COMPREPLY=($(compgen -d -- "$cur"))
+    fi
+}
+
+complete -F _rmsbdir rmsbdir

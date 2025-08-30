@@ -1,0 +1,52 @@
+_dir2sb() {
+    local cur prev words cword
+    _init_completion || return
+
+    if [[ ${words[@]} =~ --help ]] || [[ ${words[@]} =~ --version ]]; then
+        return
+    fi
+
+    case $prev in
+    -b | --bext)
+        # Bundle extension completion
+        COMPREPLY=($(compgen -W 'sb sqfs' -- "$cur"))
+        return
+        ;;
+    -c | --comp)
+        # Compression type completion
+        COMPREPLY=($(compgen -W 'zstd gzip lzo xz' -- "$cur"))
+        return
+        ;;
+    esac
+
+    if [[ "$cur" == *=* ]]; then
+        local opt="${cur%%=*}"
+        cur="${cur#*=}"
+        case $opt in
+        --bext)
+            COMPREPLY=($(compgen -W 'sb sqfs' -- "$cur"))
+            return
+            ;;
+        --comp)
+            COMPREPLY=($(compgen -W 'zstd gzip lzo xz' -- "$cur"))
+            return
+            ;;
+        *) ;;
+        esac
+    fi
+
+    if [[ "$cur" == --* ]]; then
+        COMPREPLY=($(compgen -W '--bext --comp --help --version' -- "$cur"))
+    elif [[ "$cur" == -* ]]; then
+        COMPREPLY=($(compgen -W '-b -c --bext --comp --help --version' -- "$cur"))
+    else
+        # Complete directories for SOURCE_DIRECTORY or files for TARGET_FILE
+        local IFS=$'\n'
+        COMPREPLY=($(compgen -d -- "$cur"))
+        # Also add .sb files if completing TARGET_FILE
+        local sb_files=($(compgen -f -- "$cur" | grep -Ei '\.sb$'))
+        COMPREPLY+=("${sb_files[@]}")
+    fi
+}
+
+complete -F _dir2sb dir2sb
