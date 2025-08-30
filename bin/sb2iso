@@ -1,6 +1,6 @@
 #!/bin/bash
-# Author: Tomas M. <http://www.linux-live.org>
-# Author: crims0n. <https://minios.dev>
+# Author of the idea: Tomas M. <http://www.linux-live.org>
+# Author: crims0n <https://minios.dev>
 
 VERSION="1.7"
 SYSTEMNAME="MiniOS"
@@ -137,11 +137,11 @@ run_with_spinner() {
 
 # Function to parse .po files for translations
 parse_po_file() {
-    local po_file="$1"
-    local temp_file=$(mktemp)
+    local PO_FILE="$1"
+    local TEMP_FILE=$(mktemp)
 
-    if [ ! -e "$po_file" ]; then
-        rm -f "$temp_file"
+    if [ ! -e "$PO_FILE" ]; then
+        rm -f "$TEMP_FILE"
         return 1
     fi
 
@@ -177,64 +177,64 @@ parse_po_file() {
             if (msgid != "" && msgstr != "") print msgid "|||" msgstr;
         }
     }
-    ' "$po_file" >"$temp_file"
+    ' "$PO_FILE" >"$TEMP_FILE"
 
-    if [ -s "$temp_file" ]; then
-        echo "$temp_file"
+    if [ -s "$TEMP_FILE" ]; then
+        echo "$TEMP_FILE"
         return 0
     else
-        rm -f "$temp_file"
+        rm -f "$TEMP_FILE"
         return 1
     fi
 }
 
 # Function to get translation from parsed po file
 get_translation() {
-    local translations_file="$1"
-    local msgid="$2"
+    local TRANSLATIONS_FILE="$1"
+    local MSGID="$2"
 
-    if [ ! -e "$translations_file" ]; then
-        echo "$msgid"
+    if [ ! -e "$TRANSLATIONS_FILE" ]; then
+        echo "$MSGID"
         return
     fi
 
-    local result=$(grep -F "${msgid}|||" "$translations_file" 2>/dev/null | head -n1 | cut -d'|' -f4-)
-    if [ -n "$result" ]; then
-        echo "$result"
+    local RESULT=$(grep -F "${MSGID}|||" "$TRANSLATIONS_FILE" 2>/dev/null | head -n1 | cut -d'|' -f4-)
+    if [ -n "$RESULT" ]; then
+        echo "$RESULT"
     else
-        echo "$msgid"
+        echo "$MSGID"
     fi
 }
 
 # Function to generate localized GRUB config
 generate_localized_grub_config() {
-    local grub_dir="$1"
-    local lang_code="$2"
-    local output_file="$3"
+    local GRUB_DIR="$1"
+    local LANG_CODE="$2"
+    local OUTPUT_FILE="$3"
 
     # Parse po file for the language
-    local po_file="$grub_dir/po/${lang_code}.po"
-    local translations_file
+    local PO_FILE="$GRUB_DIR/po/${LANG_CODE}.po"
+    local TRANSLATIONS_FILE
 
-    if ! translations_file=$(parse_po_file "$po_file"); then
-        warning "$(gettext "No translations found for $lang_code, using English fallback")"
+    if ! TRANSLATIONS_FILE=$(parse_po_file "$PO_FILE"); then
+        warning "$(gettext "No translations found for $LANG_CODE, using English fallback")"
         return 1
     fi
 
     # Get template config
-    local template_cfg="$grub_dir/grub.template.cfg"
-    if [ ! -e "$template_cfg" ]; then
+    local TEMPLATE_CFG="$GRUB_DIR/grub.template.cfg"
+    if [ ! -e "$TEMPLATE_CFG" ]; then
         error "$(gettext "grub.template.cfg template not found")"
-        rm -f "$translations_file"
+        rm -f "$TRANSLATIONS_FILE"
         return 1
     fi
 
     # Read template content
-    local template_content=$(cat "$template_cfg")
-    local localized_content="$template_content"
+    local TEMPLATE_CONTENT=$(cat "$TEMPLATE_CFG")
+    local LOCALIZED_CONTENT="$TEMPLATE_CONTENT"
 
     # Define menu entries to translate (same as installer)
-    local english_texts=(
+    local ENGLISH_TEXTS=(
         "Resume previous session"
         "Start a new session"
         "Choose session during startup"
@@ -244,7 +244,7 @@ generate_localized_grub_config() {
         "MiniOS"
     )
 
-    local var_names=(
+    local VAR_NAMES=(
         "resume"
         "newsession"
         "choosesession"
@@ -255,31 +255,31 @@ generate_localized_grub_config() {
     )
 
     # Replace English menu text with localized versions
-    for i in "${!english_texts[@]}"; do
-        local english_text="${english_texts[$i]}"
-        local var_name="${var_names[$i]}"
-        local localized_text=$(get_translation "$translations_file" "$english_text")
+    for i in "${!ENGLISH_TEXTS[@]}"; do
+        local ENGLISH_TEXT="${ENGLISH_TEXTS[$i]}"
+        local VAR_NAME="${VAR_NAMES[$i]}"
+        local LOCALIZED_TEXT=$(get_translation "$TRANSLATIONS_FILE" "$ENGLISH_TEXT")
 
-        if [ "$localized_text" != "$english_text" ]; then
+        if [ "$LOCALIZED_TEXT" != "$ENGLISH_TEXT" ]; then
             # Replace menuentry labels
-            localized_content=$(echo "$localized_content" | sed "s/menuentry \"$english_text\"/menuentry \"$localized_text\"/g")
+            LOCALIZED_CONTENT=$(echo "$LOCALIZED_CONTENT" | sed "s/menuentry \"$ENGLISH_TEXT\"/menuentry \"$LOCALIZED_TEXT\"/g")
             # Replace variable assignments
-            localized_content=$(echo "$localized_content" | sed "s/set ${var_name}=\"$english_text\"/set ${var_name}=\"$localized_text\"/g")
+            LOCALIZED_CONTENT=$(echo "$LOCALIZED_CONTENT" | sed "s/set ${VAR_NAME}=\"$ENGLISH_TEXT\"/set ${VAR_NAME}=\"$LOCALIZED_TEXT\"/g")
         fi
     done
 
     # Set localized theme if available
-    local theme_path="/minios/boot/grub/minios-theme/theme_${lang_code}.txt"
-    if [ -e "$grub_dir/minios-theme/theme_${lang_code}.txt" ]; then
+    local THEME_PATH="/minios/boot/grub/minios-theme/theme_${LANG_CODE}.txt"
+    if [ -e "$GRUB_DIR/minios-theme/theme_${LANG_CODE}.txt" ]; then
         # Replace theme setting with localized version
-        localized_content=$(echo "$localized_content" | sed "s|set theme=/minios/boot/grub/minios-theme/theme\.txt|set theme=$theme_path|g")
+        LOCALIZED_CONTENT=$(echo "$LOCALIZED_CONTENT" | sed "s|set theme=/minios/boot/grub/minios-theme/theme\.txt|set theme=$THEME_PATH|g")
     fi
 
     # Write localized config
-    echo "$localized_content" >"$output_file"
+    echo "$LOCALIZED_CONTENT" >"$OUTPUT_FILE"
 
     # Cleanup
-    rm -f "$translations_file"
+    rm -f "$TRANSLATIONS_FILE"
     return 0
 }
 
@@ -485,7 +485,14 @@ multilang)
     if [ -e "$MINIOS/boot/grub/grub.multilang.cfg" ]; then
         GRAFT=$(echo "$GRAFT" | sed "s|minios/boot/grub/grub.cfg=$MINIOS/boot/grub/grub.cfg|minios/boot/grub/grub.cfg=$MINIOS/boot/grub/grub.multilang.cfg|")
     fi
-    # Keep all SYSLINUX help files for multilingual support
+
+    # For SYSLINUX native mode, use multilingual configuration
+    if [[ "$BOOTLOADER_TYPE" == "syslinux-native" ]]; then
+        if [ -e "$MINIOS/boot/syslinux/syslinux.multilang.cfg" ]; then
+            information "$(gettext "Using multilingual SYSLINUX configuration")"
+            GRAFT=$(echo "$GRAFT" | sed "s|minios/boot/syslinux/syslinux\.cfg=$MINIOS/boot/syslinux/syslinux\.cfg|minios/boot/syslinux/syslinux.cfg=$MINIOS/boot/syslinux/syslinux.multilang.cfg|")
+        fi
+    fi
     ;;
 en_US | ru_RU | de_DE | es_ES | it_IT | id_ID | pt_BR | pt_PT | fr_FR)
     # Generate localized configurations
