@@ -233,7 +233,7 @@ generate_localized_grub_config() {
     local TEMPLATE_CONTENT=$(cat "$TEMPLATE_CFG")
     local LOCALIZED_CONTENT="$TEMPLATE_CONTENT"
 
-    # Define menu entries to translate (same as installer)
+    # Define menu entries to translate
     local ENGLISH_TEXTS=(
         "Resume previous session"
         "Start a new session"
@@ -578,7 +578,7 @@ case "$BOOTLOADER_TYPE" in
     BIOS_BOOT_PARAMS="-eltorito-catalog ${BIOS_BOOT_CATALOG}"
     ;;
 "syslinux-grub"|"syslinux-native")
-    # SYSLINUX/ISOLINUX parameters (same for both types)
+    # SYSLINUX/ISOLINUX parameters
     BIOS_BOOT_IMG="minios/boot/syslinux/isolinux.bin"
     BIOS_BOOT_CATALOG="minios/boot/syslinux/isolinux.boot"
     BIOS_MBR_IMG="$MINIOS/boot/syslinux/isohdpfx.bin"
