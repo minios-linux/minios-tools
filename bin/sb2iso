@@ -463,6 +463,29 @@ for FILE in "${REQUIRED_FILES[@]}"; do
     fi
 done
 
+# Create compatibility symlinks for Ventoy if NAMED_BOOT_FILES is used
+if [ -d "$MINIOS/boot" ]; then
+    cd "$MINIOS/boot"
+    # Check if we have versioned boot files (NAMED_BOOT_FILES=true)
+    VERSIONED_VMLINUZ=$(ls vmlinuz-* 2>/dev/null | head -n 1)
+    VERSIONED_INITRFS=$(ls initrfs-*.img 2>/dev/null | head -n 1)
+
+    if [ -n "$VERSIONED_VMLINUZ" ] && [ -n "$VERSIONED_INITRFS" ]; then
+        # Remove old compatibility links if they exist
+        [ -L "vmlinuz" ] && rm -f "vmlinuz"
+        [ -L "initrfs.img" ] && rm -f "initrfs.img"
+
+        # Create new compatibility symlinks for Ventoy
+        ln -sf "$VERSIONED_VMLINUZ" "vmlinuz"
+        ln -sf "$VERSIONED_INITRFS" "initrfs.img"
+
+        information "$(gettext "Created Ventoy compatibility symlinks:")"
+        information "  vmlinuz -> $VERSIONED_VMLINUZ"
+        information "  initrfs.img -> $VERSIONED_INITRFS"
+    fi
+    cd - >/dev/null
+fi
+
 GRAFT=$(
     cd "$MINIOS"
     find . -type f | sed -r "s:^[.]/::" | egrep -v "^changes/" | egrep -v "$REGEX" | while read LINE; do
