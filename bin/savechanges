@@ -8,7 +8,15 @@ COMP_TYPE="zstd"
 export TEXTDOMAIN="minios-tools"
 TMP=/tmp/changes$$
 EXCLUDE="^\$|/\$|[.]wh[.][.]wh[.]orph/|^[.]wh[.][.]pwd[.]lock|^[.]wh[.][.]wh[.]plnk/|^[.]wh[.][.]wh[.]aufs|^var/cache/|^var/backups/|^var/tmp/|^var/log/|^var/lib/apt/|^var/lib/dhcp/|^var/lib/systemd/|^sbin/fsck[.]aufs|^etc/resolv[.]conf|^root/[.]Xauthority|^root/[.]xsession-errors|^root/[.]fehbg|^root/[.]fluxbox/lastwallpaper|^root/[.]fluxbox/menu_resolution|^etc/mtab|^etc/fstab|^boot/|^dev/|^mnt/|^proc/|^run/|^sys/|^tmp/"
-CHANGES=/run/initramfs/memory/changes
+
+# Detect initramfs type and set default changes path
+if [ -d "/run/initramfs/memory/changes" ]; then
+    # livekit initramfs
+    CHANGES=/run/initramfs/memory/changes
+elif [ -d "/lib/live/mount/changes" ]; then
+    # dracut initramfs
+    CHANGES=/lib/live/mount/changes
+fi
 
 help() {
    echo "$(gettext "Usage"): $(basename $0) [OPTIONS] target_file.$BEXT [changes_directory]"
@@ -20,8 +28,8 @@ help() {
    echo "      --help             $(gettext "Display this help and exit")"
    echo "      --version          $(gettext "Display version information and exit")"
    echo ""
-   echo "$(gettext "If changes_directory is not specified,")"
-   echo "$(gettext "/run/initramfs/memory/changes is used.")"
+   echo "$(gettext "If changes_directory is not specified, the default changes")"
+   echo "$(gettext "directory from the current initramfs is used.")"
    echo ""
    exit 0
 }

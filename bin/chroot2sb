@@ -96,12 +96,15 @@ if [ "$DIRECTORY" ] && { [ ! -d "$DIRECTORY" ] || [ -d "$DIRECTORY" ] && [ ! -r 
     brief_help
 fi
 
+# Detect initramfs type and set paths
 if [ -d "/run/initramfs/memory/bundles" ]; then
+    # livekit initramfs
     BUNDLES="/run/initramfs/memory/bundles"
     SYSTEMCHANGES="/run/initramfs/memory/changes"
-elif [ -d "/memory/bundles" ]; then
-    BUNDLES="/memory/bundles"
-    SYSTEMCHANGES="/memory/changes"
+elif [ -d "/lib/live/mount/bundles" ]; then
+    # dracut initramfs
+    BUNDLES="/lib/live/mount/bundles"
+    SYSTEMCHANGES="/lib/live/mount/changes"
 fi
 
 # We use the changes folder to store temporary files and perform module

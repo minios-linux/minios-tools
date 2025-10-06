@@ -12,11 +12,16 @@ VERSION="1.0.2"
 # Force classic mount(2) syscall to work around an overlayfs bug in util-linux >= 2.39.0
 export LIBMOUNT_FORCE_MOUNT2="always"
 export TEXTDOMAIN="minios-tools"
+
+# Detect initramfs type and set paths
 if [ -d "/run/initramfs/memory/bundles" ]; then
+    # livekit initramfs
     LIVE="/run/initramfs/memory"
-elif [ -d "/memory/bundles" ]; then
-    LIVE="/memory"
+elif [ -d "/lib/live/mount/bundles" ]; then
+    # dracut initramfs
+    LIVE="/lib/live/mount"
 fi
+
 BUNDLES="$LIVE/bundles"
 CHANGES="$LIVE/changes"
 RAMSTORE="$LIVE/modules"

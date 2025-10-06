@@ -12,10 +12,14 @@ PWD="$(pwd)"
 VERBOSITY_LEVEL=0
 MENU_TYPE="multilang"
 TEMP_GRUB_CONFIG=""
+
+# Detect initramfs type and set paths
 if [ -d "/run/initramfs/memory" ]; then
+    # livekit initramfs
     SOURCE="/run/initramfs/memory"
-elif [ -d "/memory" ]; then
-    SOURCE="/memory"
+elif [ -d "/lib/live/mount" ]; then
+    # dracut initramfs
+    SOURCE="/lib/live/mount"
 fi
 
 help() {
