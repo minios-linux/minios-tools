@@ -381,9 +381,6 @@ find_minios_source() {
         "$SOURCE/data/minios"
         "$SOURCE/medium/minios"
         "$SOURCE/iso/minios"
-        "$SOURCE/toram"
-        "$SOURCE/data/from/0/minios"
-        "$SOURCE/medium/from/0/minios"
     )
 
     for CANDIDATE in "${CANDIDATES[@]}"; do
