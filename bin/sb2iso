@@ -2,7 +2,7 @@
 # Author of the idea: Tomas M. <http://www.linux-live.org>
 # Author: crims0n <https://minios.dev>
 
-VERSION="1.7"
+VERSION="1.8"
 SYSTEMNAME="MiniOS"
 export TEXTDOMAIN="minios-tools"
 TEMP=/tmp/minios.iso.$$
@@ -491,11 +491,11 @@ fi
 
 GRAFT=$(
     cd "$MINIOS"
-    find . -type f | sed -r "s:^[.]/::" | egrep -v "^changes/" | egrep -v "$REGEX" | while read LINE; do
+    find . -type f 2>/dev/null | sed -r "s:^[.]/::" | egrep -v "^changes/" | egrep -v "$REGEX" | while read LINE; do
         echo "minios/$LINE=$MINIOS/$LINE"
     done
     cd "$MINIOS/boot/EFI"
-    find . -type f | sed -r "s:^[.]/::" | egrep -v "$REGEX" | while read LINE; do
+    find . -type f 2>/dev/null | sed -r "s:^[.]/::" | egrep -v "$REGEX" | while read LINE; do
         echo "EFI/$LINE=$MINIOS/boot/EFI/$LINE"
     done
     echo ".disk/info=/tmp/info"
