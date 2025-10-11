@@ -289,6 +289,32 @@ generate_localized_grub_config() {
 
 console_colors
 
+# Cleanup function to remove all temporary files
+cleanup() {
+    # Remove temporary work directory
+    if [ -n "$TEMP" ] && [ -d "$TEMP" ]; then
+        rm -rf "$TEMP" 2>/dev/null
+    fi
+
+    # Remove temporary persistence image
+    if [ -n "$PERCHIMG" ] && [ -e "$PERCHIMG" ]; then
+        rm -f "$PERCHIMG" 2>/dev/null
+    fi
+
+    # Remove temporary GRUB config
+    if [ -n "$TEMP_GRUB_CONFIG" ] && [ -e "$TEMP_GRUB_CONFIG" ]; then
+        rm -f "$TEMP_GRUB_CONFIG" 2>/dev/null
+    fi
+
+    # Remove temporary info file
+    if [ -n "$INFO_FILE" ] && [ -e "$INFO_FILE" ]; then
+        rm -f "$INFO_FILE" 2>/dev/null
+    fi
+}
+
+# Set trap to ensure cleanup on exit (normal exit, errors, Ctrl+C, etc.)
+trap cleanup EXIT INT TERM
+
 while [ "$#" -gt 0 ]; do
     case "$1" in
     -e | --exclude)
@@ -419,7 +445,9 @@ fi
 BOOTLOADER_TYPE=$(detect_bootloader_type "$MINIOS")
 information "$(gettext "Detected bootloader type"): $BOOTLOADER_TYPE"
 
-echo $SYSTEMNAME >/tmp/info
+# Create unique temporary info file for this session
+INFO_FILE=$(mktemp --suffix=.info)
+echo $SYSTEMNAME >"$INFO_FILE"
 
 # Check required files based on detected bootloader type
 case "$BOOTLOADER_TYPE" in
@@ -466,39 +494,16 @@ for FILE in "${REQUIRED_FILES[@]}"; do
     fi
 done
 
-# Create compatibility symlinks for Ventoy if NAMED_BOOT_FILES is used
-if [ -d "$MINIOS/boot" ]; then
-    cd "$MINIOS/boot"
-    # Check if we have versioned boot files (NAMED_BOOT_FILES=true)
-    VERSIONED_VMLINUZ=$(ls vmlinuz-* 2>/dev/null | head -n 1)
-    VERSIONED_INITRFS=$(ls initrfs-*.img 2>/dev/null | head -n 1)
-
-    if [ -n "$VERSIONED_VMLINUZ" ] && [ -n "$VERSIONED_INITRFS" ]; then
-        # Remove old compatibility links if they exist
-        [ -L "vmlinuz" ] && rm -f "vmlinuz"
-        [ -L "initrfs.img" ] && rm -f "initrfs.img"
-
-        # Create new compatibility symlinks for Ventoy
-        ln -sf "$VERSIONED_VMLINUZ" "vmlinuz"
-        ln -sf "$VERSIONED_INITRFS" "initrfs.img"
-
-        information "$(gettext "Created Ventoy compatibility symlinks:")"
-        information "  vmlinuz -> $VERSIONED_VMLINUZ"
-        information "  initrfs.img -> $VERSIONED_INITRFS"
-    fi
-    cd - >/dev/null
-fi
-
 GRAFT=$(
     cd "$MINIOS"
-    find . -type f 2>/dev/null | sed -r "s:^[.]/::" | egrep -v "^changes/" | egrep -v "$REGEX" | while read LINE; do
+    find . -type f 2>/dev/null | sed -r "s:^[.]/::" | egrep -v "^changes/" | egrep -v "^boot/active-kernel$" | egrep -v "^kernels/" | egrep -v "$REGEX" | while read LINE; do
         echo "minios/$LINE=$MINIOS/$LINE"
     done
     cd "$MINIOS/boot/EFI"
     find . -type f 2>/dev/null | sed -r "s:^[.]/::" | egrep -v "$REGEX" | while read LINE; do
         echo "EFI/$LINE=$MINIOS/boot/EFI/$LINE"
     done
-    echo ".disk/info=/tmp/info"
+    echo ".disk/info=$INFO_FILE"
     echo "minios/config.conf=/etc/live/config.conf"
 )
 
@@ -589,6 +594,26 @@ case "$BOOTLOADER_TYPE" in
     ;;
 esac
 
+# Create Ventoy compatibility symlinks in temp directory if versioned files exist
+if [ -d "$MINIOS/boot" ]; then
+    VERSIONED_VMLINUZ=$(ls "$MINIOS/boot"/vmlinuz-* 2>/dev/null | head -n 1)
+    VERSIONED_INITRFS=$(ls "$MINIOS/boot"/initrfs-*.img 2>/dev/null | head -n 1)
+
+    if [ -n "$VERSIONED_VMLINUZ" ] && [ -n "$VERSIONED_INITRFS" ]; then
+        VERSIONED_VMLINUZ=$(basename "$VERSIONED_VMLINUZ")
+        VERSIONED_INITRFS=$(basename "$VERSIONED_INITRFS")
+
+        cd "$TEMP/minios/boot" || exit 4
+        ln -sf "$VERSIONED_VMLINUZ" "vmlinuz"
+        ln -sf "$VERSIONED_INITRFS" "initrfs.img"
+        cd - >/dev/null
+
+        information "$(gettext "Created Ventoy compatibility symlinks in ISO:")"
+        information "  vmlinuz -> $VERSIONED_VMLINUZ"
+        information "  initrfs.img -> $VERSIONED_INITRFS"
+    fi
+fi
+
 cd "$TEMP" || exit 4
 
 PERCHIMG=$(mktemp --suffix=.img)
@@ -641,13 +666,6 @@ run_with_spinner "$(gettext "Generating ISO image")" xorriso \
     -part_like_isohybrid \
     -graft-points $GRAFT \
     -output "$TARGET" && SUCCESS="true"
-
-run_with_spinner "$(gettext "Cleaning up temporary files")" rm -rf "$TEMP" "$PERCHIMG"
-
-# Clean up temporary GRUB config if it was created
-if [ -n "$TEMP_GRUB_CONFIG" ] && [ -e "$TEMP_GRUB_CONFIG" ]; then
-    rm -f "$TEMP_GRUB_CONFIG"
-fi
 
 if [ "$SUCCESS" = "true" ]; then
     information "ISO successfully created: ${CYAN}$TARGET${ENDCOLOR}"

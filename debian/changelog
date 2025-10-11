@@ -1,3 +1,10 @@
+minios-tools (1.4.7) unstable; urgency=medium
+
+  * Implement cleanup function in sb2iso
+  * Change Ventoy compatibility method in sb2iso
+
+ -- crims0n <crims0n@minios.dev>  Sun, 12 Oct 2025 02:54:17 +0300
+
 minios-tools (1.4.6) unstable; urgency=medium
 
   * Fixed paths for dracut initramfs compatibility
