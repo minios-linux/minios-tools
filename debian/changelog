@@ -1,3 +1,14 @@
+minios-tools (1.4.8) unstable; urgency=medium
+
+  * Fix incomplete cleanup on script interruption in apt2sb, script2sb,
+    and chroot2sb (Closes: minios-linux/minios-live#113)
+  * Fix "target is busy" unmount errors in *2sb scripts
+    (Related to: minios-linux/minios-live#110)
+  * Add safe_umount() function with retry logic and graceful handling
+  * Ensure tmp directory exists before mktemp in *2sb scripts
+
+ -- crims0n <crims0n@minios.dev>  Sat, 22 Nov 2025 18:21:17 +0300
+
 minios-tools (1.4.7) unstable; urgency=medium
 
   * Implement cleanup function in sb2iso
