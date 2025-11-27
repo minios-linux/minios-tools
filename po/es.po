@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.4.2\n"
 "Report-Msgid-Bugs-To: support@minios.dev\n"
-"POT-Creation-Date: 2025-10-06 21:04+0300\n"
+"POT-Creation-Date: 2025-11-27 17:10+0300\n"
 "PO-Revision-Date: 2025-08-11 09:37+0300\n"
 "Last-Translator: crims0n <crims0n@minios.dev>\n"
 "Language-Team: none\n"
@@ -226,91 +226,91 @@ msgstr "Crear ISO localizada en ruso:"
 msgid "grub.template.cfg template not found"
 msgstr "Plantilla grub.template.cfg no encontrada"
 
-#: bin/sb2iso:411 bin/sb2iso:415
+#: bin/sb2iso:411 bin/sb2iso:415 bin/sb2iso:440
 msgid "Cannot find MiniOS source directory with boot files"
 msgstr ""
 "No se puede encontrar el directorio fuente de MiniOS con archivos de arranque"
 
-#: bin/sb2iso:417 bin/sb2iso:421
+#: bin/sb2iso:417 bin/sb2iso:421 bin/sb2iso:446
 msgid "Detected bootloader type"
 msgstr "Tipo de gestor de arranque detectado"
 
-#: bin/sb2iso:452 bin/sb2iso:456
+#: bin/sb2iso:452 bin/sb2iso:456 bin/sb2iso:483
 msgid "Unknown bootloader type"
 msgstr "Tipo de gestor de arranque desconocido"
 
-#: bin/sb2iso:453 bin/sb2iso:457
+#: bin/sb2iso:453 bin/sb2iso:457 bin/sb2iso:484
 msgid "Valid types: grub-only, syslinux-native, syslinux-grub"
 msgstr "Tipos válidos: solo-grub, syslinux-nativo, syslinux-grub"
 
-#: bin/sb2iso:461 bin/sb2iso:465
+#: bin/sb2iso:461 bin/sb2iso:465 bin/sb2iso:492
 msgid ""
 "If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
 msgstr ""
 "Si cargaste el sistema en RAM, usa 'toram=full' en los parámetros del kernel."
 
-#: bin/sb2iso:484 bin/sb2iso:511
+#: bin/sb2iso:484 bin/sb2iso:511 bin/sb2iso:515
 msgid "Using multilingual menu"
 msgstr "Usando menú multilenguaje"
 
-#: bin/sb2iso:492 bin/sb2iso:526
+#: bin/sb2iso:492 bin/sb2iso:526 bin/sb2iso:530
 msgid "Configuring localized menu for"
 msgstr "Configurando menú localizado para"
 
-#: bin/sb2iso:497 bin/sb2iso:531
+#: bin/sb2iso:497 bin/sb2iso:531 bin/sb2iso:535
 msgid "Generated localized GRUB menu for"
 msgstr "Menú GRUB localizado generado para"
 
-#: bin/sb2iso:501 bin/sb2iso:535
+#: bin/sb2iso:501 bin/sb2iso:535 bin/sb2iso:539
 msgid "Failed to generate localized GRUB config, falling back to English"
 msgstr "No se pudo generar la configuración localizada de GRUB, usando inglés"
 
-#: bin/sb2iso:514 bin/sb2iso:548
+#: bin/sb2iso:514 bin/sb2iso:548 bin/sb2iso:552
 msgid "Using localized SYSLINUX configuration for"
 msgstr "Usando configuración localizada de SYSLINUX para"
 
-#: bin/sb2iso:518 bin/sb2iso:552
+#: bin/sb2iso:518 bin/sb2iso:552 bin/sb2iso:556
 msgid "Localized configuration not found for"
 msgstr "No se encontró configuración localizada para"
 
-#: bin/sb2iso:518 bin/sb2iso:552
+#: bin/sb2iso:518 bin/sb2iso:552 bin/sb2iso:556
 msgid "using English"
 msgstr "usando inglés"
 
-#: bin/sb2iso:540 bin/sb2iso:574
+#: bin/sb2iso:540 bin/sb2iso:574 bin/sb2iso:578
 msgid "Creating ISO work directory"
 msgstr "Creando directorio de trabajo ISO"
 
-#: bin/sb2iso:544 bin/sb2iso:578
+#: bin/sb2iso:544 bin/sb2iso:578 bin/sb2iso:582
 msgid "Copying boot files (GRUB BIOS only)"
 msgstr "Copiando archivos de arranque (solo GRUB BIOS)"
 
-#: bin/sb2iso:547 bin/sb2iso:581
+#: bin/sb2iso:547 bin/sb2iso:581 bin/sb2iso:585
 msgid "Copying boot files (SYSLINUX native)"
 msgstr "Copiando archivos de arranque (SYSLINUX nativo)"
 
-#: bin/sb2iso:550 bin/sb2iso:584
+#: bin/sb2iso:550 bin/sb2iso:584 bin/sb2iso:588
 msgid "Copying boot files (SYSLINUX + GRUB)"
 msgstr "Copiando archivos de arranque (SYSLINUX + GRUB)"
 
-#: bin/sb2iso:554 bin/sb2iso:588
+#: bin/sb2iso:554 bin/sb2iso:588 bin/sb2iso:592
 msgid "Internal error: invalid bootloader type for boot files"
 msgstr ""
 "Error interno: tipo de gestor de arranque inválido para archivos de arranque"
 
-#: bin/sb2iso:562 bin/sb2iso:596
+#: bin/sb2iso:562 bin/sb2iso:596 bin/sb2iso:620
 msgid "Creating temporary persistence image"
 msgstr "Creando imagen de persistencia temporal"
 
-#: bin/sb2iso:563 bin/sb2iso:597
+#: bin/sb2iso:563 bin/sb2iso:597 bin/sb2iso:621
 msgid "Formatting persistence image"
 msgstr "Formateando imagen de persistencia"
 
-#: bin/sb2iso:582 bin/sb2iso:616
+#: bin/sb2iso:582 bin/sb2iso:616 bin/sb2iso:640
 msgid "Internal error: invalid bootloader type for ISO parameters"
 msgstr "Error interno: tipo de gestor de arranque inválido para parámetros ISO"
 
-#: bin/sb2iso:587 bin/sb2iso:621
+#: bin/sb2iso:587 bin/sb2iso:621 bin/sb2iso:645
 msgid "Generating ISO image"
 msgstr "Generando imagen ISO"
 
@@ -318,7 +318,7 @@ msgstr "Generando imagen ISO"
 msgid "Cleaning up temporary files"
 msgstr "Limpiando archivos temporales"
 
-#: bin/sb2iso:622 bin/sb2iso:656
+#: bin/sb2iso:622 bin/sb2iso:656 bin/sb2iso:673
 msgid "Failed to create ISO image"
 msgstr "Error al crear la imagen ISO"
 
@@ -422,6 +422,10 @@ msgstr "Convertir un paquete .sb a directorio o viceversa"
 msgid "Created Ventoy compatibility symlinks:"
 msgstr "Enlaces simbólicos de compatibilidad con Ventoy creados:"
 
-#: bin/sb2iso:519
+#: bin/sb2iso:519 bin/sb2iso:523
 msgid "Using multilingual SYSLINUX configuration"
 msgstr "Usando configuración multilenguaje de SYSLINUX"
+
+#: bin/sb2iso:611
+msgid "Created Ventoy compatibility symlinks in ISO:"
+msgstr "Enlaces simbólicos de compatibilidad con Ventoy creados:"

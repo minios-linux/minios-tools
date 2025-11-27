@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.4.2\n"
 "Report-Msgid-Bugs-To: support@minios.dev\n"
-"POT-Creation-Date: 2025-10-06 21:04+0300\n"
+"POT-Creation-Date: 2025-11-27 17:10+0300\n"
 "PO-Revision-Date: 2025-08-11 09:37+0300\n"
 "Last-Translator: crims0n <crims0n@minios.dev>\n"
 "Language-Team: none\n"
@@ -164,7 +164,8 @@ msgstr "Сохраняет все измененные файлы в сжаты�
 
 #: bin/savechanges:23 bin/savechanges:31
 msgid "If changes_directory is not specified, the default changes"
-msgstr "Если changes_directory не указан, используется каталог изменений по умолчанию"
+msgstr ""
+"Если changes_directory не указан, используется каталог изменений по умолчанию"
 
 #: bin/savechanges:24 bin/savechanges:32
 msgid "directory from the current initramfs is used."
@@ -222,92 +223,93 @@ msgstr "Создать русифицированный ISO:"
 msgid "grub.template.cfg template not found"
 msgstr "шаблон grub.template.cfg не найден"
 
-#: bin/sb2iso:411 bin/sb2iso:415
+#: bin/sb2iso:411 bin/sb2iso:415 bin/sb2iso:440
 msgid "Cannot find MiniOS source directory with boot files"
 msgstr "Не удается найти исходный каталог MiniOS с загрузочными файлами"
 
-#: bin/sb2iso:417 bin/sb2iso:421
+#: bin/sb2iso:417 bin/sb2iso:421 bin/sb2iso:446
 msgid "Detected bootloader type"
 msgstr "Обнаружен тип загрузчика"
 
-#: bin/sb2iso:452 bin/sb2iso:456
+#: bin/sb2iso:452 bin/sb2iso:456 bin/sb2iso:483
 msgid "Unknown bootloader type"
 msgstr "Неизвестный тип загрузчика"
 
-#: bin/sb2iso:453 bin/sb2iso:457
+#: bin/sb2iso:453 bin/sb2iso:457 bin/sb2iso:484
 msgid "Valid types: grub-only, syslinux-native, syslinux-grub"
 msgstr "Допустимые типы: grub-only, syslinux-native, syslinux-grub"
 
-#: bin/sb2iso:461 bin/sb2iso:465
+#: bin/sb2iso:461 bin/sb2iso:465 bin/sb2iso:492
 msgid ""
 "If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
 msgstr ""
-"Если вы загрузили систему в RAM, используйте 'toram=full' в параметрах ядра."
-"Если вы загрузили систему в RAM, используйте 'toram=full' в параметрах ядра."
+"Если вы загрузили систему в RAM, используйте 'toram=full' в параметрах "
+"ядра.Если вы загрузили систему в RAM, используйте 'toram=full' в параметрах "
+"ядра."
 
-#: bin/sb2iso:484 bin/sb2iso:511
+#: bin/sb2iso:484 bin/sb2iso:511 bin/sb2iso:515
 msgid "Using multilingual menu"
 msgstr "Используется многоязычное меню"
 
-#: bin/sb2iso:492 bin/sb2iso:526
+#: bin/sb2iso:492 bin/sb2iso:526 bin/sb2iso:530
 msgid "Configuring localized menu for"
 msgstr "Настройка локализованного меню для"
 
-#: bin/sb2iso:497 bin/sb2iso:531
+#: bin/sb2iso:497 bin/sb2iso:531 bin/sb2iso:535
 msgid "Generated localized GRUB menu for"
 msgstr "Создано локализованное меню GRUB для"
 
-#: bin/sb2iso:501 bin/sb2iso:535
+#: bin/sb2iso:501 bin/sb2iso:535 bin/sb2iso:539
 msgid "Failed to generate localized GRUB config, falling back to English"
 msgstr ""
 "Не удалось создать локализованную конфигурацию GRUB, используется английский "
 "язык"
 
-#: bin/sb2iso:514 bin/sb2iso:548
+#: bin/sb2iso:514 bin/sb2iso:548 bin/sb2iso:552
 msgid "Using localized SYSLINUX configuration for"
 msgstr "Используется локализованная конфигурация SYSLINUX для"
 
-#: bin/sb2iso:518 bin/sb2iso:552
+#: bin/sb2iso:518 bin/sb2iso:552 bin/sb2iso:556
 msgid "Localized configuration not found for"
 msgstr "Локализованная конфигурация не найдена для"
 
-#: bin/sb2iso:518 bin/sb2iso:552
+#: bin/sb2iso:518 bin/sb2iso:552 bin/sb2iso:556
 msgid "using English"
 msgstr "используется английский"
 
-#: bin/sb2iso:540 bin/sb2iso:574
+#: bin/sb2iso:540 bin/sb2iso:574 bin/sb2iso:578
 msgid "Creating ISO work directory"
 msgstr "Создание рабочего каталога ISO"
 
-#: bin/sb2iso:544 bin/sb2iso:578
+#: bin/sb2iso:544 bin/sb2iso:578 bin/sb2iso:582
 msgid "Copying boot files (GRUB BIOS only)"
 msgstr "Копирование загрузочных файлов (только GRUB BIOS)"
 
-#: bin/sb2iso:547 bin/sb2iso:581
+#: bin/sb2iso:547 bin/sb2iso:581 bin/sb2iso:585
 msgid "Copying boot files (SYSLINUX native)"
 msgstr "Копирование загрузочных файлов (нативный SYSLINUX)"
 
-#: bin/sb2iso:550 bin/sb2iso:584
+#: bin/sb2iso:550 bin/sb2iso:584 bin/sb2iso:588
 msgid "Copying boot files (SYSLINUX + GRUB)"
 msgstr "Копирование загрузочных файлов (SYSLINUX + GRUB)"
 
-#: bin/sb2iso:554 bin/sb2iso:588
+#: bin/sb2iso:554 bin/sb2iso:588 bin/sb2iso:592
 msgid "Internal error: invalid bootloader type for boot files"
 msgstr "Внутренняя ошибка: недопустимый тип загрузчика для загрузочных файлов"
 
-#: bin/sb2iso:562 bin/sb2iso:596
+#: bin/sb2iso:562 bin/sb2iso:596 bin/sb2iso:620
 msgid "Creating temporary persistence image"
 msgstr "Создание временного образа постоянства"
 
-#: bin/sb2iso:563 bin/sb2iso:597
+#: bin/sb2iso:563 bin/sb2iso:597 bin/sb2iso:621
 msgid "Formatting persistence image"
 msgstr "Форматирование образа постоянства"
 
-#: bin/sb2iso:582 bin/sb2iso:616
+#: bin/sb2iso:582 bin/sb2iso:616 bin/sb2iso:640
 msgid "Internal error: invalid bootloader type for ISO parameters"
 msgstr "Внутренняя ошибка: недопустимый тип загрузчика для параметров ISO"
 
-#: bin/sb2iso:587 bin/sb2iso:621
+#: bin/sb2iso:587 bin/sb2iso:621 bin/sb2iso:645
 msgid "Generating ISO image"
 msgstr "Генерация ISO-образа"
 
@@ -315,7 +317,7 @@ msgstr "Генерация ISO-образа"
 msgid "Cleaning up temporary files"
 msgstr "Очистка временных файлов"
 
-#: bin/sb2iso:622 bin/sb2iso:656
+#: bin/sb2iso:622 bin/sb2iso:656 bin/sb2iso:673
 msgid "Failed to create ISO image"
 msgstr "Не удалось создать ISO-образ"
 
@@ -366,17 +368,19 @@ msgid ""
 "is required."
 msgstr ""
 "Если ИСХОДНЫЙ_КАТАЛОГ не имеет расширения .sb и не является 'squashfs-root', "
-"то сам каталог включается в модуль, и ЦЕЛЕВОЙ_ФАЙЛ является обязательным."
-"Если ИСХОДНЫЙ_КАТАЛОГ не имеет расширения .sb и не является 'squashfs-root', "
-"то сам каталог включается в модуль, и ЦЕЛЕВОЙ_ФАЙЛ является обязательным."
+"то сам каталог включается в модуль, и ЦЕЛЕВОЙ_ФАЙЛ является "
+"обязательным.Если ИСХОДНЫЙ_КАТАЛОГ не имеет расширения .sb и не является "
+"'squashfs-root', то сам каталог включается в модуль, и ЦЕЛЕВОЙ_ФАЙЛ является "
+"обязательным."
 
 #: bin/dir2sb:26
 msgid ""
 "If TARGET_FILE is not specified, SOURCE_DIRECTORY is replaced by the new "
 "module file."
 msgstr ""
-"Если ЦЕЛЕВОЙ_ФАЙЛ не указан, ИСХОДНЫЙ_КАТАЛОГ заменяется новым файлом модуля."
-"Если ЦЕЛЕВОЙ_ФАЙЛ не указан, ИСХОДНЫЙ_КАТАЛОГ заменяется новым файлом модуля."
+"Если ЦЕЛЕВОЙ_ФАЙЛ не указан, ИСХОДНЫЙ_КАТАЛОГ заменяется новым файлом "
+"модуля.Если ЦЕЛЕВОЙ_ФАЙЛ не указан, ИСХОДНЫЙ_КАТАЛОГ заменяется новым файлом "
+"модуля."
 
 #: bin/sb:26 bin/sb:31
 msgid "Manage MiniOS bundles."
@@ -419,6 +423,10 @@ msgstr "Преобразовать пакет .sb в каталог или на�
 msgid "Created Ventoy compatibility symlinks:"
 msgstr "Созданы символьные ссылки совместимости Ventoy:"
 
-#: bin/sb2iso:519
+#: bin/sb2iso:519 bin/sb2iso:523
 msgid "Using multilingual SYSLINUX configuration"
 msgstr "Используется многоязычная конфигурация SYSLINUX"
+
+#: bin/sb2iso:611
+msgid "Created Ventoy compatibility symlinks in ISO:"
+msgstr "Созданы символьные ссылки совместимости Ventoy:"
