@@ -1,0 +1,27 @@
+[Desktop Entry]
+Type=Application
+Exec=/usr/bin/minios-virtual-resolution
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name=MiniOS Virtual Resolution Change
+Name[en]=MiniOS Virtual Resolution Change
+Name[de]=MiniOS Virtuelle Auflösungsänderung
+Name[es]=Cambio de resolución virtual MiniOS
+Name[fr]=Changement de résolution virtuelle MiniOS
+Name[id]=Perubahan Resolusi Virtual MiniOS
+Name[it]=Cambio risoluzione virtuale MiniOS
+Name[pt_BR]=Alteração de resolução virtual MiniOS
+Name[pt]=Alteração de resolução virtual MiniOS
+Name[ru]=Изменение разрешения в виртуальной среде MiniOS
+Comment=Script for automatic resolution change in virtualization environment on XFCE startup
+Comment[en]=Script for automatic resolution change in virtualization environment on XFCE startup
+Comment[de]=Skript zur automatischen Änderung der Auflösung in einer Virtualisierungsumgebung beim Start von XFCE
+Comment[es]=Script para cambio automático de resolución en entorno de virtualización al inicio de XFCE
+Comment[fr]=Script pour le changement automatique de résolution dans un environnement de virtualisation au démarrage de XFCE
+Comment[id]=Skrip untuk perubahan resolusi otomatis di lingkungan virtualisasi saat startup XFCE
+Comment[it]=Script per il cambio automatico della risoluzione in un ambiente di virtualizzazione all'avvio di XFCE
+Comment[pt_BR]=Script para alteração automática de resolução em ambiente de virtualização no início do XFCE
+Comment[pt]=Script para alteração automática de resolução em ambiente de virtualização no início do XFCE
+Comment[ru]=Скрипт для автоматического изменения разрешения экрана в среде виртуализации при старте XFCE
+X-XFCE-Autostart-Override=true

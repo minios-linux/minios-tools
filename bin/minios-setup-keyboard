@@ -1,0 +1,107 @@
+#!/bin/sh
+
+## minios-setup-keyboard - Configure keyboard layout in desktop environment
+## This script applies keyboard layout settings to XFCE and Fluxbox/Openbox
+## based on system keyboard configuration from /etc/default/keyboard
+##
+## This script runs as user at desktop startup, after live-config component
+## 0150-keyboard-configuration has processed system-level configuration.
+
+#set -e
+
+Read_config() {
+    # Read keyboard configuration from /etc/default/keyboard
+    # This file is created by live-config component 0150-keyboard-configuration
+    if [ -r /etc/default/keyboard ]; then
+        . /etc/default/keyboard
+    fi
+}
+
+Init() {
+    # Marker file to ensure script runs only once per session
+    MARKER_FILE="${HOME}/.config/minios/keyboard-configured"
+
+    # Exit if already executed in this session
+    if [ -f "${MARKER_FILE}" ]; then
+        exit 0
+    fi
+
+    # If no keyboard layout configured, exit
+    if [ -z "${XKBLAYOUT}" ]; then
+        exit 0
+    fi
+
+    # Set default switch option if not specified
+    if [ -z "${XKBOPTIONS}" ]; then
+        XKBOPTIONS="grp:alt_shift_toggle"
+    fi
+}
+
+Config() {
+    # Detect and configure desktop environment
+    if [ -n "${XFCE4_SESSION}" ] || pgrep -x xfce4-session >/dev/null 2>&1; then
+        Config_xfce
+    elif pgrep -x fluxbox >/dev/null 2>&1 || pgrep -x openbox >/dev/null 2>&1; then
+        Config_flux
+    fi
+
+    # Apply keyboard layout using setxkbmap (universal for all WMs)
+    if command -v setxkbmap >/dev/null 2>&1; then
+        # Build setxkbmap command with all available options
+        _SETXKB_CMD="setxkbmap"
+        [ -n "${XKBMODEL}" ] && _SETXKB_CMD="${_SETXKB_CMD} -model ${XKBMODEL}"
+        [ -n "${XKBLAYOUT}" ] && _SETXKB_CMD="${_SETXKB_CMD} -layout ${XKBLAYOUT}"
+        [ -n "${XKBVARIANT}" ] && _SETXKB_CMD="${_SETXKB_CMD} -variant ${XKBVARIANT}"
+        [ -n "${XKBOPTIONS}" ] && _SETXKB_CMD="${_SETXKB_CMD} -option ${XKBOPTIONS}"
+        eval ${_SETXKB_CMD}
+    fi
+
+    # Create marker file to prevent future runs in this session
+    mkdir -p "${HOME}/.config/minios"
+    touch "${MARKER_FILE}"
+}
+
+Config_xfce() {
+    # Configure keyboard layout for XFCE desktop environment
+    if ! command -v xfconf-query >/dev/null 2>&1; then
+        return 0
+    fi
+
+    # Wait for xfconf to be ready (with timeout)
+    _TIMEOUT=10
+    while ! xfconf-query -c keyboard-layout -l >/dev/null 2>&1 && [ ${_TIMEOUT} -gt 0 ]; do
+        sleep 0.5
+        _TIMEOUT=$((_TIMEOUT - 1))
+    done
+
+    # Configure XFCE keyboard settings if xfconf is ready
+    if [ ${_TIMEOUT} -gt 0 ]; then
+        # Set keyboard model
+        [ -n "${XKBMODEL}" ] && xfconf-query -c keyboard-layout -p /Default/XkbModel -t string -s "${XKBMODEL}"
+
+        # Set keyboard layout(s)
+        xfconf-query -c keyboard-layout -p /Default/XkbLayout -t string -s "${XKBLAYOUT}"
+
+        # Set keyboard variant(s)
+        [ -n "${XKBVARIANT}" ] && xfconf-query -c keyboard-layout -p /Default/XkbVariant -t string -s "${XKBVARIANT}"
+
+        # Enable keyboard layout switching
+        xfconf-query -c keyboard-layout -p /Default/XkbDisable -t bool -s false
+
+        # Set keyboard layout switch combination
+        xfconf-query -c keyboard-layout -p /Default/XkbOptions/Group -t string -s "${XKBOPTIONS}"
+    fi
+}
+
+Config_flux() {
+    # Configure keyboard layout for Fluxbox/Openbox desktop environment
+    mkdir -p "${HOME}/.fluxbox" "${HOME}/.config/openbox"
+
+    # Save keyboard layout to configuration files
+    echo "${XKBLAYOUT}" >"${HOME}/.fluxbox/kblayout"
+    echo "${XKBLAYOUT}" >"${HOME}/.config/openbox/kblayout"
+}
+
+Read_config
+Init
+Config

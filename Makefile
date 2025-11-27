@@ -1,10 +1,12 @@
 # Variables
 EXECUTABLES = $(shell find bin -type f)
 COMPLETIONS = $(shell find completion -type f)
+AUTOSTART = $(shell find autostart -type f 2>/dev/null)
 
 BINDIR = usr/bin
 LOCALEDIR = usr/share/locale
 COMPLETIONSDIR = usr/share/bash-completion/completions
+AUTOSTARTDIR = etc/xdg/autostart
 
 DOC_FILES = $(shell find doc -name "*.md")
 MAN_FILES = $(patsubst doc/%.md, man/%.1, $(DOC_FILES))
@@ -46,6 +48,9 @@ install: build
 
 	install -d $(DESTDIR)/$(COMPLETIONSDIR)
 	install -m644 $(COMPLETIONS) $(DESTDIR)/$(COMPLETIONSDIR)
+
+	install -d $(DESTDIR)/$(AUTOSTARTDIR)
+	[ -n "$(AUTOSTART)" ] && install -m644 $(AUTOSTART) $(DESTDIR)/$(AUTOSTARTDIR) || true
 
 	for MO_FILE in $(MO_FILES); do \
 		LOCALE=$$(basename $$MO_FILE .mo); \

@@ -9,7 +9,9 @@ Homepage: https://minios.dev
 Package: minios-tools
 Architecture: all
 Depends: bash (>= 4.4), coreutils (>= 8.28), gettext-base (>= 0.19), grep (>= 3.1), sed (>= 4.4), mawk (>= 1.3), squashfs-tools (>= 4.3), util-linux (>= 2.31), ${misc:Depends}
+Recommends: x11-xserver-utils, xfce4-settings, procps
 Description: MiniOS Linux tools.
  MiniOS Tools is a set of utilities designed to make MiniOS work.
  They include utilities for booting the system as well as
- utilities for working with modules.
+ utilities for working with modules, keyboard configuration,
+ and virtual machine display management.
