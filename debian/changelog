@@ -1,3 +1,10 @@
+minios-tools (1.4.10) unstable; urgency=medium
+
+  * Add locale, timezone, and keyboard parameters to kernel command line in
+    GRUB config
+
+ -- crims0n <crims0n@minios.dev>  Sun, 07 Dec 2025 19:28:50 +0300
+
 minios-tools (1.4.9) unstable; urgency=medium
 
   * Add minios-setup-keyboard utility for desktop keyboard configuration
