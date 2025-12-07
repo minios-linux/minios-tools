@@ -1,0 +1,12 @@
+# Debian build artifacts
+debian/.debhelper/
+debian/debhelper-build-stamp
+debian/files
+debian/*.substvars
+debian/minios-tools/
+
+# Man pages (generated)
+man/
+
+# Compiled translation files
+po/*.mo
