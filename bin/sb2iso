@@ -589,7 +589,7 @@ en_US | ru_RU | de_DE | es_ES | it_IT | id_ID | pt_BR | pt_PT | fr_FR)
     if [[ "$BOOTLOADER_TYPE" == "syslinux-native" ]]; then
         # Use existing localized SYSLINUX configuration
         if [ -d "$MINIOS/boot/syslinux/lang" ]; then
-            local LOCALIZED_CFG="$MINIOS/boot/syslinux/lang/${MENU_TYPE}.cfg"
+            LOCALIZED_CFG="$MINIOS/boot/syslinux/lang/${MENU_TYPE}.cfg"
             if [ -f "$LOCALIZED_CFG" ]; then
                 information "$(gettext "Using localized SYSLINUX configuration for"): $MENU_TYPE"
                 # Replace main syslinux.cfg with localized version

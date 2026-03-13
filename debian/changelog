@@ -1,3 +1,10 @@
+minios-tools (1.4.11) unstable; urgency=medium
+
+  * Add cleanup function to savechanges to unmount temporary directory and handle errors in mksquashfs
+  * Fix variable declaration for localized SYSLINUX configuration in sb2iso
+
+ -- crims0n <crims0n@minios.dev>  Fri, 13 Mar 2026 20:56:17 +0300
+
 minios-tools (1.4.10) unstable; urgency=medium
 
   * Add locale, timezone, and keyboard parameters to kernel command line in
