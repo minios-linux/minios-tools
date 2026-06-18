@@ -1,3 +1,10 @@
+minios-tools (1.4.12) unstable; urgency=medium
+
+  * Improve translation coverage and update translations for all
+    languages
+
+ -- crims0n <crims0n@minios.dev>  Thu, 18 Jun 2026 14:17:38 +0300
+
 minios-tools (1.4.11) unstable; urgency=medium
 
   * Add cleanup function to savechanges to unmount temporary directory and handle errors in mksquashfs
