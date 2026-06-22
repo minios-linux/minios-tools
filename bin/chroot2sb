@@ -4,7 +4,7 @@ set -e          # exit on error
 set -o pipefail # exit on pipeline error
 set -u          # treat unset variable as error
 
-VERSION="1.0.2"
+VERSION="1.0.3"
 BEXT="sb"
 COMP_TYPE="zstd"
 FILTER_LEVEL=""
@@ -121,6 +121,20 @@ if [ "$(id -u)" != "0" ]; then
     brief_help
 fi
 
+CHROOT_BIN="$(command -v chroot)"
+if [ -z "$CHROOT_BIN" ]; then
+    for candidate in /usr/sbin/chroot /sbin/chroot; do
+        if [ -x "$candidate" ]; then
+            CHROOT_BIN="$candidate"
+            break
+        fi
+    done
+fi
+if [ -z "$CHROOT_BIN" ]; then
+    echo "chroot not found" >&2
+    exit 1
+fi
+
 if [ "$DIRECTORY" ] && { [ ! -d "$DIRECTORY" ] || [ -d "$DIRECTORY" ] && [ ! -r "$DIRECTORY" ]; }; then
     echo "The specified directory must exist and be readable."
     brief_help
@@ -209,7 +223,7 @@ fi
 
 echo "Entering chroot environment..."
 echo "When finished, enter 'exit' in chroot to create the module."
-if ! /usr/sbin/chroot "$UNION"; then
+if ! "$CHROOT_BIN" "$UNION"; then
     FAILED="true"
 else
     FAILED="false"

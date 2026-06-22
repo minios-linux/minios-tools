@@ -2,7 +2,7 @@
 # Author: Tomas M. <http://www.slax.org/>
 # Author: crims0n <https://minios.dev>
 
-VERSION="1.0"
+VERSION="1.0.1"
 BEXT="sb"
 COMP_TYPE="zstd"
 export TEXTDOMAIN="minios-tools"
@@ -108,6 +108,26 @@ cleanup() {
    fi
 }
 
+# squashfs-tools 4.3 (e.g. Ubuntu bionic) lacks -quiet and requires a lowercase block-size suffix.
+# squashfs-tools 4.7+ added -help-option; use it when available.
+# We use -quiet presence as a proxy for uppercase block-size support: 4.3 lacks both,
+# while 4.4+ provides both; an unusual build with only one trait is not expected.
+mksquashfs_supports_quiet() {
+   local help
+   help=$(mksquashfs -help-option quiet 2>&1 || true)
+   if echo "$help" | grep -qE '^-quiet'; then
+      return 0
+   fi
+   help=$(mksquashfs 2>&1 || true)
+   echo "$help" | grep -qE '^-quiet[[:space:]]'
+}
+
+if mksquashfs_supports_quiet; then
+   MKSQUASHFS_QUIET=1
+else
+   MKSQUASHFS_QUIET=0
+fi
+
 trap cleanup EXIT INT TERM
 
 cd "$CHANGES" || exit
@@ -131,7 +151,14 @@ else
    COMP_OPTS=""
 fi
 
-if ! mksquashfs "$TMP" "$TARGET" -comp "$COMP_TYPE" -b 1024K -always-use-fragments -noappend -quiet $COMP_OPTS; then
-   echo "Failed to create module: mksquashfs error (compression: $COMP_TYPE)." >&2
-   exit 1
+if [ "$MKSQUASHFS_QUIET" = 1 ]; then
+   if ! mksquashfs "$TMP" "$TARGET" -comp "$COMP_TYPE" -b 1024K -always-use-fragments -noappend -quiet $COMP_OPTS; then
+      echo "Failed to create module: mksquashfs error (compression: $COMP_TYPE)." >&2
+      exit 1
+   fi
+else
+   if ! mksquashfs "$TMP" "$TARGET" -comp "$COMP_TYPE" -b 1024k -always-use-fragments -noappend $COMP_OPTS >/dev/null 2>&1; then
+      echo "Failed to create module: mksquashfs error (compression: $COMP_TYPE)." >&2
+      exit 1
+   fi
 fi

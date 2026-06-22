@@ -4,7 +4,7 @@ set -e          # exit on error
 set -o pipefail # exit on pipeline error
 set -u          # treat unset variable as error
 
-VERSION="1.2.3"
+VERSION="1.2.4"
 BEXT="sb"
 COMP_TYPE="zstd"
 FILTER_LEVEL=""
@@ -132,6 +132,20 @@ if [ "$(id -u)" != "0" ]; then
     brief_help
 fi
 
+CHROOT_BIN="$(command -v chroot)"
+if [ -z "$CHROOT_BIN" ]; then
+    for candidate in /usr/sbin/chroot /sbin/chroot; do
+        if [ -x "$candidate" ]; then
+            CHROOT_BIN="$candidate"
+            break
+        fi
+    done
+fi
+if [ -z "$CHROOT_BIN" ]; then
+    echo "chroot not found" >&2
+    exit 1
+fi
+
 if [ ! -f "$INSTALL_SCRIPT" ]; then
     echo "Error: there is no script at $INSTALL_SCRIPT."
     brief_help
@@ -226,7 +240,7 @@ else
     mount --bind "/etc/resolv.conf" "$UNION/etc/resolv.conf"
 fi
 
-if ! /usr/sbin/chroot "$UNION" /install; then
+if ! "$CHROOT_BIN" "$UNION" /install; then
     FAILED="true"
 else
     FAILED="false"

@@ -2,7 +2,7 @@
 # Author: Tomas M. <http://www.slax.org/>
 # Author: crims0n <https://minios.dev>
 
-VERSION="1.0"
+VERSION="1.0.1"
 BEXT="sb"
 COMP_TYPE="zstd"
 export TEXTDOMAIN="minios-tools"
@@ -124,12 +124,41 @@ else
     fi
 fi
 
-MKSQUASHFS_CMD="mksquashfs $P1 $TARGET -comp $COMP_TYPE -b 1024K -always-use-fragments -quiet $COMP_OPTS"
+# squashfs-tools 4.3 (e.g. Ubuntu bionic) lacks -quiet and requires a lowercase block-size suffix.
+# squashfs-tools 4.7+ added -help-option; use it when available.
+# We use -quiet presence as a proxy for uppercase block-size support: 4.3 lacks both,
+# while 4.4+ provides both; an unusual build with only one trait is not expected.
+mksquashfs_supports_quiet() {
+   local help
+   help=$(mksquashfs -help-option quiet 2>&1 || true)
+   if echo "$help" | grep -qE '^-quiet'; then
+      return 0
+   fi
+   help=$(mksquashfs 2>&1 || true)
+   echo "$help" | grep -qE '^-quiet[[:space:]]'
+}
+
+if mksquashfs_supports_quiet; then
+   MKSQUASHFS_QUIET=1
+else
+   MKSQUASHFS_QUIET=0
+fi
+
+MKSQUASHFS_BASE="mksquashfs $P1 $TARGET -comp $COMP_TYPE -always-use-fragments"
+if [ "$MKSQUASHFS_QUIET" = 1 ]; then
+   MKSQUASHFS_CMD="$MKSQUASHFS_BASE -b 1024K -quiet $COMP_OPTS"
+else
+   MKSQUASHFS_CMD="$MKSQUASHFS_BASE -b 1024k $COMP_OPTS"
+fi
 if [ "$KEEP" = "-keep-as-directory" ]; then
     MKSQUASHFS_CMD="$MKSQUASHFS_CMD -keep-as-directory"
 fi
 
-$MKSQUASHFS_CMD || exit 5
+if [ "$MKSQUASHFS_QUIET" = 1 ]; then
+   $MKSQUASHFS_CMD || exit 5
+else
+   $MKSQUASHFS_CMD >/dev/null 2>&1 || exit 5
+fi
 
 if [ "$P2" = "" ]; then
     umount "$P1" 2>/dev/null
