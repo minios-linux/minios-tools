@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.4.2\n"
 "Report-Msgid-Bugs-To: support@minios.dev\n"
-"POT-Creation-Date: 2026-06-18 14:17+0300\n"
+"POT-Creation-Date: 2026-06-28 11:36+0300\n"
 "PO-Revision-Date: 2025-08-11 09:37+0300\n"
 "Last-Translator: crims0n <crims0n@minios.dev>\n"
 "Language-Team: none\n"
@@ -86,8 +86,7 @@ msgstr "Autoriser les rétrogradations de paquets"
 
 #: bin/apt2sb:38
 msgid "Consider recommended packages as a dependency for installing"
-msgstr ""
-"Considérer les paquets recommandés comme une dépendance à l'installation"
+msgstr "Considérer les paquets recommandés comme une dépendance à l'installation"
 
 #: bin/apt2sb:39
 msgid "Consider suggested packages as a dependency for installing"
@@ -95,14 +94,11 @@ msgstr "Considérer les paquets suggérés comme une dépendance à l'installati
 
 #: bin/apt2sb:40
 msgid "Do not consider recommended packages as a dependency for installing"
-msgstr ""
-"Ne pas considérer les paquets recommandés comme une dépendance à "
-"l'installation"
+msgstr "Ne pas considérer les paquets recommandés comme une dépendance à l'installation"
 
 #: bin/apt2sb:41
 msgid "Do not consider suggested packages as a dependency for installing"
-msgstr ""
-"Ne pas considérer les paquets suggérés comme une dépendance à l'installation"
+msgstr "Ne pas considérer les paquets suggérés comme une dépendance à l'installation"
 
 #: bin/apt2sb:42
 msgid "Default release to install packages from"
@@ -124,9 +120,7 @@ msgstr "pour plus d'informations."
 
 #: bin/chroot2sb:20 bin/script2sb:21
 msgid "Packages a module from changes made by an installation script"
-msgstr ""
-"Emballe un module à partir des modifications effectuées par un script "
-"d'installation"
+msgstr "Emballe un module à partir des modifications effectuées par un script d'installation"
 
 #: bin/chroot2sb:23 bin/script2sb:26
 msgid "Copy contents of DIR to the root of the module"
@@ -157,22 +151,12 @@ msgid "Behavior"
 msgstr "Comportement"
 
 #: bin/dir2sb:25
-msgid ""
-"If SOURCE_DIRECTORY does not have a .sb extension and is not 'squashfs-"
-"root', then the directory itself is included in the module, and TARGET_FILE "
-"is required."
-msgstr ""
-"Si REPERTOIRE_SOURCE n'a pas d'extension .sb et n'est pas 'squashfs-root', "
-"alors le répertoire lui-même est inclus dans le module, et FICHIER_CIBLE est "
-"requis."
+msgid "If SOURCE_DIRECTORY does not have a .sb extension and is not 'squashfs-root', then the directory itself is included in the module, and TARGET_FILE is required."
+msgstr "Si REPERTOIRE_SOURCE n'a pas d'extension .sb et n'est pas 'squashfs-root', alors le répertoire lui-même est inclus dans le module, et FICHIER_CIBLE est requis."
 
 #: bin/dir2sb:26
-msgid ""
-"If TARGET_FILE is not specified, SOURCE_DIRECTORY is replaced by the new "
-"module file."
-msgstr ""
-"Si FICHIER_CIBLE n'est pas spécifié, REPERTOIRE_SOURCE est remplacé par le "
-"nouveau fichier module."
+msgid "If TARGET_FILE is not specified, SOURCE_DIRECTORY is replaced by the new module file."
+msgstr "Si FICHIER_CIBLE n'est pas spécifié, REPERTOIRE_SOURCE est remplacé par le nouveau fichier module."
 
 #: bin/rmsbdir:8
 msgid "Erase module directory created by sb2dir"
@@ -192,9 +176,7 @@ msgstr "Répertoire du module supprimé :"
 
 #: bin/savechanges:23
 msgid "Saves all changed files in a compressed filesystem bundle."
-msgstr ""
-"Sauvegarde tous les fichiers modifiés dans un paquet de système de fichiers "
-"compressé."
+msgstr "Sauvegarde tous les fichiers modifiés dans un paquet de système de fichiers compressé."
 
 #: bin/savechanges:31
 msgid "If changes_directory is not specified, the default changes"
@@ -209,12 +191,8 @@ msgid "Manage MiniOS bundles."
 msgstr "Gérer les paquets MiniOS."
 
 #: bin/sb:32 bin/sb:60
-msgid ""
-"To run some of the commands in this script, your Linux kernel must support "
-"AUFS."
-msgstr ""
-"Pour exécuter certaines des commandes de ce script, votre noyau Linux doit "
-"prendre en charge AUFS."
+msgid "To run some of the commands in this script, your Linux kernel must support AUFS."
+msgstr "Pour exécuter certaines des commandes de ce script, votre noyau Linux doit prendre en charge AUFS."
 
 #: bin/sb:35
 msgid "Activate a MiniOS bundle"
@@ -250,8 +228,7 @@ msgstr "Si le répertoire_de_sortie est spécifié, il doit exister"
 
 #: bin/sb2dir:11
 msgid "If the output_directory is not specified, the name source_file.sb"
-msgstr ""
-"Si le répertoire_de_sortie n'est pas spécifié, le nom fichier_source.sb"
+msgstr "Si le répertoire_de_sortie n'est pas spécifié, le nom fichier_source.sb"
 
 #: bin/sb2dir:12
 msgid "is used and the directory is overmounted with tmpfs"
@@ -315,9 +292,7 @@ msgstr "Modèle grub.template.cfg introuvable"
 
 #: bin/sb2iso:482
 msgid "Cannot find MiniOS source directory with boot files"
-msgstr ""
-"Impossible de trouver le répertoire source MiniOS avec les fichiers de "
-"démarrage"
+msgstr "Impossible de trouver le répertoire source MiniOS avec les fichiers de démarrage"
 
 #: bin/sb2iso:488
 msgid "Detected bootloader type"
@@ -332,11 +307,8 @@ msgid "Valid types: grub-only, syslinux-native, syslinux-grub"
 msgstr "Types valides : grub-only, syslinux-native, syslinux-grub"
 
 #: bin/sb2iso:534
-msgid ""
-"If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
-msgstr ""
-"Si vous avez chargé le système en RAM, utilisez 'toram=full' dans les "
-"paramètres du noyau."
+msgid "If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
+msgstr "Si vous avez chargé le système en RAM, utilisez 'toram=full' dans les paramètres du noyau."
 
 #: bin/sb2iso:557
 msgid "Using multilingual menu"
@@ -356,8 +328,7 @@ msgstr "Menu GRUB localisé généré pour"
 
 #: bin/sb2iso:581
 msgid "Failed to generate localized GRUB config, falling back to English"
-msgstr ""
-"Échec de la génération de la configuration GRUB localisée, retour à l'anglais"
+msgstr "Échec de la génération de la configuration GRUB localisée, retour à l'anglais"
 
 #: bin/sb2iso:594
 msgid "Using localized SYSLINUX configuration for"
@@ -389,9 +360,7 @@ msgstr "Copie des fichiers de démarrage (SYSLINUX + GRUB)"
 
 #: bin/sb2iso:634
 msgid "Internal error: invalid bootloader type for boot files"
-msgstr ""
-"Erreur interne : type de chargeur d'amorçage invalide pour les fichiers de "
-"démarrage"
+msgstr "Erreur interne : type de chargeur d'amorçage invalide pour les fichiers de démarrage"
 
 #: bin/sb2iso:653
 msgid "Created Ventoy compatibility symlinks in ISO:"
@@ -407,8 +376,7 @@ msgstr "Formatage de l'image de persistance"
 
 #: bin/sb2iso:682
 msgid "Internal error: invalid bootloader type for ISO parameters"
-msgstr ""
-"Erreur interne : type de chargeur d'amorçage invalide pour les paramètres ISO"
+msgstr "Erreur interne : type de chargeur d'amorçage invalide pour les paramètres ISO"
 
 #: bin/sb2iso:687
 msgid "Generating ISO image"
@@ -423,22 +391,21 @@ msgid "Use FILE as the installation script"
 msgstr "Utiliser FICHIER comme script d'installation"
 
 #: autostart/minios-setup-keyboard.desktop:7
+#: debian/minios-tools/etc/xdg/autostart/minios-setup-keyboard.desktop:7
 msgid "MiniOS Keyboard Setup"
 msgstr "Configuration du clavier MiniOS"
 
 #: autostart/minios-setup-keyboard.desktop:17
+#: debian/minios-tools/etc/xdg/autostart/minios-setup-keyboard.desktop:17
 msgid "Configure keyboard layout from boot parameters"
-msgstr ""
-"Configure la disposition du clavier à partir des paramètres de démarrage"
+msgstr "Configure la disposition du clavier à partir des paramètres de démarrage"
 
 #: autostart/minios-virtual-resolution.desktop:7
+#: debian/minios-tools/etc/xdg/autostart/minios-virtual-resolution.desktop:7
 msgid "MiniOS Virtual Resolution Change"
 msgstr "Changement de résolution virtuelle MiniOS"
 
 #: autostart/minios-virtual-resolution.desktop:17
-msgid ""
-"Script for automatic resolution change in virtualization environment on XFCE "
-"startup"
-msgstr ""
-"Script pour le changement automatique de résolution dans un environnement de "
-"virtualisation au démarrage de XFCE"
+#: debian/minios-tools/etc/xdg/autostart/minios-virtual-resolution.desktop:17
+msgid "Script for automatic resolution change in virtualization environment on XFCE startup"
+msgstr "Script pour le changement automatique de résolution dans un environnement de virtualisation au démarrage de XFCE"

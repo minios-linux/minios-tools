@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.4.2\n"
 "Report-Msgid-Bugs-To: support@minios.dev\n"
-"POT-Creation-Date: 2026-06-18 14:17+0300\n"
+"POT-Creation-Date: 2026-06-28 11:36+0300\n"
 "PO-Revision-Date: 2025-08-11 09:37+0300\n"
 "Last-Translator: crims0n <crims0n@minios.dev>\n"
 "Language-Team: none\n"
@@ -121,8 +121,7 @@ msgstr "para mais informações."
 
 #: bin/chroot2sb:20 bin/script2sb:21
 msgid "Packages a module from changes made by an installation script"
-msgstr ""
-"Empacota um módulo a partir de alterações feitas por um script de instalação"
+msgstr "Empacota um módulo a partir de alterações feitas por um script de instalação"
 
 #: bin/chroot2sb:23 bin/script2sb:26
 msgid "Copy contents of DIR to the root of the module"
@@ -153,22 +152,12 @@ msgid "Behavior"
 msgstr "Comportamento"
 
 #: bin/dir2sb:25
-msgid ""
-"If SOURCE_DIRECTORY does not have a .sb extension and is not 'squashfs-"
-"root', then the directory itself is included in the module, and TARGET_FILE "
-"is required."
-msgstr ""
-"Se DIRETÓRIO_DE_ORIGEM não tiver uma extensão .sb e não for 'squashfs-root', "
-"então o próprio diretório será incluído no módulo, e ARQUIVO_DE_DESTINO será "
-"exigido."
+msgid "If SOURCE_DIRECTORY does not have a .sb extension and is not 'squashfs-root', then the directory itself is included in the module, and TARGET_FILE is required."
+msgstr "Se DIRETÓRIO_DE_ORIGEM não tiver uma extensão .sb e não for 'squashfs-root', então o próprio diretório será incluído no módulo, e ARQUIVO_DE_DESTINO será exigido."
 
 #: bin/dir2sb:26
-msgid ""
-"If TARGET_FILE is not specified, SOURCE_DIRECTORY is replaced by the new "
-"module file."
-msgstr ""
-"Se ARQUIVO_DE_DESTINO não for especificado, DIRETÓRIO_DE_ORIGEM será "
-"substituído pelo novo arquivo do módulo."
+msgid "If TARGET_FILE is not specified, SOURCE_DIRECTORY is replaced by the new module file."
+msgstr "Se ARQUIVO_DE_DESTINO não for especificado, DIRETÓRIO_DE_ORIGEM será substituído pelo novo arquivo do módulo."
 
 #: bin/rmsbdir:8
 msgid "Erase module directory created by sb2dir"
@@ -188,9 +177,7 @@ msgstr "Diretório do módulo excluído:"
 
 #: bin/savechanges:23
 msgid "Saves all changed files in a compressed filesystem bundle."
-msgstr ""
-"Salva todos os arquivos alterados em um pacote de sistema de arquivos "
-"compactado."
+msgstr "Salva todos os arquivos alterados em um pacote de sistema de arquivos compactado."
 
 #: bin/savechanges:31
 msgid "If changes_directory is not specified, the default changes"
@@ -205,12 +192,8 @@ msgid "Manage MiniOS bundles."
 msgstr "Gerenciar pacotes MiniOS."
 
 #: bin/sb:32 bin/sb:60
-msgid ""
-"To run some of the commands in this script, your Linux kernel must support "
-"AUFS."
-msgstr ""
-"Para executar alguns dos comandos neste script, seu kernel Linux deve "
-"suportar AUFS."
+msgid "To run some of the commands in this script, your Linux kernel must support AUFS."
+msgstr "Para executar alguns dos comandos neste script, seu kernel Linux deve suportar AUFS."
 
 #: bin/sb:35
 msgid "Activate a MiniOS bundle"
@@ -310,8 +293,7 @@ msgstr "Modelo grub.template.cfg não encontrado"
 
 #: bin/sb2iso:482
 msgid "Cannot find MiniOS source directory with boot files"
-msgstr ""
-"Não foi possível encontrar o diretório fonte do MiniOS com arquivos de boot"
+msgstr "Não foi possível encontrar o diretório fonte do MiniOS com arquivos de boot"
 
 #: bin/sb2iso:488
 msgid "Detected bootloader type"
@@ -326,10 +308,8 @@ msgid "Valid types: grub-only, syslinux-native, syslinux-grub"
 msgstr "Tipos válidos: apenas grub, syslinux nativo, syslinux-grub"
 
 #: bin/sb2iso:534
-msgid ""
-"If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
-msgstr ""
-"Se você carregou o sistema na RAM, use 'toram=full' nos parâmetros do kernel."
+msgid "If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
+msgstr "Se você carregou o sistema na RAM, use 'toram=full' nos parâmetros do kernel."
 
 #: bin/sb2iso:557
 msgid "Using multilingual menu"
@@ -412,21 +392,21 @@ msgid "Use FILE as the installation script"
 msgstr "Usar ARQUIVO como script de instalação"
 
 #: autostart/minios-setup-keyboard.desktop:7
+#: debian/minios-tools/etc/xdg/autostart/minios-setup-keyboard.desktop:7
 msgid "MiniOS Keyboard Setup"
 msgstr "Configuração de teclado MiniOS"
 
 #: autostart/minios-setup-keyboard.desktop:17
+#: debian/minios-tools/etc/xdg/autostart/minios-setup-keyboard.desktop:17
 msgid "Configure keyboard layout from boot parameters"
 msgstr "Configura o layout do teclado a partir dos parâmetros de inicialização"
 
 #: autostart/minios-virtual-resolution.desktop:7
+#: debian/minios-tools/etc/xdg/autostart/minios-virtual-resolution.desktop:7
 msgid "MiniOS Virtual Resolution Change"
 msgstr "Alteração de resolução virtual MiniOS"
 
 #: autostart/minios-virtual-resolution.desktop:17
-msgid ""
-"Script for automatic resolution change in virtualization environment on XFCE "
-"startup"
-msgstr ""
-"Script para alteração automática de resolução em ambiente de virtualização "
-"no início do XFCE"
+#: debian/minios-tools/etc/xdg/autostart/minios-virtual-resolution.desktop:17
+msgid "Script for automatic resolution change in virtualization environment on XFCE startup"
+msgstr "Script para alteração automática de resolução em ambiente de virtualização no início do XFCE"

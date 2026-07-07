@@ -1,4 +1,10 @@
-minios-tools (1.4.13) UNRELEASED; urgency=medium
+minios-tools (1.4.13.1) unstable; urgency=medium
+
+  * Removed junk from translation files
+
+ -- crims0n <crims0n@minios.dev>  Tue, 07 Jul 2026 17:05:56 +0300
+
+minios-tools (1.4.13) unstable; urgency=medium
 
   * Resolve chroot from PATH with fallback to /usr/sbin/chroot and
     /sbin/chroot in apt2sb, chroot2sb, and script2sb

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.4.2\n"
 "Report-Msgid-Bugs-To: support@minios.dev\n"
-"POT-Creation-Date: 2026-06-18 14:17+0300\n"
+"POT-Creation-Date: 2026-06-28 11:36+0300\n"
 "PO-Revision-Date: 2025-08-11 09:37+0300\n"
 "Last-Translator: crims0n <crims0n@minios.dev>\n"
 "Language-Team: none\n"
@@ -15,8 +15,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #: bin/apt2sb:20 bin/apt2sb:53 bin/chroot2sb:19 bin/chroot2sb:39 bin/dir2sb:11
 #: bin/dir2sb:31 bin/rmsbdir:9 bin/savechanges:22 bin/savechanges:38 bin/sb:30
@@ -152,25 +151,12 @@ msgid "Behavior"
 msgstr "Поведение"
 
 #: bin/dir2sb:25
-msgid ""
-"If SOURCE_DIRECTORY does not have a .sb extension and is not 'squashfs-"
-"root', then the directory itself is included in the module, and TARGET_FILE "
-"is required."
-msgstr ""
-"Если ИСХОДНЫЙ_КАТАЛОГ не имеет расширения .sb и не является 'squashfs-root', "
-"то сам каталог включается в модуль, и ЦЕЛЕВОЙ_ФАЙЛ является "
-"обязательным.Если ИСХОДНЫЙ_КАТАЛОГ не имеет расширения .sb и не является "
-"'squashfs-root', то сам каталог включается в модуль, и ЦЕЛЕВОЙ_ФАЙЛ является "
-"обязательным."
+msgid "If SOURCE_DIRECTORY does not have a .sb extension and is not 'squashfs-root', then the directory itself is included in the module, and TARGET_FILE is required."
+msgstr "Если ИСХОДНЫЙ_КАТАЛОГ не имеет расширения .sb и не является 'squashfs-root', то сам каталог включается в модуль, и ЦЕЛЕВОЙ_ФАЙЛ является обязательным.Если ИСХОДНЫЙ_КАТАЛОГ не имеет расширения .sb и не является 'squashfs-root', то сам каталог включается в модуль, и ЦЕЛЕВОЙ_ФАЙЛ является обязательным."
 
 #: bin/dir2sb:26
-msgid ""
-"If TARGET_FILE is not specified, SOURCE_DIRECTORY is replaced by the new "
-"module file."
-msgstr ""
-"Если ЦЕЛЕВОЙ_ФАЙЛ не указан, ИСХОДНЫЙ_КАТАЛОГ заменяется новым файлом "
-"модуля.Если ЦЕЛЕВОЙ_ФАЙЛ не указан, ИСХОДНЫЙ_КАТАЛОГ заменяется новым файлом "
-"модуля."
+msgid "If TARGET_FILE is not specified, SOURCE_DIRECTORY is replaced by the new module file."
+msgstr "Если ЦЕЛЕВОЙ_ФАЙЛ не указан, ИСХОДНЫЙ_КАТАЛОГ заменяется новым файлом модуля.Если ЦЕЛЕВОЙ_ФАЙЛ не указан, ИСХОДНЫЙ_КАТАЛОГ заменяется новым файлом модуля."
 
 #: bin/rmsbdir:8
 msgid "Erase module directory created by sb2dir"
@@ -194,8 +180,7 @@ msgstr "Сохраняет все измененные файлы в сжаты�
 
 #: bin/savechanges:31
 msgid "If changes_directory is not specified, the default changes"
-msgstr ""
-"Если changes_directory не указан, используется каталог изменений по умолчанию"
+msgstr "Если changes_directory не указан, используется каталог изменений по умолчанию"
 
 #: bin/savechanges:32
 msgid "directory from the current initramfs is used."
@@ -206,13 +191,8 @@ msgid "Manage MiniOS bundles."
 msgstr "Управление пакетами MiniOS."
 
 #: bin/sb:32 bin/sb:60
-msgid ""
-"To run some of the commands in this script, your Linux kernel must support "
-"AUFS."
-msgstr ""
-"Для выполнения некоторых команд в этом скрипте ваше ядро Linux должно "
-"поддерживать AUFS.Для выполнения некоторых команд в этом скрипте ваше ядро "
-"Linux должно поддерживать AUFS."
+msgid "To run some of the commands in this script, your Linux kernel must support AUFS."
+msgstr "Для выполнения некоторых команд в этом скрипте ваше ядро Linux должно поддерживать AUFS.Для выполнения некоторых команд в этом скрипте ваше ядро Linux должно поддерживать AUFS."
 
 #: bin/sb:35
 msgid "Activate a MiniOS bundle"
@@ -327,12 +307,8 @@ msgid "Valid types: grub-only, syslinux-native, syslinux-grub"
 msgstr "Допустимые типы: grub-only, syslinux-native, syslinux-grub"
 
 #: bin/sb2iso:534
-msgid ""
-"If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
-msgstr ""
-"Если вы загрузили систему в RAM, используйте 'toram=full' в параметрах "
-"ядра.Если вы загрузили систему в RAM, используйте 'toram=full' в параметрах "
-"ядра."
+msgid "If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
+msgstr "Если вы загрузили систему в RAM, используйте 'toram=full' в параметрах ядра.Если вы загрузили систему в RAM, используйте 'toram=full' в параметрах ядра."
 
 #: bin/sb2iso:557
 msgid "Using multilingual menu"
@@ -352,9 +328,7 @@ msgstr "Создано локализованное меню GRUB для"
 
 #: bin/sb2iso:581
 msgid "Failed to generate localized GRUB config, falling back to English"
-msgstr ""
-"Не удалось создать локализованную конфигурацию GRUB, используется английский "
-"язык"
+msgstr "Не удалось создать локализованную конфигурацию GRUB, используется английский язык"
 
 #: bin/sb2iso:594
 msgid "Using localized SYSLINUX configuration for"
@@ -429,9 +403,5 @@ msgid "MiniOS Virtual Resolution Change"
 msgstr "Изменение разрешения в виртуальной среде MiniOS"
 
 #: autostart/minios-virtual-resolution.desktop:17
-msgid ""
-"Script for automatic resolution change in virtualization environment on XFCE "
-"startup"
-msgstr ""
-"Скрипт для автоматического изменения разрешения экрана в среде виртуализации "
-"при старте XFCE"
+msgid "Script for automatic resolution change in virtualization environment on XFCE startup"
+msgstr "Скрипт для автоматического изменения разрешения экрана в среде виртуализации при старте XFCE"
