@@ -8,7 +8,7 @@ if [ "$1" != "help" ] && [ "$1" != "version" ]; then
     . /etc/live/config.conf
 fi
 
-VERSION="1.0.2"
+VERSION="1.0.3"
 # Force classic mount(2) syscall to work around an overlayfs bug in util-linux >= 2.39.0
 export LIBMOUNT_FORCE_MOUNT2="always"
 export TEXTDOMAIN="minios-tools"
@@ -75,21 +75,76 @@ die() {
     exit 1
 }
 
-print_branches() {
-    local SI BUNDLE LOOP CWD
+# Print the loop-mount details of a single bundle mountpoint.
+# $1 = bundle mountpoint (e.g. $BUNDLES/00-core-amd64.sb)
+# Output: "<mountpoint>\t<backing file>" (nothing if not a squashfs mount)
+#
+print_branch_entry() {
+    local TGT="$1" LOOP
 
-    SI="/sys/fs/aufs/$(cat /proc/mounts | grep 'aufs / aufs' | egrep -o 'si=([^,) ]+)' | tr = _)"
-    CWD="$(pwd)"
-    cd "$SI"
-    ls -v1 | grep -v xi_path | egrep 'br[0-9]+' | xargs cat | grep memory/bundles | rev | cut -b 4- | rev | while read BUNDLE; do
-        if mountpoint -q "$BUNDLE"; then
-            LOOP=$(cat /proc/mounts | fgrep " $BUNDLE squashfs" | cut -d " " -f 1)
-            echo -n "$BUNDLE"
-            echo -ne "\t"
-            losetup $LOOP | sed -r "s:.*[(]|[)].*::g"
+    if mountpoint -q "$TGT" 2>/dev/null; then
+        LOOP="$(fgrep " $TGT squashfs" /proc/mounts | cut -d ' ' -f 1)"
+        [ -n "$LOOP" ] || return
+        echo -n "$TGT"
+        echo -ne "\t"
+        losetup "$LOOP" | sed -r "s:.*[(]|[)].*::g"
+    fi
+}
+
+# List active MiniOS bundles as "<mountpoint>\t<backing file>" lines, ordered
+# from the lowest-priority branch to the highest. Works with both AUFS unions
+# (branches are read from /sys/fs/aufs) and OverlayFS unions (branches are read
+# from the root overlay's lowerdir list).
+#
+print_branches() {
+    local SI BUNDLE LOOP CWD OPTS LOWER BAS
+
+    # AUFS union: enumerate branches through /sys/fs/aufs.
+    if [ -d /sys/fs/aufs ] && grep -q 'aufs / aufs' /proc/mounts; then
+        SI="/sys/fs/aufs/$(cat /proc/mounts | grep 'aufs / aufs' | egrep -o 'si=([^,) ]+)' | tr = _)"
+        if [ -d "$SI" ]; then
+            CWD="$(pwd)"
+            cd "$SI"
+            ls -v1 | grep -v xi_path | egrep 'br[0-9]+' | xargs cat | grep memory/bundles | rev | cut -b 4- | rev | while read BUNDLE; do
+                if mountpoint -q "$BUNDLE"; then
+                    LOOP=$(cat /proc/mounts | fgrep " $BUNDLE squashfs" | cut -d " " -f 1)
+                    echo -n "$BUNDLE"
+                    echo -ne "\t"
+                    losetup $LOOP | sed -r "s:.*[(]|[)].*::g"
+                fi
+            done | tac
+            cd "$CWD"
+            return
         fi
-    done | tac
-    cd "$CWD"
+    fi
+
+    # OverlayFS union: enumerate branches from the root overlay's lowerdir list.
+    OPTS="$(awk '$2 == "/" && $3 == "overlay" { print $4; exit }' /proc/mounts)"
+    if [ -n "$OPTS" ]; then
+        # The lowerdir value has no embedded commas (its dirs are ':'-separated),
+        # so splitting the options on commas isolates it cleanly.
+        LOWER="$(echo "$OPTS" | tr ',' '\n' | grep '^lowerdir=' | head -n 1 | cut -d '=' -f 2-)"
+        if [ -n "$LOWER" ]; then
+            # OverlayFS lists lowerdirs from highest to lowest priority; reverse
+            # them so the output order matches the AUFS branch listing.
+            echo "$LOWER" | tr ':' '\n' | tac | while read BUNDLE; do
+                [ -n "$BUNDLE" ] || continue
+                # The recorded lowerdir path may point at a pre-pivot location
+                # (e.g. /memory/...) that no longer exists, so resolve the bundle
+                # by name under the current $BUNDLES mountpoint directory.
+                BAS="$(basename "$BUNDLE")"
+                print_branch_entry "$BUNDLES/$BAS"
+            done
+            return
+        fi
+    fi
+
+    # Fallback: enumerate squashfs bundles mounted directly under $BUNDLES.
+    if [ -n "$BUNDLES" ]; then
+        grep ' squashfs ' /proc/mounts | cut -d ' ' -f 2 | grep -F "$BUNDLES/" | sort | while read BUNDLE; do
+            print_branch_entry "$BUNDLE"
+        done
+    fi
 }
 
 # Activate MiniOS Bundle

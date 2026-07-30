@@ -2,7 +2,7 @@
 # Author of the idea: Tomas M. <http://www.linux-live.org>
 # Author: crims0n <https://minios.dev>
 
-VERSION="1.8"
+VERSION="1.8.1"
 SYSTEMNAME="MiniOS"
 export TEXTDOMAIN="minios-tools"
 TEMP=/tmp/minios.iso.$$
@@ -650,6 +650,9 @@ if [ -d "$MINIOS/boot" ]; then
         ln -sf "$VERSIONED_INITRFS" "initrfs.img"
         cd - >/dev/null
 
+        GRAFT+=$'\n'"minios/boot/vmlinuz=$TEMP/minios/boot/vmlinuz"
+        GRAFT+=$'\n'"minios/boot/initrfs.img=$TEMP/minios/boot/initrfs.img"
+
         information "$(gettext "Created Ventoy compatibility symlinks in ISO:")"
         information "  vmlinuz -> $VERSIONED_VMLINUZ"
         information "  initrfs.img -> $VERSIONED_INITRFS"
@@ -659,8 +662,8 @@ fi
 cd "$TEMP" || exit 4
 
 PERCHIMG=$(mktemp --suffix=.img)
-run_with_spinner "$(gettext "Creating temporary persistence image")" dd if=/dev/zero of="$PERCHIMG" bs=1M count=1
-run_with_spinner "$(gettext "Formatting persistence image")" mkfs.ext2 -L persistence "$PERCHIMG"
+run_with_spinner "$(gettext "Creating temporary persistence image")" dd if=/dev/zero of="$PERCHIMG" bs=1 count=0 seek=128k
+run_with_spinner "$(gettext "Formatting persistence image")" mkfs.ext2 -b 1024 -L resizeme "$PERCHIMG"
 # Set bootloader-specific parameters based on detected type
 case "$BOOTLOADER_TYPE" in
 "grub-only")
