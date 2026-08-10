@@ -1,51 +1,49 @@
+# shellcheck shell=bash disable=SC2034
 _dir2sb() {
     local cur prev words cword
-    _init_completion || return
+    local word option
+    _init_completion -n = || return
 
-    if [[ ${words[@]} =~ --help ]] || [[ ${words[@]} =~ --version ]]; then
-        return
-    fi
+    for word in "${words[@]}"; do
+        [[ $word != --help && $word != --version ]] || return
+    done
 
     case $prev in
-    -b | --bext)
-        # Bundle extension completion
-        COMPREPLY=($(compgen -W 'sb sqfs' -- "$cur"))
+    -c | --comp)
+        mapfile -t COMPREPLY < <(compgen -W 'zstd gzip lzo lz4 xz' -- "$cur")
         return
         ;;
-    -c | --comp)
-        # Compression type completion
-        COMPREPLY=($(compgen -W 'zstd gzip lzo xz' -- "$cur"))
+    -b | --bext)
+        mapfile -t COMPREPLY < <(compgen -W 'sb sqfs sfs' -- "$cur")
         return
         ;;
     esac
 
-    if [[ "$cur" == *=* ]]; then
-        local opt="${cur%%=*}"
-        cur="${cur#*=}"
-        case $opt in
-        --bext)
-            COMPREPLY=($(compgen -W 'sb sqfs' -- "$cur"))
-            return
-            ;;
+    if [[ $cur == *=* ]]; then
+        option=${cur%%=*}
+        cur=${cur#*=}
+        case $option in
         --comp)
-            COMPREPLY=($(compgen -W 'zstd gzip lzo xz' -- "$cur"))
+            mapfile -t COMPREPLY < <(compgen -W 'zstd gzip lzo lz4 xz' -- "$cur")
             return
             ;;
-        *) ;;
+        --bext)
+            mapfile -t COMPREPLY < <(compgen -W 'sb sqfs sfs' -- "$cur")
+            return
+            ;;
         esac
     fi
 
-    if [[ "$cur" == --* ]]; then
-        COMPREPLY=($(compgen -W '--bext --comp --help --version' -- "$cur"))
-    elif [[ "$cur" == -* ]]; then
-        COMPREPLY=($(compgen -W '-b -c --bext --comp --help --version' -- "$cur"))
+    if [[ $cur == --* ]]; then
+        mapfile -t COMPREPLY < <(compgen -W \
+            '--comp --bext --keep-ownership --allow-special --json --no-color --help --version' -- "$cur")
+    elif [[ $cur == -* ]]; then
+        mapfile -t COMPREPLY < <(compgen -W \
+            '-c -b --comp --bext --keep-ownership --allow-special --json --no-color --help --version' -- "$cur")
     else
-        # Complete directories for SOURCE_DIRECTORY or files for TARGET_FILE
+        mapfile -t COMPREPLY < <(compgen -d -- "$cur")
         local IFS=$'\n'
-        COMPREPLY=($(compgen -d -- "$cur"))
-        # Also add .sb files if completing TARGET_FILE
-        local sb_files=($(compgen -f -- "$cur" | grep -Ei '\.sb$'))
-        COMPREPLY+=("${sb_files[@]}")
+        mapfile -O "${#COMPREPLY[@]}" -t COMPREPLY < <(compgen -f -X '!*.sb' -- "$cur")
     fi
 }
 

@@ -7,7 +7,7 @@
 `sb COMMAND [OPTIONS]`
 
 ## DESCRIPTION
-This script provides functionalities for managing MiniOS bundles. It supports commands to activate, deactivate, list active bundles, save changes to bundles, remove directories, and convert .sb files to directories or vice versa.
+This script provides functionalities for managing MiniOS bundles. It supports commands to activate, deactivate, list active bundles, save changes to bundles, safely reject retired directory-removal aliases, and convert .sb files to directories or vice versa.
 
 ## COMMANDS
 
@@ -24,7 +24,9 @@ This script provides functionalities for managing MiniOS bundles. It supports co
   Saves changes made at runtime to the bundle.
 
 * `rm DIR` or `rmdir DIR`
-  Removes an unpacked bundle directory.
+  Refuses the retired unmount and recursive-delete operation. Review ordinary
+  directories created by `sb2dir`, then remove them with standard filesystem
+  tools if intended.
 
 * `conv PATH`
   Converts an `.sb` bundle to a directory or vice versa.
@@ -37,7 +39,8 @@ This script provides functionalities for managing MiniOS bundles. It supports co
 
 ## USAGE NOTES
 
-1. The script should be run as root.
+1. The script should normally be run as root. The retired `rm` and `rmdir`
+   aliases refuse safely without root privileges.
 2. Certain commands require AUFS support in the system's Linux kernel.
 3. Always provide appropriate arguments based on the command. For instance, for `activate` and `deactivate` commands, bundle path should be provided.
 

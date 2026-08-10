@@ -1,39 +1,286 @@
 #!/bin/bash
+# shellcheck disable=SC2317
 # Author: Tomas M. <http://www.slax.org/>
+# Author: crims0n <https://minios.dev>
+#
+# Convert a compressed .sb SquashFS module into a directory tree. The security
+# critical filesystem work (digest and no-replace atomic publication) runs in
+# the separate minios_convert_engine.py helper, mirroring the
+# minios-image-compose bash/Python split. The source module is never modified.
 
+set -Eeuo pipefail
+
+VERSION="2.0.0"
+BEXT="sb"
 export TEXTDOMAIN="minios-tools"
 
-if [ ! -e "$1" ]; then
-   echo
-   echo "$(gettext "Convert .$BEXT compressed module into directory with the same name")"
-   echo "$(gettext "Usage:"): $0 [source_file.sb] [[optional output_directory]]"
-   echo "  $(gettext "If the output_directory is specified, it must exist")"
-   echo "  $(gettext "If the output_directory is not specified, the name source_file.sb")"
-   echo "  $(gettext "is used and the directory is overmounted with tmpfs")"
-   exit 1
-fi
+PROGRAM_NAME=${0##*/}
+JSON_OUTPUT=false
+KEEP_OWNERSHIP=false
+ALLOW_SPECIAL=false
+DISABLE_COLOR=false
+CHILD_PID=""
+STAGE_DIR=""
 
-if [ ! -r "$1" ]; then
-   echo "$(gettext "File does not exist:"): $1" >&2
-   exit 1
-fi
+RED=""
+BOLD=""
+ENDCOLOR=""
 
-if [ "$(id -u)" != "0" ]; then
-    echo "This script must be run as root."
+declare -a POSITIONAL=()
+
+help() {
+    printf '%s: %s [OPTIONS] SOURCE.%s TARGET_DIRECTORY\n' "$(gettext "Usage")" "$PROGRAM_NAME" "$BEXT"
+    printf '%s\n\n' "$(gettext "Convert a compressed .sb module into a directory tree.")"
+    printf '%s:\n' "$(gettext "Options")"
+    printf '      --keep-ownership     %s\n' "$(gettext "Restore the module ownership instead of the invoking user (needs privilege)")"
+    printf '      --allow-special      %s\n' "$(gettext "Permit device nodes, sockets, and FIFOs (needs privilege)")"
+    printf '      --json               %s\n' "$(gettext "Emit phase events and a machine-readable result")"
+    printf '      --no-color           %s\n' "$(gettext "Disable colored output")"
+    printf '      --help               %s\n' "$(gettext "Display this help and exit")"
+    printf '      --version            %s\n\n' "$(gettext "Display version information and exit")"
+    printf '%s\n' "$(gettext "TARGET_DIRECTORY must not already exist; it is created atomically. Neither")"
+    printf '%s\n' "$(gettext "the source module nor any existing path is modified.")"
+}
+
+brief_help() {
+    printf '%s: %s [OPTIONS] SOURCE.%s TARGET_DIRECTORY\n' "$(gettext "Usage")" "$PROGRAM_NAME" "$BEXT" >&2
+    printf "%s '%s --help' %s\n" "$(gettext "Try")" "$PROGRAM_NAME" "$(gettext "for more information.")" >&2
+}
+
+version() {
+    printf '%s %s\n' "$PROGRAM_NAME" "$VERSION"
+}
+
+console_colors() {
+    if [[ $DISABLE_COLOR == false && -z ${NO_COLOR:-} && -t 2 ]]; then
+        RED=$'\e[31m'
+        BOLD=$'\e[1m'
+        ENDCOLOR=$'\e[0m'
+    fi
+}
+
+error() {
+    printf '%s%sE:%s %s\n' "$BOLD" "$RED" "$ENDCOLOR" "$*" >&2
+}
+
+die() {
+    local status=$1
+    shift
+    error "$*"
+    exit "$status"
+}
+
+brief_option_error() {
+    error "$*"
+    brief_help
+    exit 1
+}
+
+require_value() {
+    (( $2 >= 2 )) || brief_option_error "$(gettext "Option requires an argument:") $1"
+}
+
+validate_no_line_break() {
+    [[ $2 != *$'\n'* && $2 != *$'\r'* ]] || die 1 "$1 $(gettext "must not contain newline characters")"
+}
+
+phase() {
+    if [[ $JSON_OUTPUT == true ]]; then
+        printf 'P:%s\n' "$1"
+    fi
+}
+
+remove_stage() {
+    [[ -n $STAGE_DIR && -d $STAGE_DIR ]] || return 0
+    rm -rf -- "$STAGE_DIR" 2>/dev/null || true
+    STAGE_DIR=""
+}
+
+cleanup() {
+    local status=$?
+    trap - EXIT
+    trap '' INT TERM
+    remove_stage
+    exit "$status"
+}
+
+handle_signal() {
+    trap '' INT TERM
+    if [[ -n $CHILD_PID ]] && kill -0 "$CHILD_PID" 2>/dev/null; then
+        kill -TERM -- "-$CHILD_PID" 2>/dev/null || kill -TERM "$CHILD_PID" 2>/dev/null || true
+        for _ in {1..200}; do
+            kill -0 "$CHILD_PID" 2>/dev/null || break
+            sleep 0.05
+        done
+        kill -KILL -- "-$CHILD_PID" 2>/dev/null || kill -KILL "$CHILD_PID" 2>/dev/null || true
+        wait "$CHILD_PID" 2>/dev/null || true
+        CHILD_PID=""
+    fi
+    remove_stage
+    exit 130
+}
+
+trap cleanup EXIT
+trap handle_signal INT TERM
+
+while (( $# > 0 )); do
+    case $1 in
+    -b | --bext)
+        require_value "$1" "$#"
+        BEXT=$2
+        shift 2
+        ;;
+    --bext=*) BEXT=${1#*=}; shift ;;
+    --keep-ownership) KEEP_OWNERSHIP=true; shift ;;
+    --allow-special) ALLOW_SPECIAL=true; shift ;;
+    --json) JSON_OUTPUT=true; shift ;;
+    --no-color) DISABLE_COLOR=true; shift ;;
+    --help) help; exit 0 ;;
+    --version) version; exit 0 ;;
+    --)
+        shift
+        POSITIONAL+=("$@")
+        break
+        ;;
+    -*) brief_option_error "$(gettext "Unknown option:") $1" ;;
+    *) POSITIONAL+=("$1"); shift ;;
+    esac
+done
+
+console_colors
+
+if (( ${#POSITIONAL[@]} != 2 )); then
+    brief_help
     exit 1
 fi
 
-if [ "$2" = "" ]; then
-   SOURCE="$1".x
-   while [ -e "$SOURCE" ]; do SOURCE="$SOURCE"x; done
-   mv "$1" "$SOURCE" || exit
-   mkdir "$1"
-   unsquashfs -f -dest "$1" "$SOURCE" >/dev/null || exit
-   rm "$SOURCE"
+SOURCE_INPUT=${POSITIONAL[0]}
+TARGET_INPUT=${POSITIONAL[1]}
+validate_no_line_break "$(gettext "Source path")" "$SOURCE_INPUT"
+validate_no_line_break "$(gettext "Target path")" "$TARGET_INPUT"
+
+if [[ $KEEP_OWNERSHIP == true && $EUID -ne 0 ]]; then
+    die 1 "$(gettext "--keep-ownership requires root privileges")"
+fi
+if [[ $ALLOW_SPECIAL == true && $EUID -ne 0 ]]; then
+    die 1 "$(gettext "--allow-special requires root privileges")"
+fi
+
+SCRIPT_PATH=$(readlink -f -- "${BASH_SOURCE[0]}" 2>/dev/null || printf '%s' "${BASH_SOURCE[0]}")
+SCRIPT_DIR=${SCRIPT_PATH%/*}
+CONVERT_ENGINE=""
+for engine_candidate in \
+    "$SCRIPT_DIR/../lib/minios_convert_engine.py" \
+    "/usr/lib/minios-tools/minios_convert_engine.py"; do
+    if [[ -f $engine_candidate ]]; then
+        CONVERT_ENGINE=$(readlink -f -- "$engine_candidate")
+        break
+    fi
+done
+[[ -n $CONVERT_ENGINE ]] || die 1 "$(gettext "converter engine helper not found")"
+
+PYTHON_BIN=$(command -v python3 || true)
+[[ -n $PYTHON_BIN ]] || die 1 "$(gettext "python3 is required")"
+ENV_BIN=$(command -v env || printf '/usr/bin/env')
+
+UNSQUASHFS_BIN=$(command -v unsquashfs || true)
+[[ -n $UNSQUASHFS_BIN ]] || die 1 "$(gettext "unsquashfs is required")"
+
+run_engine() {
+    "$ENV_BIN" -i PATH=/usr/sbin:/usr/bin:/sbin:/bin LC_ALL=C.UTF-8 LANG=C.UTF-8 \
+        "$PYTHON_BIN" -I "$CONVERT_ENGINE" "$@"
+}
+
+# Resolve and validate the source module (read-only input, never modified).
+SOURCE_PATH=$(readlink -f -- "$SOURCE_INPUT" 2>/dev/null || true)
+[[ -n $SOURCE_PATH && -f $SOURCE_PATH && -r $SOURCE_PATH ]] ||
+    die 2 "$(gettext "Source module is not a readable file:") $SOURCE_INPUT"
+
+# The target directory must not exist; its parent must be an existing directory.
+TARGET_NAME=${TARGET_INPUT%/}
+TARGET_NAME=${TARGET_NAME##*/}
+[[ -n $TARGET_NAME && $TARGET_NAME != "." && $TARGET_NAME != ".." ]] ||
+    die 1 "$(gettext "Invalid target directory name:") $TARGET_INPUT"
+TARGET_TRIMMED=${TARGET_INPUT%/}
+if [[ $TARGET_TRIMMED == */* ]]; then
+    TARGET_PARENT_INPUT=${TARGET_TRIMMED%/*}
+    [[ -n $TARGET_PARENT_INPUT ]] || TARGET_PARENT_INPUT=/
 else
-   if [ ! -d "$2" ]; then
-      echo "$(gettext "Directory does not exist:"): $2" >&2
-      exit 1
-   fi
-   unsquashfs -f -dest "$2" "$1" >/dev/null
+    TARGET_PARENT_INPUT=.
+fi
+TARGET_PARENT=$(readlink -f -- "$TARGET_PARENT_INPUT" 2>/dev/null || true)
+[[ -n $TARGET_PARENT && -d $TARGET_PARENT ]] ||
+    die 2 "$(gettext "Target parent directory does not exist:") $TARGET_PARENT_INPUT"
+if [[ -e $TARGET_PARENT/$TARGET_NAME || -L $TARGET_PARENT/$TARGET_NAME ]]; then
+    die 4 "$(gettext "Target already exists:") $TARGET_INPUT"
+fi
+
+phase prepare
+
+# Reject modules that carry device nodes, sockets, or FIFOs unless an explicit
+# privileged mode is requested; a rootless extraction cannot recreate them.
+if [[ $ALLOW_SPECIAL == false ]]; then
+    if "$UNSQUASHFS_BIN" -ll "$SOURCE_PATH" 2>/dev/null |
+        awk '{ t = substr($1, 1, 1); if (t == "b" || t == "c" || t == "p" || t == "s") exit 0 } END { exit 1 }'; then
+        die 3 "$(gettext "Module contains special files that cannot be extracted rootlessly; re-run with the privileged special-object mode.")"
+    fi
+fi
+
+# Reserve a private staging directory beside the target on the same filesystem.
+STAGE_DIR=$(mktemp -d -p "$TARGET_PARENT" ".sb2dir.XXXXXXXXXX") ||
+    die 4 "$(gettext "Cannot reserve a staging directory")"
+STAGE_NAME=${STAGE_DIR##*/}
+
+declare -a UNSQUASHFS_CMD=("$UNSQUASHFS_BIN" -f -d "$STAGE_DIR" "$SOURCE_PATH")
+
+phase extract
+
+TOOL_LOG=$(mktemp -p "${TMPDIR:-/tmp}" ".sb2dir-log.XXXXXX") || TOOL_LOG=/dev/null
+tool_status=0
+set -m
+"${UNSQUASHFS_CMD[@]}" >"$TOOL_LOG" 2>&1 &
+CHILD_PID=$!
+set +m
+wait "$CHILD_PID" || tool_status=$?
+CHILD_PID=""
+
+# unsquashfs uses exit status 2 for non-fatal issues such as xattrs or symbolic
+# links that a rootless extraction cannot fully restore.
+case $tool_status in
+0) ;;
+2)
+    if [[ $JSON_OUTPUT == true ]]; then
+        printf 'W:%s\n' "$(gettext "Some extended attributes were not restored")"
+    fi
+    ;;
+*)
+    if [[ $TOOL_LOG != /dev/null ]]; then
+        tail -n 3 -- "$TOOL_LOG" >&2 || true
+        rm -f -- "$TOOL_LOG"
+    fi
+    remove_stage
+    die 5 "$(gettext "unsquashfs failed to extract the module")"
+    ;;
+esac
+[[ $TOOL_LOG == /dev/null ]] || rm -f -- "$TOOL_LOG"
+
+phase publish
+
+PUBLISH_JSON=$(run_engine publish-dir "$TARGET_PARENT" "$STAGE_NAME" \
+    "$TARGET_NAME" "$SOURCE_PATH" \
+    "$([[ $ALLOW_SPECIAL == true ]] && printf 1 || printf 0)" \
+    "$([[ $JSON_OUTPUT == true ]] && printf 1 || printf 0)") || {
+    engine_status=$?
+    remove_stage
+    die "$engine_status" "$(gettext "Failed to publish the directory")"
+}
+# Ownership of the staging directory was transferred to the target name.
+STAGE_DIR=""
+
+phase complete
+
+if [[ $JSON_OUTPUT == true ]]; then
+    printf '%s\n' "$PUBLISH_JSON"
+else
+    printf '%s: %s\n' "$(gettext "Created")" "$TARGET_PARENT/$TARGET_NAME"
 fi

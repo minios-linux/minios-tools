@@ -2,24 +2,37 @@
 # Author: Tomas M. <http://www.slax.org/>
 # Author: crims0n <https://minios.dev>
 
-export TEXTDOMAIN="minios-tools"
+VERSION="1.1.0"
 
 usage() {
-   echo "$(gettext "Erase module directory created by sb2dir")"
-   echo "$(gettext "Usage"): $0 [$(gettext "source_directory.sb")]"
-   exit 1
+   printf '%s\n' "Refuse unsafe removal of a directory created by sb2dir"
+   printf 'Usage: %s [--help|--version] source_directory.sb\n' "${0##*/}"
 }
 
-if [ ! -e "$1" ]; then
-   usage
-fi
+case "${1-}" in
+   -h|--help)
+      usage
+      exit 0
+      ;;
+   --version)
+      printf '%s %s\n' "${0##*/}" "$VERSION"
+      exit 0
+      ;;
+   --)
+      shift
+      ;;
+   -*)
+      printf 'Unknown option: %s\n' "$1" >&2
+      usage >&2
+      exit 1
+      ;;
+esac
 
-if [ ! -d "$1" ]; then
-   echo "$(gettext "Directory does not exist:"): $1" >&2
+if [ "$#" -ne 1 ]; then
+   usage >&2
    exit 1
 fi
 
-umount "$1" 2>/dev/null
-rm -Rf "$1"
-
-echo "$(gettext "Module directory deleted:") $1"
+printf '%s\n' "rmsbdir no longer removes unpacked module directories." >&2
+printf '%s\n' "Review the path, then remove the ordinary directory with standard filesystem tools." >&2
+exit 1

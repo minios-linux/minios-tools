@@ -3,6 +3,15 @@
 # Author: Tomas M <http://www.slax.org/>
 # Author: crims0n <https://minios.dev>
 
+# Retired removal aliases fail closed before config, privilege, or PATH lookups.
+case "${1-}" in
+"rm" | "rmdir")
+    printf '%s\n' "rmsbdir no longer removes unpacked module directories." >&2
+    printf '%s\n' "Review the path, then remove the ordinary directory with standard filesystem tools." >&2
+    exit 1
+    ;;
+esac
+
 # Check if this is a help/version request before loading config
 if [ "$1" != "help" ] && [ "$1" != "version" ]; then
     . /etc/live/config.conf
@@ -37,8 +46,8 @@ help() {
     echo "  list                  $(gettext "List active MiniOS bundles")"
     echo "  savechanges           $(gettext "Save changes made at runtime to the bundle")"
     echo ""
-    echo "  rm DIR                $(gettext "Remove an unpacked bundle directory")"
-    echo "  rmdir DIR             $(gettext "Remove an unpacked bundle directory")"
+    echo "  rm DIR                $(gettext "Refuse unsafe removal of an unpacked bundle directory")"
+    echo "  rmdir DIR             $(gettext "Refuse unsafe removal of an unpacked bundle directory")"
     echo "  conv PATH             $(gettext "Convert an .sb bundle to directory or vice versa")"
     echo ""
     echo "  help                  $(gettext "Display this help and exit")"
@@ -310,11 +319,6 @@ case "$1" in
     ;;
 "version")
     version
-    ;;
-"rm" | "rmdir")
-    shift
-    rmsbdir "$@"
-    exit $?
     ;;
 "conv")
     shift

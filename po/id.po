@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.4.2\n"
 "Report-Msgid-Bugs-To: support@minios.dev\n"
-"POT-Creation-Date: 2026-06-28 11:36+0300\n"
-"PO-Revision-Date: 2025-08-11 09:28+0300\n"
+"POT-Creation-Date: 2026-08-10 05:30+0300\n"
+"PO-Revision-Date: 2026-08-10 02:31+0000\n"
 "Last-Translator: crims0n <crims0n@minios.dev>\n"
 "Language-Team: none\n"
 "Language: id\n"
@@ -16,9 +16,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: bin/apt2sb:20 bin/apt2sb:53 bin/chroot2sb:19 bin/chroot2sb:39 bin/dir2sb:11
-#: bin/dir2sb:31 bin/rmsbdir:9 bin/savechanges:22 bin/savechanges:38 bin/sb:30
-#: bin/sb:59 bin/sb2iso:26 bin/sb2iso:55 bin/script2sb:20 bin/script2sb:42
+#: bin/apt2sb:20 bin/apt2sb:53 bin/chroot2sb:19 bin/chroot2sb:39 bin/dir2sb:33
+#: bin/dir2sb:49 bin/savechanges:43 bin/savechanges:65 bin/sb:39 bin/sb:68
+#: bin/sb2dir:32 bin/sb2dir:46 bin/script2sb:20 bin/script2sb:42
 msgid "Usage"
 msgstr "Penggunaan"
 
@@ -26,7 +26,7 @@ msgstr "Penggunaan"
 msgid "Installs packages from repositories and packages them into a module."
 msgstr "Menginstal paket dari repositori dan mengemasnya ke dalam modul."
 
-#: bin/apt2sb:23 bin/sb:34
+#: bin/apt2sb:23 bin/sb:43
 msgid "Commands"
 msgstr "Perintah"
 
@@ -38,8 +38,8 @@ msgstr "Instal paket"
 msgid "Upgrade installed packages"
 msgstr "Tingkatkan paket yang terinstal"
 
-#: bin/apt2sb:27 bin/chroot2sb:22 bin/dir2sb:14 bin/savechanges:25
-#: bin/sb2iso:29 bin/script2sb:23
+#: bin/apt2sb:27 bin/chroot2sb:22 bin/dir2sb:35 bin/savechanges:46
+#: bin/sb2dir:34 bin/script2sb:23
 msgid "Options"
 msgstr "Pilihan"
 
@@ -51,23 +51,21 @@ msgstr "Gunakan NAMA sebagai nama file untuk modul, bukan PAKET1"
 msgid "Use LEVEL as the filter level"
 msgstr "Gunakan LEVEL sebagai tingkat filter"
 
-#: bin/apt2sb:30 bin/chroot2sb:26 bin/dir2sb:16 bin/savechanges:26
-#: bin/script2sb:25
+#: bin/apt2sb:30 bin/chroot2sb:26 bin/script2sb:25
 msgid "Compression type (zstd, gzip, lzo, xz). Default: zstd"
 msgstr "Jenis kompresi (zstd, gzip, lzo, xz). Default: zstd"
 
-#: bin/apt2sb:31 bin/chroot2sb:27 bin/dir2sb:15 bin/savechanges:27
-#: bin/script2sb:24
+#: bin/apt2sb:31 bin/chroot2sb:27 bin/script2sb:24
 msgid "Bundle extension. Default: sb"
 msgstr "Ekstensi bundel. Default: sb"
 
-#: bin/apt2sb:32 bin/chroot2sb:28 bin/dir2sb:17 bin/savechanges:28 bin/sb:44
-#: bin/sb2iso:35 bin/script2sb:30
+#: bin/apt2sb:32 bin/chroot2sb:28 bin/dir2sb:42 bin/savechanges:58 bin/sb:53
+#: bin/sb2dir:39 bin/script2sb:30
 msgid "Display this help and exit"
 msgstr "Tampilkan bantuan ini dan keluar"
 
-#: bin/apt2sb:33 bin/chroot2sb:29 bin/dir2sb:18 bin/savechanges:29 bin/sb:45
-#: bin/sb2iso:36 bin/script2sb:31
+#: bin/apt2sb:33 bin/chroot2sb:29 bin/dir2sb:43 bin/savechanges:59 bin/sb:54
+#: bin/sb2dir:40 bin/script2sb:31
 msgid "Display version information and exit"
 msgstr "Tampilkan informasi versi dan keluar"
 
@@ -103,17 +101,17 @@ msgstr "Jangan pertimbangkan paket yang disarankan sebagai dependensi untuk inst
 msgid "Default release to install packages from"
 msgstr "Rilis default untuk menginstal paket dari"
 
-#: bin/apt2sb:44 bin/chroot2sb:31 bin/sb:47 bin/sb2iso:38 bin/script2sb:33
+#: bin/apt2sb:44 bin/chroot2sb:31 bin/sb:56 bin/script2sb:33
 msgid "Examples"
 msgstr "Contoh"
 
-#: bin/apt2sb:54 bin/chroot2sb:40 bin/dir2sb:32 bin/savechanges:39 bin/sb:61
-#: bin/sb2iso:56 bin/script2sb:43
+#: bin/apt2sb:54 bin/chroot2sb:40 bin/dir2sb:50 bin/savechanges:66 bin/sb:70
+#: bin/sb2dir:47 bin/script2sb:43
 msgid "Try"
 msgstr "Coba"
 
-#: bin/apt2sb:54 bin/chroot2sb:40 bin/dir2sb:32 bin/savechanges:39 bin/sb:61
-#: bin/sb2iso:56 bin/script2sb:43
+#: bin/apt2sb:54 bin/chroot2sb:40 bin/dir2sb:50 bin/savechanges:66 bin/sb:70
+#: bin/sb2dir:47 bin/script2sb:43
 msgid "for more information."
 msgstr "untuk informasi lebih lanjut."
 
@@ -129,282 +127,568 @@ msgstr "Salin isi DIR ke root modul"
 msgid "Use NAME as the filename for the module"
 msgstr "Gunakan NAMA sebagai nama file untuk modul"
 
-#: bin/dir2sb:12
-msgid "Converts a directory to a compressed .sb module"
-msgstr "Mengonversi direktori menjadi modul .sb terkompresi"
+#: bin/dir2sb:34
+msgid "Convert a directory tree into a compressed .sb module."
+msgstr "Konversi pohon direktori menjadi modul .sb terkompresi."
 
-#: bin/dir2sb:20
-msgid "Arguments"
-msgstr "Argumen"
+#: bin/dir2sb:36 bin/savechanges:47
+msgid "Compression: zstd, gzip, lzo, or xz (default: zstd)"
+msgstr "Kompresi: zstd, gzip, lzo, atau xz (default: zstd)"
 
-#: bin/dir2sb:21
-msgid "The directory to convert to a module"
-msgstr "Direktori yang akan dikonversi menjadi modul"
+#: bin/dir2sb:37 bin/savechanges:48
+msgid "Bundle extension used in help text (default: sb)"
+msgstr "Ekstensi bundle yang digunakan pada teks bantuan (default: sb)"
 
-#: bin/dir2sb:22
-msgid "Optional. The name of the output module file"
-msgstr "Opsional. Nama file modul keluaran"
+#: bin/dir2sb:38
+msgid "Preserve source ownership instead of normalizing to root (needs privilege)"
+msgstr "Pertahankan kepemilikan sumber alih-alih menormalkan ke root (memerlukan hak akses khusus)"
 
-#: bin/dir2sb:24
-msgid "Behavior"
-msgstr "Perilaku"
+#: bin/dir2sb:39 bin/sb2dir:36
+msgid "Permit device nodes, sockets, and FIFOs (needs privilege)"
+msgstr "Izinkan device node, socket, dan FIFO (memerlukan hak akses khusus)"
 
-#: bin/dir2sb:25
-msgid "If SOURCE_DIRECTORY does not have a .sb extension and is not 'squashfs-root', then the directory itself is included in the module, and TARGET_FILE is required."
-msgstr "Jika SOURCE_DIRECTORY tidak memiliki ekstensi .sb dan bukan 'squashfs-root', maka direktori itu sendiri disertakan dalam modul, dan TARGET_FILE diperlukan."
+#: bin/dir2sb:40 bin/sb2dir:37
+msgid "Emit phase events and a machine-readable result"
+msgstr "Keluarkan event fase dan hasil yang dapat dibaca mesin"
 
-#: bin/dir2sb:26
-msgid "If TARGET_FILE is not specified, SOURCE_DIRECTORY is replaced by the new module file."
-msgstr "Jika TARGET_FILE tidak ditentukan, SOURCE_DIRECTORY akan diganti dengan file modul baru."
+#: bin/dir2sb:41 bin/savechanges:57 bin/sb2dir:38
+msgid "Disable colored output"
+msgstr "Nonaktifkan output berwarna"
 
-#: bin/rmsbdir:8
-msgid "Erase module directory created by sb2dir"
-msgstr "Hapus direktori modul yang dibuat oleh sb2dir"
+#: bin/dir2sb:44
+msgid "The contents of SOURCE_DIRECTORY become the module root. Neither the source"
+msgstr "Isi dari SOURCE_DIRECTORY akan menjadi root modul. Baik sumber"
 
-#: bin/rmsbdir:9
-msgid "source_directory.sb"
-msgstr "direktori_sumber.sb"
+#: bin/dir2sb:45
+msgid "nor an existing TARGET is modified; the module is published atomically."
+msgstr "maupun TARGET yang sudah ada tidak diubah; modul dipublikasikan secara atomik."
 
-#: bin/rmsbdir:18 bin/sb2dir:35
-msgid "Directory does not exist:"
-msgstr "Direktori tidak ada:"
+#: bin/dir2sb:83 bin/savechanges:100 bin/sb2dir:80
+msgid "Option requires an argument:"
+msgstr "Opsi ini memerlukan argumen:"
 
-#: bin/rmsbdir:25
-msgid "Module directory deleted:"
-msgstr "Direktori modul dihapus:"
+#: bin/dir2sb:87 bin/savechanges:108 bin/sb2dir:84
+msgid "must not contain newline characters"
+msgstr "tidak boleh mengandung karakter newline"
 
-#: bin/savechanges:23
-msgid "Saves all changed files in a compressed filesystem bundle."
-msgstr "Menyimpan semua file yang diubah dalam bundel sistem berkas terkompresi."
+#: bin/dir2sb:154 bin/savechanges:219 bin/sb2dir:145
+msgid "Unknown option:"
+msgstr "Opsi tidak dikenal:"
 
-#: bin/savechanges:31
-msgid "If changes_directory is not specified, the default changes"
-msgstr "Jika direktori_perubahan tidak ditentukan, direktori perubahan default dari initramfs saat ini akan digunakan."
+#: bin/dir2sb:163 bin/savechanges:241
+msgid "Invalid compression type:"
+msgstr "Tipe kompresi tidak valid:"
 
-#: bin/savechanges:32
-msgid "directory from the current initramfs is used."
-msgstr "direktori perubahan default dari initramfs saat ini akan digunakan."
+#: bin/dir2sb:173 bin/sb2dir:159
+msgid "Source path"
+msgstr "Path sumber"
 
-#: bin/sb:31
+#: bin/dir2sb:174 bin/sb2dir:160
+msgid "Target path"
+msgstr "Path target"
+
+#: bin/dir2sb:177 bin/sb2dir:163
+msgid "--keep-ownership requires root privileges"
+msgstr "--keep-ownership memerlukan hak akses root"
+
+#: bin/dir2sb:180 bin/sb2dir:166
+msgid "--allow-special requires root privileges"
+msgstr "--allow-special memerlukan hak akses root"
+
+#: bin/dir2sb:196 bin/sb2dir:180
+msgid "converter engine helper not found"
+msgstr "converter engine helper tidak ditemukan"
+
+#: bin/dir2sb:199 bin/sb2dir:183
+msgid "python3 is required"
+msgstr "python3 diperlukan"
+
+#: bin/dir2sb:203
+msgid "mksquashfs is required"
+msgstr "mksquashfs diperlukan"
+
+#: bin/dir2sb:212
+msgid "Source is not a directory:"
+msgstr "Source bukan sebuah direktori:"
+
+#: bin/dir2sb:218
+msgid "Invalid target filename:"
+msgstr "Nama file target tidak valid:"
+
+#: bin/dir2sb:227
+msgid "Target directory does not exist:"
+msgstr "Direktori target tidak ada:"
+
+#: bin/dir2sb:229 bin/sb2dir:215
+msgid "Target already exists:"
+msgstr "Target sudah ada:"
+
+#: bin/dir2sb:238
+msgid "Source contains special files that cannot be packaged; re-run with the privileged special-object mode."
+msgstr "Sumber berisi file spesial yang tidak dapat dikemas; jalankan ulang dengan mode special-object yang memerlukan hak akses khusus."
+
+#: bin/dir2sb:253
+msgid "Cannot reserve a staging file"
+msgstr "Tidak dapat memesan file staging"
+
+#: bin/dir2sb:283
+msgid "mksquashfs failed to build the module"
+msgstr "mksquashfs gagal membangun modul"
+
+#: bin/dir2sb:294
+msgid "Failed to publish the module"
+msgstr "Gagal mempublikasikan modul"
+
+#: bin/dir2sb:304 bin/sb2dir:285
+msgid "Created"
+msgstr "Berhasil dibuat"
+
+#: bin/savechanges:45
+msgid "Capture the writable layer of a running MiniOS session."
+msgstr "Tangkap layer yang dapat ditulis dari sesi MiniOS yang sedang berjalan."
+
+#: bin/savechanges:49
+msgid "Capture profile: exact, clean, or selected"
+msgstr "Profil penangkapan: exact, clean, atau selected"
+
+#: bin/savechanges:50
+msgid "Strict JSON selection for the selected profile"
+msgstr "Seleksi JSON ketat untuk profil yang dipilih"
+
+#: bin/savechanges:52
+msgid "Write a metadata inventory instead of a module"
+msgstr "Tulis inventaris metadata sebagai pengganti modul"
+
+#: bin/savechanges:53
+msgid "Write capture metadata beside a module"
+msgstr "Tulis metadata penangkapan di samping modul"
+
+#: bin/savechanges:54
+msgid "Use a validated directory for private capture staging"
+msgstr "Gunakan direktori yang telah divalidasi untuk staging penangkapan privat"
+
+#: bin/savechanges:55
+msgid "Emit pure NDJSON phase and result events"
+msgstr "Keluarkan event fase dan hasil NDJSON murni"
+
+#: bin/savechanges:56
+msgid "Cancel when FILE is created in its secure parent directory"
+msgstr "Batalkan jika FILE dibuat di direktori induk yang aman"
+
+#: bin/savechanges:60
+msgid "Without --profile, the historical exclusion policy is used."
+msgstr "Tanpa --profile, kebijakan pengecualian historis akan digunakan."
+
+#: bin/savechanges:61
+msgid "New profiles and inventories are published mode 0600."
+msgstr "Profil dan inventaris baru akan dipublikasikan dengan mode 0600."
+
+#: bin/savechanges:150
+msgid "--json cannot be combined with --help or --version"
+msgstr "--json tidak dapat digabungkan dengan --help atau --version"
+
+#: bin/savechanges:231 bin/savechanges:234
+msgid "Invalid capture profile:"
+msgstr "Profil penangkapan tidak valid:"
+
+#: bin/savechanges:236
+msgid "The selected profile requires --selection"
+msgstr "Profil yang dipilih memerlukan --selection"
+
+#: bin/savechanges:238
+msgid "--selection is only valid with --profile selected"
+msgstr "--selection hanya valid dengan --profile selected"
+
+#: bin/savechanges:244
+msgid "Invalid bundle extension:"
+msgstr "Ekstensi bundle tidak valid:"
+
+#: bin/savechanges:247
+msgid "Inventory mode accepts at most one changes directory"
+msgstr "Mode inventaris hanya menerima maksimal satu direktori changes"
+
+#: bin/savechanges:248
+msgid "--metadata-json is not valid in inventory mode"
+msgstr "--metadata-json tidak valid pada mode inventaris"
+
+#: bin/savechanges:262
+msgid "Invalid output filename"
+msgstr "Nama file output tidak valid"
+
+#: bin/savechanges:263
+msgid "Output path"
+msgstr "Path output"
+
+#: bin/savechanges:264
+msgid "Changes directory"
+msgstr "Direktori changes"
+
+#: bin/savechanges:266
+msgid "Selection path"
+msgstr "Path selection"
+
+#: bin/savechanges:269
+msgid "Invalid metadata output filename"
+msgstr "Nama file output metadata tidak valid"
+
+#: bin/savechanges:270
+msgid "Metadata output path"
+msgstr "Path output metadata"
+
+#: bin/savechanges:273
+msgid "Invalid cancel marker filename"
+msgstr "Nama file penanda pembatalan tidak valid"
+
+#: bin/savechanges:274
+msgid "Cancel marker path"
+msgstr "Path penanda pembatalan"
+
+#: bin/savechanges:277
+msgid "Invalid work parent"
+msgstr "Parent kerja tidak valid"
+
+#: bin/savechanges:278
+msgid "Work parent"
+msgstr "Parent kerja"
+
+#: bin/savechanges:289
+msgid "Cannot resolve script path"
+msgstr "Tidak dapat menemukan path skrip"
+
+#: bin/savechanges:297
+msgid "This script must be run as root."
+msgstr "Skrip ini harus dijalankan sebagai root."
+
+#: bin/savechanges:299
+msgid "Cannot detect the live writable changes directory"
+msgstr "Tidak dapat mendeteksi direktori changes yang dapat ditulis secara live"
+
+#: bin/savechanges:332
+msgid "Trusted /usr/bin/python3 is unavailable"
+msgstr "Trusted /usr/bin/python3 tidak tersedia"
+
+#: bin/savechanges:333
+msgid "Trusted /usr/bin/env is unavailable"
+msgstr "Trusted /usr/bin/env tidak tersedia"
+
+#: bin/savechanges:336
+msgid "Invalid test root"
+msgstr "Test root tidak valid"
+
+#: bin/savechanges:341
+msgid "Invalid test changes directory"
+msgstr "Direktori test changes tidak valid"
+
+#: bin/savechanges:344
+msgid "Invalid test output parent"
+msgstr "Induk output test tidak valid"
+
+#: bin/savechanges:346
+msgid "Non-root test capture is confined to MINIOS_TOOLS_TEST_ROOT"
+msgstr "Penangkapan test non-root dibatasi pada MINIOS_TOOLS_TEST_ROOT"
+
+#: bin/savechanges:349
+msgid "Invalid test selection"
+msgstr "Seleksi test tidak valid"
+
+#: bin/savechanges:350
+msgid "Test selection is outside the test root"
+msgstr "Seleksi test berada di luar test root"
+
+#: bin/savechanges:355
+msgid "Invalid test metadata parent"
+msgstr "Induk metadata pengujian tidak valid"
+
+#: bin/savechanges:356
+msgid "Test metadata output is outside the test root"
+msgstr "Output metadata pengujian berada di luar root pengujian"
+
+#: bin/savechanges:362
+msgid "Invalid test cancel marker parent"
+msgstr "Induk penanda batal pengujian tidak valid"
+
+#: bin/savechanges:364
+msgid "Test cancel marker is outside the test root"
+msgstr "Penanda batal pengujian berada di luar root pengujian"
+
+#: bin/savechanges:368
+msgid "Invalid test work parent"
+msgstr "Parent kerja pengujian tidak valid"
+
+#: bin/savechanges:370
+msgid "Test work parent is outside the test root"
+msgstr "Parent kerja pengujian berada di luar root pengujian"
+
+#: bin/savechanges:378
+msgid "Test capture tools were not provided"
+msgstr "Alat capture pengujian tidak disediakan"
+
+#: bin/savechanges:379
+msgid "Invalid test mksquashfs"
+msgstr "Test mksquashfs tidak valid"
+
+#: bin/savechanges:380
+msgid "Invalid test unsquashfs"
+msgstr "Test unsquashfs tidak valid"
+
+#: bin/savechanges:382
+msgid "Test tools are outside the test root"
+msgstr "Alat pengujian berada di luar root pengujian"
+
+#: bin/savechanges:391
+msgid "Invalid source-test fixture"
+msgstr "Source-test fixture tidak valid"
+
+#: bin/savechanges:393
+msgid "Cannot canonicalize source-test fixture"
+msgstr "Tidak dapat melakukan kanonisasi pada source-test fixture"
+
+#: bin/savechanges:394
+msgid "Source-test fixture is outside the test root"
+msgstr "Source-test fixture berada di luar root pengujian"
+
+#: bin/savechanges:398
+msgid "Invalid source-test running source"
+msgstr "Source-test running source tidak valid"
+
+#: bin/savechanges:400
+msgid "Source-test running source is outside the test root"
+msgstr "Source-test running source berada di luar root pengujian"
+
+#: bin/savechanges:410
+msgid "Invalid PKEXEC_UID"
+msgstr "PKEXEC_UID tidak valid"
+
+#: bin/savechanges:421
+msgid "savechanges engine helper not found"
+msgstr "savechanges engine helper tidak ditemukan"
+
+#: bin/sb:40
 msgid "Manage MiniOS bundles."
 msgstr "Kelola bundel MiniOS."
 
-#: bin/sb:32 bin/sb:60
+#: bin/sb:41 bin/sb:69
 msgid "To run some of the commands in this script, your Linux kernel must support AUFS."
 msgstr "Untuk menjalankan beberapa perintah dalam skrip ini, kernel Linux Anda harus mendukung AUFS."
 
-#: bin/sb:35
+#: bin/sb:44
 msgid "Activate a MiniOS bundle"
 msgstr "Aktifkan bundel MiniOS"
 
-#: bin/sb:36
+#: bin/sb:45
 msgid "Deactivate an active MiniOS bundle"
 msgstr "Nonaktifkan bundel MiniOS yang aktif"
 
-#: bin/sb:37
+#: bin/sb:46
 msgid "List active MiniOS bundles"
 msgstr "Daftar bundel MiniOS yang aktif"
 
-#: bin/sb:38
+#: bin/sb:47
 msgid "Save changes made at runtime to the bundle"
 msgstr "Simpan perubahan yang dibuat saat runtime ke bundel"
 
-#: bin/sb:40 bin/sb:41
-msgid "Remove an unpacked bundle directory"
-msgstr "Hapus direktori bundel yang belum dibongkar"
+#: bin/sb:49 bin/sb:50
+msgid "Refuse unsafe removal of an unpacked bundle directory"
+msgstr "Tolak penghapusan tidak aman pada direktori bundle yang sudah diekstrak"
 
-#: bin/sb:42
+#: bin/sb:51
 msgid "Convert an .sb bundle to directory or vice versa"
 msgstr "Konversi bundel .sb ke direktori atau sebaliknya"
 
-#: bin/sb2dir:9
-msgid "Usage:"
-msgstr "Penggunaan:"
+#: bin/sb2dir:33
+msgid "Convert a compressed .sb module into a directory tree."
+msgstr "Konversi modul .sb terkompresi menjadi pohon direktori."
 
-#: bin/sb2dir:10
-msgid "If the output_directory is specified, it must exist"
-msgstr "Jika direktori_keluaran ditentukan, direktori tersebut harus ada"
+#: bin/sb2dir:35
+msgid "Restore the module ownership instead of the invoking user (needs privilege)"
+msgstr "Pulihkan kepemilikan modul alih-alih pengguna yang menjalankan (memerlukan hak akses khusus)"
 
-#: bin/sb2dir:11
-msgid "If the output_directory is not specified, the name source_file.sb"
-msgstr "Jika direktori_keluaran tidak ditentukan, nama file_sumber.sb"
+#: bin/sb2dir:41
+msgid "TARGET_DIRECTORY must not already exist; it is created atomically. Neither"
+msgstr "TARGET_DIRECTORY tidak boleh sudah ada; akan dibuat secara atomik. Baik"
 
-#: bin/sb2dir:12
-msgid "is used and the directory is overmounted with tmpfs"
-msgstr "digunakan dan direktori ditumpang-mount dengan tmpfs"
+#: bin/sb2dir:42
+msgid "the source module nor any existing path is modified."
+msgstr "modul sumber maupun path yang sudah ada tidak diubah."
 
-#: bin/sb2dir:17
-msgid "File does not exist:"
-msgstr "File tidak ada:"
+#: bin/sb2dir:187
+msgid "unsquashfs is required"
+msgstr "unsquashfs diperlukan"
 
-#: bin/sb2iso:27
-msgid "Generate MiniOS ISO image, adding specified modules."
-msgstr "Hasilkan citra ISO MiniOS, tambahkan modul yang ditentukan."
+#: bin/sb2dir:197
+msgid "Source module is not a readable file:"
+msgstr "Modul sumber bukan file yang dapat dibaca:"
 
-#: bin/sb2iso:30
-msgid "Exclude any existing path or file matching REGEX"
-msgstr "Kecualikan jalur atau file yang ada yang cocok dengan REGEX"
+#: bin/sb2dir:203
+msgid "Invalid target directory name:"
+msgstr "Nama direktori target tidak valid:"
 
-#: bin/sb2iso:31
-msgid "Specify output ISO filename (default"
-msgstr "Tentukan nama file ISO keluaran (default"
+#: bin/sb2dir:213
+msgid "Target parent directory does not exist:"
+msgstr "Direktori induk target tidak ada:"
 
-#: bin/sb2iso:32
-msgid "Set menu type: multilang or language code"
-msgstr "Atur tipe menu: multibahasa atau kode bahasa"
+#: bin/sb2dir:225
+msgid "Module contains special files that cannot be extracted rootlessly; re-run with the privileged special-object mode."
+msgstr "Modul berisi file spesial yang tidak dapat diekstrak tanpa root; jalankan ulang dengan mode special-object yang memerlukan hak akses khusus."
 
-#: bin/sb2iso:33
-msgid "  multilang: menu with language selection (default)"
-msgstr "  multibahasa: menu dengan pilihan bahasa (default)"
+#: bin/sb2dir:231
+msgid "Cannot reserve a staging directory"
+msgstr "Tidak dapat memesan direktori staging"
 
-#: bin/sb2iso:34
-msgid "  language: specific language (en_US, ru_RU, de_DE, etc.)"
-msgstr "  bahasa: bahasa spesifik (en_US, ru_RU, de_DE, dll.)"
+#: bin/sb2dir:253
+msgid "Some extended attributes were not restored"
+msgstr "Beberapa atribut tambahan tidak berhasil dipulihkan"
 
-#: bin/sb2iso:39
-msgid "Create basic MiniOS ISO with current system:"
-msgstr "Buat ISO MiniOS dasar dengan sistem saat ini:"
+#: bin/sb2dir:262
+msgid "unsquashfs failed to extract the module"
+msgstr "unsquashfs gagal mengekstrak modul"
 
-#: bin/sb2iso:41
-msgid "Create ISO with custom filename:"
-msgstr "Buat ISO dengan nama file khusus:"
-
-#: bin/sb2iso:43
-msgid "Create ISO excluding specific modules:"
-msgstr "Buat ISO dengan mengecualikan modul tertentu:"
-
-#: bin/sb2iso:45
-msgid "Create minimal text-mode ISO:"
-msgstr "Buat ISO mode teks minimal:"
-
-#: bin/sb2iso:47
-msgid "Create ISO with additional modules:"
-msgstr "Buat ISO dengan modul tambahan:"
-
-#: bin/sb2iso:49
-msgid "Create Russian localized ISO:"
-msgstr "Buat ISO dengan lokal Rusia:"
-
-#: bin/sb2iso:231
-msgid "grub.template.cfg template not found"
-msgstr "Template grub.template.cfg tidak ditemukan"
-
-#: bin/sb2iso:482
-msgid "Cannot find MiniOS source directory with boot files"
-msgstr "Tidak dapat menemukan direktori sumber MiniOS dengan file boot"
-
-#: bin/sb2iso:488
-msgid "Detected bootloader type"
-msgstr "Tipe bootloader terdeteksi"
-
-#: bin/sb2iso:525
-msgid "Unknown bootloader type"
-msgstr "Tipe bootloader tidak dikenal"
-
-#: bin/sb2iso:526
-msgid "Valid types: grub-only, syslinux-native, syslinux-grub"
-msgstr "Tipe valid: grub-only, syslinux-native, syslinux-grub"
-
-#: bin/sb2iso:534
-msgid "If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
-msgstr "Jika Anda memuat sistem ke dalam RAM, gunakan 'toram=full' dalam parameter kernel."
-
-#: bin/sb2iso:557
-msgid "Using multilingual menu"
-msgstr "Menggunakan menu multibahasa"
-
-#: bin/sb2iso:565
-msgid "Using multilingual SYSLINUX configuration"
-msgstr "Menggunakan konfigurasi SYSLINUX multibahasa"
-
-#: bin/sb2iso:572
-msgid "Configuring localized menu for"
-msgstr "Mengonfigurasi menu terlokalisasi untuk"
-
-#: bin/sb2iso:577
-msgid "Generated localized GRUB menu for"
-msgstr "Menu GRUB terlokalisasi dibuat untuk"
-
-#: bin/sb2iso:581
-msgid "Failed to generate localized GRUB config, falling back to English"
-msgstr "Gagal membuat konfigurasi GRUB lokal, kembali ke bahasa Inggris"
-
-#: bin/sb2iso:594
-msgid "Using localized SYSLINUX configuration for"
-msgstr "Menggunakan konfigurasi SYSLINUX terlokalisasi untuk"
-
-#: bin/sb2iso:598
-msgid "Localized configuration not found for"
-msgstr "Konfigurasi lokal tidak ditemukan untuk"
-
-#: bin/sb2iso:598
-msgid "using English"
-msgstr "menggunakan bahasa Inggris"
-
-#: bin/sb2iso:620
-msgid "Creating ISO work directory"
-msgstr "Membuat direktori kerja ISO"
-
-#: bin/sb2iso:624
-msgid "Copying boot files (GRUB BIOS only)"
-msgstr "Menyalin file boot (hanya GRUB BIOS)"
-
-#: bin/sb2iso:627
-msgid "Copying boot files (SYSLINUX native)"
-msgstr "Menyalin file boot (SYSLINUX native)"
-
-#: bin/sb2iso:630
-msgid "Copying boot files (SYSLINUX + GRUB)"
-msgstr "Menyalin file boot (SYSLINUX + GRUB)"
-
-#: bin/sb2iso:634
-msgid "Internal error: invalid bootloader type for boot files"
-msgstr "Kesalahan internal: tipe bootloader tidak valid untuk file boot"
-
-#: bin/sb2iso:653
-msgid "Created Ventoy compatibility symlinks in ISO:"
-msgstr "Symlink kompatibilitas Ventoy telah dibuat:"
-
-#: bin/sb2iso:662
-msgid "Creating temporary persistence image"
-msgstr "Membuat citra persistensi sementara"
-
-#: bin/sb2iso:663
-msgid "Formatting persistence image"
-msgstr "Memformat citra persistensi"
-
-#: bin/sb2iso:682
-msgid "Internal error: invalid bootloader type for ISO parameters"
-msgstr "Kesalahan internal: tipe bootloader tidak valid untuk parameter ISO"
-
-#: bin/sb2iso:687
-msgid "Generating ISO image"
-msgstr "Membuat citra ISO"
-
-#: bin/sb2iso:715
-msgid "Failed to create ISO image"
-msgstr "Gagal membuat citra ISO"
+#: bin/sb2dir:275
+msgid "Failed to publish the directory"
+msgstr "Gagal mempublikasikan direktori"
 
 #: bin/script2sb:29
 msgid "Use FILE as the installation script"
 msgstr "Gunakan FILE sebagai skrip instalasi"
 
 #: autostart/minios-setup-keyboard.desktop:7
-#: debian/minios-tools/etc/xdg/autostart/minios-setup-keyboard.desktop:7
 msgid "MiniOS Keyboard Setup"
 msgstr "Pengaturan Keyboard MiniOS"
 
 #: autostart/minios-setup-keyboard.desktop:17
-#: debian/minios-tools/etc/xdg/autostart/minios-setup-keyboard.desktop:17
 msgid "Configure keyboard layout from boot parameters"
 msgstr "Konfigurasi tata letak keyboard dari parameter boot"
 
 #: autostart/minios-virtual-resolution.desktop:7
-#: debian/minios-tools/etc/xdg/autostart/minios-virtual-resolution.desktop:7
 msgid "MiniOS Virtual Resolution Change"
 msgstr "Perubahan Resolusi Virtual MiniOS"
 
 #: autostart/minios-virtual-resolution.desktop:17
-#: debian/minios-tools/etc/xdg/autostart/minios-virtual-resolution.desktop:17
 msgid "Script for automatic resolution change in virtualization environment on XFCE startup"
 msgstr "Skrip untuk perubahan resolusi otomatis di lingkungan virtualisasi saat startup XFCE"
+
+#~ msgid "Erase module directory created by sb2dir"
+#~ msgstr "Hapus direktori modul yang dibuat oleh sb2dir"
+
+#~ msgid "source_directory.sb"
+#~ msgstr "direktori_sumber.sb"
+
+#~ msgid "Directory does not exist:"
+#~ msgstr "Direktori tidak ada:"
+
+#~ msgid "Module directory deleted:"
+#~ msgstr "Direktori modul dihapus:"
+
+#~ msgid "Remove an unpacked bundle directory"
+#~ msgstr "Hapus direktori bundel yang belum dibongkar"
+
+#~ msgid "Generate MiniOS ISO image, adding specified modules."
+#~ msgstr "Hasilkan citra ISO MiniOS, tambahkan modul yang ditentukan."
+
+#~ msgid "Exclude any existing path or file matching REGEX"
+#~ msgstr "Kecualikan jalur atau file yang ada yang cocok dengan REGEX"
+
+#~ msgid "Specify output ISO filename (default"
+#~ msgstr "Tentukan nama file output ISO (default"
+
+#~ msgid "Set menu type: multilang or language code"
+#~ msgstr "Atur tipe menu: multibahasa atau kode bahasa"
+
+#~ msgid "  multilang: menu with language selection (default)"
+#~ msgstr "  multilang: menu dengan pilihan bahasa (default)"
+
+#~ msgid "  language: specific language (en_US, ru_RU, de_DE, etc.)"
+#~ msgstr "  language: bahasa spesifik (en_US, ru_RU, de_DE, dll.)"
+
+#~ msgid "Create basic MiniOS ISO with current system:"
+#~ msgstr "Buat ISO MiniOS dasar dengan sistem saat ini:"
+
+#~ msgid "Create ISO with custom filename:"
+#~ msgstr "Buat ISO dengan nama file kustom:"
+
+#~ msgid "Create ISO excluding specific modules:"
+#~ msgstr "Buat ISO tanpa modul tertentu:"
+
+#~ msgid "Create minimal text-mode ISO:"
+#~ msgstr "Buat ISO minimal mode teks:"
+
+#~ msgid "Create ISO with additional modules:"
+#~ msgstr "Buat ISO dengan modul tambahan:"
+
+#~ msgid "Create Russian localized ISO:"
+#~ msgstr "Buat ISO lokal berbahasa Rusia:"
+
+#~ msgid "grub.template.cfg template not found"
+#~ msgstr "Template grub.template.cfg tidak ditemukan"
+
+#~ msgid "Cannot find MiniOS source directory with boot files"
+#~ msgstr "Tidak dapat menemukan direktori sumber MiniOS dengan file boot"
+
+#~ msgid "Detected bootloader type"
+#~ msgstr "Tipe bootloader terdeteksi"
+
+#~ msgid "Unknown bootloader type"
+#~ msgstr "Tipe bootloader tidak dikenal"
+
+#~ msgid "Valid types: grub-only, syslinux-native, syslinux-grub"
+#~ msgstr "Tipe yang valid: grub-only, syslinux-native, syslinux-grub"
+
+#~ msgid "If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
+#~ msgstr "Jika Anda memuat sistem ke RAM, gunakan 'toram=full' pada parameter kernel."
+
+#~ msgid "Using multilingual menu"
+#~ msgstr "Menggunakan menu multibahasa"
+
+#~ msgid "Using multilingual SYSLINUX configuration"
+#~ msgstr "Menggunakan konfigurasi SYSLINUX multibahasa"
+
+#~ msgid "Configuring localized menu for"
+#~ msgstr "Mengonfigurasi menu lokal untuk"
+
+#~ msgid "Generated localized GRUB menu for"
+#~ msgstr "Menu GRUB lokal berhasil dibuat untuk"
+
+#~ msgid "Failed to generate localized GRUB config, falling back to English"
+#~ msgstr "Gagal membuat konfigurasi GRUB lokal, menggunakan bahasa Inggris"
+
+#~ msgid "Using localized SYSLINUX configuration for"
+#~ msgstr "Menggunakan konfigurasi SYSLINUX lokal untuk"
+
+#~ msgid "Localized configuration not found for"
+#~ msgstr "Konfigurasi lokal tidak ditemukan untuk"
+
+#~ msgid "using English"
+#~ msgstr "menggunakan bahasa Inggris"
+
+#~ msgid "Creating ISO work directory"
+#~ msgstr "Membuat direktori kerja ISO"
+
+#~ msgid "Copying boot files (GRUB BIOS only)"
+#~ msgstr "Menyalin file boot (hanya GRUB BIOS)"
+
+#~ msgid "Copying boot files (SYSLINUX native)"
+#~ msgstr "Menyalin file boot (SYSLINUX native)"
+
+#~ msgid "Copying boot files (SYSLINUX + GRUB)"
+#~ msgstr "Menyalin file boot (SYSLINUX + GRUB)"
+
+#~ msgid "Internal error: invalid bootloader type for boot files"
+#~ msgstr "Kesalahan internal: tipe bootloader tidak valid untuk file boot"
+
+#~ msgid "Created Ventoy compatibility symlinks in ISO:"
+#~ msgstr "Symlink kompatibilitas Ventoy telah dibuat di ISO:"
+
+#~ msgid "Creating temporary persistence image"
+#~ msgstr "Membuat citra persistensi sementara"
+
+#~ msgid "Formatting persistence image"
+#~ msgstr "Memformat citra persistensi"
+
+#~ msgid "Internal error: invalid bootloader type for ISO parameters"
+#~ msgstr "Kesalahan internal: tipe bootloader tidak valid untuk parameter ISO"
+
+#~ msgid "Generating ISO image"
+#~ msgstr "Membuat citra ISO"
+
+#~ msgid "Failed to create ISO image"
+#~ msgstr "Gagal membuat citra ISO"

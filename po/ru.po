@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.4.2\n"
 "Report-Msgid-Bugs-To: support@minios.dev\n"
-"POT-Creation-Date: 2026-06-28 11:36+0300\n"
-"PO-Revision-Date: 2025-08-11 09:37+0300\n"
+"POT-Creation-Date: 2026-08-10 05:30+0300\n"
+"PO-Revision-Date: 2026-08-10 02:31+0000\n"
 "Last-Translator: crims0n <crims0n@minios.dev>\n"
 "Language-Team: none\n"
 "Language: ru\n"
@@ -17,9 +17,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: bin/apt2sb:20 bin/apt2sb:53 bin/chroot2sb:19 bin/chroot2sb:39 bin/dir2sb:11
-#: bin/dir2sb:31 bin/rmsbdir:9 bin/savechanges:22 bin/savechanges:38 bin/sb:30
-#: bin/sb:59 bin/sb2iso:26 bin/sb2iso:55 bin/script2sb:20 bin/script2sb:42
+#: bin/apt2sb:20 bin/apt2sb:53 bin/chroot2sb:19 bin/chroot2sb:39 bin/dir2sb:33
+#: bin/dir2sb:49 bin/savechanges:43 bin/savechanges:65 bin/sb:39 bin/sb:68
+#: bin/sb2dir:32 bin/sb2dir:46 bin/script2sb:20 bin/script2sb:42
 msgid "Usage"
 msgstr "Использование"
 
@@ -27,7 +27,7 @@ msgstr "Использование"
 msgid "Installs packages from repositories and packages them into a module."
 msgstr "Устанавливает пакеты из репозиториев и упаковывает их в модуль."
 
-#: bin/apt2sb:23 bin/sb:34
+#: bin/apt2sb:23 bin/sb:43
 msgid "Commands"
 msgstr "Команды"
 
@@ -39,8 +39,8 @@ msgstr "Установить пакет(ы)"
 msgid "Upgrade installed packages"
 msgstr "Обновить установленные пакеты"
 
-#: bin/apt2sb:27 bin/chroot2sb:22 bin/dir2sb:14 bin/savechanges:25
-#: bin/sb2iso:29 bin/script2sb:23
+#: bin/apt2sb:27 bin/chroot2sb:22 bin/dir2sb:35 bin/savechanges:46
+#: bin/sb2dir:34 bin/script2sb:23
 msgid "Options"
 msgstr "Опции"
 
@@ -52,23 +52,21 @@ msgstr "Использовать ИМЯ как имя файла для моду
 msgid "Use LEVEL as the filter level"
 msgstr "Использовать УРОВЕНЬ в качестве уровня фильтрации"
 
-#: bin/apt2sb:30 bin/chroot2sb:26 bin/dir2sb:16 bin/savechanges:26
-#: bin/script2sb:25
+#: bin/apt2sb:30 bin/chroot2sb:26 bin/script2sb:25
 msgid "Compression type (zstd, gzip, lzo, xz). Default: zstd"
 msgstr "Тип сжатия (zstd, gzip, lzo, xz). По умолчанию: zstd"
 
-#: bin/apt2sb:31 bin/chroot2sb:27 bin/dir2sb:15 bin/savechanges:27
-#: bin/script2sb:24
+#: bin/apt2sb:31 bin/chroot2sb:27 bin/script2sb:24
 msgid "Bundle extension. Default: sb"
 msgstr "Расширение пакета. По умолчанию: sb"
 
-#: bin/apt2sb:32 bin/chroot2sb:28 bin/dir2sb:17 bin/savechanges:28 bin/sb:44
-#: bin/sb2iso:35 bin/script2sb:30
+#: bin/apt2sb:32 bin/chroot2sb:28 bin/dir2sb:42 bin/savechanges:58 bin/sb:53
+#: bin/sb2dir:39 bin/script2sb:30
 msgid "Display this help and exit"
 msgstr "Отобразить эту справку и выйти"
 
-#: bin/apt2sb:33 bin/chroot2sb:29 bin/dir2sb:18 bin/savechanges:29 bin/sb:45
-#: bin/sb2iso:36 bin/script2sb:31
+#: bin/apt2sb:33 bin/chroot2sb:29 bin/dir2sb:43 bin/savechanges:59 bin/sb:54
+#: bin/sb2dir:40 bin/script2sb:31
 msgid "Display version information and exit"
 msgstr "Отобразить информацию о версии и выйти"
 
@@ -104,17 +102,17 @@ msgstr "Не рассматривать предлагаемые пакеты к
 msgid "Default release to install packages from"
 msgstr "Выпуск по умолчанию для установки пакетов"
 
-#: bin/apt2sb:44 bin/chroot2sb:31 bin/sb:47 bin/sb2iso:38 bin/script2sb:33
+#: bin/apt2sb:44 bin/chroot2sb:31 bin/sb:56 bin/script2sb:33
 msgid "Examples"
 msgstr "Примеры"
 
-#: bin/apt2sb:54 bin/chroot2sb:40 bin/dir2sb:32 bin/savechanges:39 bin/sb:61
-#: bin/sb2iso:56 bin/script2sb:43
+#: bin/apt2sb:54 bin/chroot2sb:40 bin/dir2sb:50 bin/savechanges:66 bin/sb:70
+#: bin/sb2dir:47 bin/script2sb:43
 msgid "Try"
 msgstr "Попробуйте"
 
-#: bin/apt2sb:54 bin/chroot2sb:40 bin/dir2sb:32 bin/savechanges:39 bin/sb:61
-#: bin/sb2iso:56 bin/script2sb:43
+#: bin/apt2sb:54 bin/chroot2sb:40 bin/dir2sb:50 bin/savechanges:66 bin/sb:70
+#: bin/sb2dir:47 bin/script2sb:43
 msgid "for more information."
 msgstr "для получения дополнительной информации."
 
@@ -130,261 +128,425 @@ msgstr "Скопировать содержимое КАТАЛОГА в коре
 msgid "Use NAME as the filename for the module"
 msgstr "Использовать ИМЯ как имя файла для модуля"
 
-#: bin/dir2sb:12
-msgid "Converts a directory to a compressed .sb module"
-msgstr "Преобразует каталог в сжатый .sb модуль"
+#: bin/dir2sb:34
+msgid "Convert a directory tree into a compressed .sb module."
+msgstr "Преобразовать дерево каталогов в сжатый .sb-модуль."
 
-#: bin/dir2sb:20
-msgid "Arguments"
-msgstr "Аргументы"
+#: bin/dir2sb:36 bin/savechanges:47
+msgid "Compression: zstd, gzip, lzo, or xz (default: zstd)"
+msgstr "Сжатие: zstd, gzip, lzo или xz (по умолчанию: zstd)"
 
-#: bin/dir2sb:21
-msgid "The directory to convert to a module"
-msgstr "Каталог для преобразования в модуль"
+#: bin/dir2sb:37 bin/savechanges:48
+msgid "Bundle extension used in help text (default: sb)"
+msgstr "Расширение пакета, используемое в справке (по умолчанию: sb)"
 
-#: bin/dir2sb:22
-msgid "Optional. The name of the output module file"
-msgstr "Необязательно. Имя выходного файла модуля"
+#: bin/dir2sb:38
+msgid "Preserve source ownership instead of normalizing to root (needs privilege)"
+msgstr "Сохранять владельцев исходных файлов вместо нормализации к root (требуются права администратора)"
 
-#: bin/dir2sb:24
-msgid "Behavior"
-msgstr "Поведение"
+#: bin/dir2sb:39 bin/sb2dir:36
+msgid "Permit device nodes, sockets, and FIFOs (needs privilege)"
+msgstr "Разрешить специальные файлы: device nodes, сокеты и FIFO (требуются права администратора)"
 
-#: bin/dir2sb:25
-msgid "If SOURCE_DIRECTORY does not have a .sb extension and is not 'squashfs-root', then the directory itself is included in the module, and TARGET_FILE is required."
-msgstr "Если ИСХОДНЫЙ_КАТАЛОГ не имеет расширения .sb и не является 'squashfs-root', то сам каталог включается в модуль, и ЦЕЛЕВОЙ_ФАЙЛ является обязательным.Если ИСХОДНЫЙ_КАТАЛОГ не имеет расширения .sb и не является 'squashfs-root', то сам каталог включается в модуль, и ЦЕЛЕВОЙ_ФАЙЛ является обязательным."
+#: bin/dir2sb:40 bin/sb2dir:37
+msgid "Emit phase events and a machine-readable result"
+msgstr "Выводить события этапов и машиночитаемый результат"
 
-#: bin/dir2sb:26
-msgid "If TARGET_FILE is not specified, SOURCE_DIRECTORY is replaced by the new module file."
-msgstr "Если ЦЕЛЕВОЙ_ФАЙЛ не указан, ИСХОДНЫЙ_КАТАЛОГ заменяется новым файлом модуля.Если ЦЕЛЕВОЙ_ФАЙЛ не указан, ИСХОДНЫЙ_КАТАЛОГ заменяется новым файлом модуля."
+#: bin/dir2sb:41 bin/savechanges:57 bin/sb2dir:38
+msgid "Disable colored output"
+msgstr "Отключить цветной вывод"
 
-#: bin/rmsbdir:8
-msgid "Erase module directory created by sb2dir"
-msgstr "Удалить каталог модуля, созданный sb2dir"
+#: bin/dir2sb:44
+msgid "The contents of SOURCE_DIRECTORY become the module root. Neither the source"
+msgstr "Содержимое SOURCE_DIRECTORY становится корнем модуля. Ни исходный"
 
-#: bin/rmsbdir:9
-msgid "source_directory.sb"
-msgstr "исходный_каталог.sb"
+#: bin/dir2sb:45
+msgid "nor an existing TARGET is modified; the module is published atomically."
+msgstr "файлы, ни существующий TARGET не изменяются; модуль публикуется атомарно."
 
-#: bin/rmsbdir:18 bin/sb2dir:35
-msgid "Directory does not exist:"
-msgstr "Каталог не существует:"
+#: bin/dir2sb:83 bin/savechanges:100 bin/sb2dir:80
+msgid "Option requires an argument:"
+msgstr "Для этой опции требуется аргумент:"
 
-#: bin/rmsbdir:25
-msgid "Module directory deleted:"
-msgstr "Каталог модуля удален:"
+#: bin/dir2sb:87 bin/savechanges:108 bin/sb2dir:84
+msgid "must not contain newline characters"
+msgstr "не должно содержать символы новой строки"
 
-#: bin/savechanges:23
-msgid "Saves all changed files in a compressed filesystem bundle."
-msgstr "Сохраняет все измененные файлы в сжатый пакет файловой системы."
+#: bin/dir2sb:154 bin/savechanges:219 bin/sb2dir:145
+msgid "Unknown option:"
+msgstr "Неизвестная опция:"
 
-#: bin/savechanges:31
-msgid "If changes_directory is not specified, the default changes"
-msgstr "Если changes_directory не указан, используется каталог изменений по умолчанию"
+#: bin/dir2sb:163 bin/savechanges:241
+msgid "Invalid compression type:"
+msgstr "Недопустимый тип сжатия:"
 
-#: bin/savechanges:32
-msgid "directory from the current initramfs is used."
-msgstr "используется каталог из текущего initramfs."
+#: bin/dir2sb:173 bin/sb2dir:159
+msgid "Source path"
+msgstr "Путь к исходникам"
 
-#: bin/sb:31
+#: bin/dir2sb:174 bin/sb2dir:160
+msgid "Target path"
+msgstr "Путь к целевому файлу"
+
+#: bin/dir2sb:177 bin/sb2dir:163
+msgid "--keep-ownership requires root privileges"
+msgstr "--keep-ownership требует прав root"
+
+#: bin/dir2sb:180 bin/sb2dir:166
+msgid "--allow-special requires root privileges"
+msgstr "--allow-special требует прав root"
+
+#: bin/dir2sb:196 bin/sb2dir:180
+msgid "converter engine helper not found"
+msgstr "Вспомогательный модуль converter engine не найден"
+
+#: bin/dir2sb:199 bin/sb2dir:183
+msgid "python3 is required"
+msgstr "Требуется python3"
+
+#: bin/dir2sb:203
+msgid "mksquashfs is required"
+msgstr "Требуется mksquashfs"
+
+#: bin/dir2sb:212
+msgid "Source is not a directory:"
+msgstr "Источник не является каталогом:"
+
+#: bin/dir2sb:218
+msgid "Invalid target filename:"
+msgstr "Недопустимое имя целевого файла:"
+
+#: bin/dir2sb:227
+msgid "Target directory does not exist:"
+msgstr "Целевой каталог не существует:"
+
+#: bin/dir2sb:229 bin/sb2dir:215
+msgid "Target already exists:"
+msgstr "Целевой объект уже существует:"
+
+#: bin/dir2sb:238
+msgid "Source contains special files that cannot be packaged; re-run with the privileged special-object mode."
+msgstr "Исходник содержит специальные файлы, которые нельзя упаковать; повторите с привилегированным режимом специальных объектов."
+
+#: bin/dir2sb:253
+msgid "Cannot reserve a staging file"
+msgstr "Не удалось зарезервировать staging-файл"
+
+#: bin/dir2sb:283
+msgid "mksquashfs failed to build the module"
+msgstr "mksquashfs не смог собрать модуль"
+
+#: bin/dir2sb:294
+msgid "Failed to publish the module"
+msgstr "Не удалось опубликовать модуль"
+
+#: bin/dir2sb:304 bin/sb2dir:285
+msgid "Created"
+msgstr "Создано"
+
+#: bin/savechanges:45
+msgid "Capture the writable layer of a running MiniOS session."
+msgstr "Сохранить изменяемый слой текущей сессии MiniOS."
+
+#: bin/savechanges:49
+msgid "Capture profile: exact, clean, or selected"
+msgstr "Профиль захвата: exact, clean или selected"
+
+#: bin/savechanges:50
+msgid "Strict JSON selection for the selected profile"
+msgstr "Строгий выбор JSON для выбранного профиля"
+
+#: bin/savechanges:52
+msgid "Write a metadata inventory instead of a module"
+msgstr "Записать инвентарь метаданных вместо модуля"
+
+#: bin/savechanges:53
+msgid "Write capture metadata beside a module"
+msgstr "Записать метаданные захвата рядом с модулем"
+
+#: bin/savechanges:54
+msgid "Use a validated directory for private capture staging"
+msgstr "Используйте проверенный каталог для временного размещения приватных данных захвата"
+
+#: bin/savechanges:55
+msgid "Emit pure NDJSON phase and result events"
+msgstr "Выводить только события фаз и результатов в формате NDJSON"
+
+#: bin/savechanges:56
+msgid "Cancel when FILE is created in its secure parent directory"
+msgstr "Отменить, если FILE создан в его защищённом родительском каталоге"
+
+#: bin/savechanges:60
+msgid "Without --profile, the historical exclusion policy is used."
+msgstr "Без --profile используется историческая политика исключений."
+
+#: bin/savechanges:61
+msgid "New profiles and inventories are published mode 0600."
+msgstr "Новые профили и инвентари публикуются с правами 0600."
+
+#: bin/savechanges:150
+msgid "--json cannot be combined with --help or --version"
+msgstr "--json нельзя использовать вместе с --help или --version"
+
+#: bin/savechanges:231 bin/savechanges:234
+msgid "Invalid capture profile:"
+msgstr "Недопустимый профиль захвата:"
+
+#: bin/savechanges:236
+msgid "The selected profile requires --selection"
+msgstr "Выбранный профиль требует --selection"
+
+#: bin/savechanges:238
+msgid "--selection is only valid with --profile selected"
+msgstr "--selection допустим только с --profile selected"
+
+#: bin/savechanges:244
+msgid "Invalid bundle extension:"
+msgstr "Недопустимое расширение пакета:"
+
+#: bin/savechanges:247
+msgid "Inventory mode accepts at most one changes directory"
+msgstr "В режиме инвентаризации допускается не более одного каталога изменений"
+
+#: bin/savechanges:248
+msgid "--metadata-json is not valid in inventory mode"
+msgstr "--metadata-json недопустим в режиме инвентаризации"
+
+#: bin/savechanges:262
+msgid "Invalid output filename"
+msgstr "Недопустимое имя файла вывода"
+
+#: bin/savechanges:263
+msgid "Output path"
+msgstr "Путь вывода"
+
+#: bin/savechanges:264
+msgid "Changes directory"
+msgstr "Каталог изменений"
+
+#: bin/savechanges:266
+msgid "Selection path"
+msgstr "Путь к выборке"
+
+#: bin/savechanges:269
+msgid "Invalid metadata output filename"
+msgstr "Недопустимое имя файла метаданных вывода"
+
+#: bin/savechanges:270
+msgid "Metadata output path"
+msgstr "Путь вывода метаданных"
+
+#: bin/savechanges:273
+msgid "Invalid cancel marker filename"
+msgstr "Недопустимое имя файла маркера отмены"
+
+#: bin/savechanges:274
+msgid "Cancel marker path"
+msgstr "Путь к маркеру отмены"
+
+#: bin/savechanges:277
+msgid "Invalid work parent"
+msgstr "Недопустимый родитель рабочей директории"
+
+#: bin/savechanges:278
+msgid "Work parent"
+msgstr "Родитель рабочей директории"
+
+#: bin/savechanges:289
+msgid "Cannot resolve script path"
+msgstr "Не удалось определить путь к скрипту"
+
+#: bin/savechanges:297
+msgid "This script must be run as root."
+msgstr "Этот скрипт должен запускаться от root."
+
+#: bin/savechanges:299
+msgid "Cannot detect the live writable changes directory"
+msgstr "Не удалось обнаружить каталог изменений с правом записи"
+
+#: bin/savechanges:332
+msgid "Trusted /usr/bin/python3 is unavailable"
+msgstr "Доверенный /usr/bin/python3 недоступен"
+
+#: bin/savechanges:333
+msgid "Trusted /usr/bin/env is unavailable"
+msgstr "Доверенный /usr/bin/env недоступен"
+
+#: bin/savechanges:336
+msgid "Invalid test root"
+msgstr "Недопустимый тестовый корень"
+
+#: bin/savechanges:341
+msgid "Invalid test changes directory"
+msgstr "Недопустимый тестовый каталог изменений"
+
+#: bin/savechanges:344
+msgid "Invalid test output parent"
+msgstr "Недопустимый родительский каталог вывода для теста"
+
+#: bin/savechanges:346
+msgid "Non-root test capture is confined to MINIOS_TOOLS_TEST_ROOT"
+msgstr "Тестовый захват без root ограничен MINIOS_TOOLS_TEST_ROOT"
+
+#: bin/savechanges:349
+msgid "Invalid test selection"
+msgstr "Недопустимый тестовый выбор"
+
+#: bin/savechanges:350
+msgid "Test selection is outside the test root"
+msgstr "Тестовая выборка находится вне тестового корня"
+
+#: bin/savechanges:355
+msgid "Invalid test metadata parent"
+msgstr "Недопустимый родитель метаданных теста"
+
+#: bin/savechanges:356
+msgid "Test metadata output is outside the test root"
+msgstr "Выходные данные метаданных теста находятся вне корня теста"
+
+#: bin/savechanges:362
+msgid "Invalid test cancel marker parent"
+msgstr "Недопустимый родитель маркера отмены теста"
+
+#: bin/savechanges:364
+msgid "Test cancel marker is outside the test root"
+msgstr "Маркер отмены теста находится вне корня теста"
+
+#: bin/savechanges:368
+msgid "Invalid test work parent"
+msgstr "Недопустимый родитель тестовой рабочей директории"
+
+#: bin/savechanges:370
+msgid "Test work parent is outside the test root"
+msgstr "Родитель тестовой рабочей директории находится вне корня теста"
+
+#: bin/savechanges:378
+msgid "Test capture tools were not provided"
+msgstr "Инструменты захвата теста не предоставлены"
+
+#: bin/savechanges:379
+msgid "Invalid test mksquashfs"
+msgstr "Недопустимый test mksquashfs"
+
+#: bin/savechanges:380
+msgid "Invalid test unsquashfs"
+msgstr "Недопустимый test unsquashfs"
+
+#: bin/savechanges:382
+msgid "Test tools are outside the test root"
+msgstr "Инструменты теста находятся вне корня теста"
+
+#: bin/savechanges:391
+msgid "Invalid source-test fixture"
+msgstr "Недопустимый source-test fixture"
+
+#: bin/savechanges:393
+msgid "Cannot canonicalize source-test fixture"
+msgstr "Невозможно канонизировать source-test fixture"
+
+#: bin/savechanges:394
+msgid "Source-test fixture is outside the test root"
+msgstr "source-test fixture находится вне корня теста"
+
+#: bin/savechanges:398
+msgid "Invalid source-test running source"
+msgstr "Недопустимый source-test running source"
+
+#: bin/savechanges:400
+msgid "Source-test running source is outside the test root"
+msgstr "source-test running source находится вне корня теста"
+
+#: bin/savechanges:410
+msgid "Invalid PKEXEC_UID"
+msgstr "Недопустимый PKEXEC_UID"
+
+#: bin/savechanges:421
+msgid "savechanges engine helper not found"
+msgstr "Вспомогательный модуль savechanges engine не найден"
+
+#: bin/sb:40
 msgid "Manage MiniOS bundles."
 msgstr "Управление пакетами MiniOS."
 
-#: bin/sb:32 bin/sb:60
+#: bin/sb:41 bin/sb:69
 msgid "To run some of the commands in this script, your Linux kernel must support AUFS."
 msgstr "Для выполнения некоторых команд в этом скрипте ваше ядро Linux должно поддерживать AUFS.Для выполнения некоторых команд в этом скрипте ваше ядро Linux должно поддерживать AUFS."
 
-#: bin/sb:35
+#: bin/sb:44
 msgid "Activate a MiniOS bundle"
 msgstr "Активировать пакет MiniOS"
 
-#: bin/sb:36
+#: bin/sb:45
 msgid "Deactivate an active MiniOS bundle"
 msgstr "Деактивировать активный пакет MiniOS"
 
-#: bin/sb:37
+#: bin/sb:46
 msgid "List active MiniOS bundles"
 msgstr "Список активных пакетов MiniOS"
 
-#: bin/sb:38
+#: bin/sb:47
 msgid "Save changes made at runtime to the bundle"
 msgstr "Сохранить изменения, сделанные во время выполнения, в пакет"
 
-#: bin/sb:40 bin/sb:41
-msgid "Remove an unpacked bundle directory"
-msgstr "Удалить распакованный каталог пакета"
+#: bin/sb:49 bin/sb:50
+msgid "Refuse unsafe removal of an unpacked bundle directory"
+msgstr "Отказано в небезопасном удалении распакованного каталога пакета"
 
-#: bin/sb:42
+#: bin/sb:51
 msgid "Convert an .sb bundle to directory or vice versa"
 msgstr "Преобразовать пакет .sb в каталог или наоборот"
 
-#: bin/sb2dir:9
-msgid "Usage:"
-msgstr "Использование:"
+#: bin/sb2dir:33
+msgid "Convert a compressed .sb module into a directory tree."
+msgstr "Преобразовать сжатый .sb-модуль в дерево каталогов."
 
-#: bin/sb2dir:10
-msgid "If the output_directory is specified, it must exist"
-msgstr "Если output_directory указан, он должен существовать"
+#: bin/sb2dir:35
+msgid "Restore the module ownership instead of the invoking user (needs privilege)"
+msgstr "Восстанавливать владельцев из модуля вместо текущего пользователя (требуются права администратора)"
 
-#: bin/sb2dir:11
-msgid "If the output_directory is not specified, the name source_file.sb"
-msgstr "Если output_directory не указан, используется имя source_file.sb"
+#: bin/sb2dir:41
+msgid "TARGET_DIRECTORY must not already exist; it is created atomically. Neither"
+msgstr "TARGET_DIRECTORY не должен существовать; он создаётся атомарно. Ни"
 
-#: bin/sb2dir:12
-msgid "is used and the directory is overmounted with tmpfs"
-msgstr "и каталог монтируется поверх с помощью tmpfs"
+#: bin/sb2dir:42
+msgid "the source module nor any existing path is modified."
+msgstr "исходный модуль, ни существующие пути не изменяются."
 
-#: bin/sb2dir:17
-msgid "File does not exist:"
-msgstr "Файл не существует:"
+#: bin/sb2dir:187
+msgid "unsquashfs is required"
+msgstr "Требуется unsquashfs"
 
-#: bin/sb2iso:27
-msgid "Generate MiniOS ISO image, adding specified modules."
-msgstr "Генерировать ISO-образ MiniOS, добавляя указанные модули."
+#: bin/sb2dir:197
+msgid "Source module is not a readable file:"
+msgstr "Исходный модуль не является читаемым файлом:"
 
-#: bin/sb2iso:30
-msgid "Exclude any existing path or file matching REGEX"
-msgstr "Исключить любой существующий путь или файл, соответствующий REGEX"
+#: bin/sb2dir:203
+msgid "Invalid target directory name:"
+msgstr "Недопустимое имя целевого каталога:"
 
-#: bin/sb2iso:31
-msgid "Specify output ISO filename (default"
-msgstr "Укажите имя выходного ISO-файла (по умолчанию"
+#: bin/sb2dir:213
+msgid "Target parent directory does not exist:"
+msgstr "Родительский каталог для целевого не существует:"
 
-#: bin/sb2iso:32
-msgid "Set menu type: multilang or language code"
-msgstr "Установить тип меню: multilang или код языка"
+#: bin/sb2dir:225
+msgid "Module contains special files that cannot be extracted rootlessly; re-run with the privileged special-object mode."
+msgstr "Модуль содержит специальные файлы, которые нельзя извлечь без root; повторите с привилегированным режимом специальных объектов."
 
-#: bin/sb2iso:33
-msgid "  multilang: menu with language selection (default)"
-msgstr "  multilang: меню с выбором языка (по умолчанию)"
+#: bin/sb2dir:231
+msgid "Cannot reserve a staging directory"
+msgstr "Не удалось зарезервировать staging-каталог"
 
-#: bin/sb2iso:34
-msgid "  language: specific language (en_US, ru_RU, de_DE, etc.)"
-msgstr "  language: конкретный язык (en_US, ru_RU, de_DE и т.д.)"
+#: bin/sb2dir:253
+msgid "Some extended attributes were not restored"
+msgstr "Некоторые расширенные атрибуты не были восстановлены"
 
-#: bin/sb2iso:39
-msgid "Create basic MiniOS ISO with current system:"
-msgstr "Создать базовый ISO MiniOS с текущей системой:"
+#: bin/sb2dir:262
+msgid "unsquashfs failed to extract the module"
+msgstr "unsquashfs не смог извлечь модуль"
 
-#: bin/sb2iso:41
-msgid "Create ISO with custom filename:"
-msgstr "Создать ISO с пользовательским именем файла:"
-
-#: bin/sb2iso:43
-msgid "Create ISO excluding specific modules:"
-msgstr "Создать ISO исключая определенные модули:"
-
-#: bin/sb2iso:45
-msgid "Create minimal text-mode ISO:"
-msgstr "Создать минимальный ISO в текстовом режиме:"
-
-#: bin/sb2iso:47
-msgid "Create ISO with additional modules:"
-msgstr "Создать ISO с дополнительными модулями:"
-
-#: bin/sb2iso:49
-msgid "Create Russian localized ISO:"
-msgstr "Создать русифицированный ISO:"
-
-#: bin/sb2iso:231
-msgid "grub.template.cfg template not found"
-msgstr "шаблон grub.template.cfg не найден"
-
-#: bin/sb2iso:482
-msgid "Cannot find MiniOS source directory with boot files"
-msgstr "Не удается найти исходный каталог MiniOS с загрузочными файлами"
-
-#: bin/sb2iso:488
-msgid "Detected bootloader type"
-msgstr "Обнаружен тип загрузчика"
-
-#: bin/sb2iso:525
-msgid "Unknown bootloader type"
-msgstr "Неизвестный тип загрузчика"
-
-#: bin/sb2iso:526
-msgid "Valid types: grub-only, syslinux-native, syslinux-grub"
-msgstr "Допустимые типы: grub-only, syslinux-native, syslinux-grub"
-
-#: bin/sb2iso:534
-msgid "If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
-msgstr "Если вы загрузили систему в RAM, используйте 'toram=full' в параметрах ядра.Если вы загрузили систему в RAM, используйте 'toram=full' в параметрах ядра."
-
-#: bin/sb2iso:557
-msgid "Using multilingual menu"
-msgstr "Используется многоязычное меню"
-
-#: bin/sb2iso:565
-msgid "Using multilingual SYSLINUX configuration"
-msgstr "Используется многоязычная конфигурация SYSLINUX"
-
-#: bin/sb2iso:572
-msgid "Configuring localized menu for"
-msgstr "Настройка локализованного меню для"
-
-#: bin/sb2iso:577
-msgid "Generated localized GRUB menu for"
-msgstr "Создано локализованное меню GRUB для"
-
-#: bin/sb2iso:581
-msgid "Failed to generate localized GRUB config, falling back to English"
-msgstr "Не удалось создать локализованную конфигурацию GRUB, используется английский язык"
-
-#: bin/sb2iso:594
-msgid "Using localized SYSLINUX configuration for"
-msgstr "Используется локализованная конфигурация SYSLINUX для"
-
-#: bin/sb2iso:598
-msgid "Localized configuration not found for"
-msgstr "Локализованная конфигурация не найдена для"
-
-#: bin/sb2iso:598
-msgid "using English"
-msgstr "используется английский"
-
-#: bin/sb2iso:620
-msgid "Creating ISO work directory"
-msgstr "Создание рабочего каталога ISO"
-
-#: bin/sb2iso:624
-msgid "Copying boot files (GRUB BIOS only)"
-msgstr "Копирование загрузочных файлов (только GRUB BIOS)"
-
-#: bin/sb2iso:627
-msgid "Copying boot files (SYSLINUX native)"
-msgstr "Копирование загрузочных файлов (нативный SYSLINUX)"
-
-#: bin/sb2iso:630
-msgid "Copying boot files (SYSLINUX + GRUB)"
-msgstr "Копирование загрузочных файлов (SYSLINUX + GRUB)"
-
-#: bin/sb2iso:634
-msgid "Internal error: invalid bootloader type for boot files"
-msgstr "Внутренняя ошибка: недопустимый тип загрузчика для загрузочных файлов"
-
-#: bin/sb2iso:653
-msgid "Created Ventoy compatibility symlinks in ISO:"
-msgstr "Созданы символьные ссылки совместимости Ventoy:"
-
-#: bin/sb2iso:662
-msgid "Creating temporary persistence image"
-msgstr "Создание временного образа постоянства"
-
-#: bin/sb2iso:663
-msgid "Formatting persistence image"
-msgstr "Форматирование образа постоянства"
-
-#: bin/sb2iso:682
-msgid "Internal error: invalid bootloader type for ISO parameters"
-msgstr "Внутренняя ошибка: недопустимый тип загрузчика для параметров ISO"
-
-#: bin/sb2iso:687
-msgid "Generating ISO image"
-msgstr "Генерация ISO-образа"
-
-#: bin/sb2iso:715
-msgid "Failed to create ISO image"
-msgstr "Не удалось создать ISO-образ"
+#: bin/sb2dir:275
+msgid "Failed to publish the directory"
+msgstr "Не удалось опубликовать каталог"
 
 #: bin/script2sb:29
 msgid "Use FILE as the installation script"
@@ -405,3 +567,129 @@ msgstr "Изменение разрешения в виртуальной сре
 #: autostart/minios-virtual-resolution.desktop:17
 msgid "Script for automatic resolution change in virtualization environment on XFCE startup"
 msgstr "Скрипт для автоматического изменения разрешения экрана в среде виртуализации при старте XFCE"
+
+#~ msgid "Erase module directory created by sb2dir"
+#~ msgstr "Удалить каталог модуля, созданный sb2dir"
+
+#~ msgid "source_directory.sb"
+#~ msgstr "исходный_каталог.sb"
+
+#~ msgid "Directory does not exist:"
+#~ msgstr "Каталог не существует:"
+
+#~ msgid "Module directory deleted:"
+#~ msgstr "Каталог модуля удален:"
+
+#~ msgid "Remove an unpacked bundle directory"
+#~ msgstr "Удалить распакованный каталог пакета"
+
+#~ msgid "Generate MiniOS ISO image, adding specified modules."
+#~ msgstr "Генерировать ISO-образ MiniOS, добавляя указанные модули."
+
+#~ msgid "Exclude any existing path or file matching REGEX"
+#~ msgstr "Исключить любой существующий путь или файл, соответствующий REGEX"
+
+#~ msgid "Specify output ISO filename (default"
+#~ msgstr "Укажите имя выходного ISO-файла (по умолчанию"
+
+#~ msgid "Set menu type: multilang or language code"
+#~ msgstr "Установить тип меню: multilang или код языка"
+
+#~ msgid "  multilang: menu with language selection (default)"
+#~ msgstr "  multilang: меню выбора языка (по умолчанию)"
+
+#~ msgid "  language: specific language (en_US, ru_RU, de_DE, etc.)"
+#~ msgstr "  language: конкретный язык (en_US, ru_RU, de_DE и т.д.)"
+
+#~ msgid "Create basic MiniOS ISO with current system:"
+#~ msgstr "Создать базовый MiniOS ISO с текущей системы:"
+
+#~ msgid "Create ISO with custom filename:"
+#~ msgstr "Создать ISO с пользовательским именем файла:"
+
+#~ msgid "Create ISO excluding specific modules:"
+#~ msgstr "Создать ISO без определённых модулей:"
+
+#~ msgid "Create minimal text-mode ISO:"
+#~ msgstr "Создать минимальный ISO в текстовом режиме:"
+
+#~ msgid "Create ISO with additional modules:"
+#~ msgstr "Создать ISO с дополнительными модулями:"
+
+#~ msgid "Create Russian localized ISO:"
+#~ msgstr "Создать русифицированный ISO:"
+
+#~ msgid "grub.template.cfg template not found"
+#~ msgstr "Шаблон grub.template.cfg не найден"
+
+#~ msgid "Cannot find MiniOS source directory with boot files"
+#~ msgstr "Не удается найти исходный каталог MiniOS с загрузочными файлами"
+
+#~ msgid "Detected bootloader type"
+#~ msgstr "Обнаружен тип загрузчика"
+
+#~ msgid "Unknown bootloader type"
+#~ msgstr "Неизвестный тип загрузчика"
+
+#~ msgid "Valid types: grub-only, syslinux-native, syslinux-grub"
+#~ msgstr "Допустимые типы: grub-only, syslinux-native, syslinux-grub"
+
+#~ msgid "If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
+#~ msgstr "Если система загружена в оперативную память, используйте 'toram=full' в параметрах ядра."
+
+#~ msgid "Using multilingual menu"
+#~ msgstr "Используется многоязычное меню"
+
+#~ msgid "Using multilingual SYSLINUX configuration"
+#~ msgstr "Используется многоязычная конфигурация SYSLINUX"
+
+#~ msgid "Configuring localized menu for"
+#~ msgstr "Настройка локализованного меню для"
+
+#~ msgid "Generated localized GRUB menu for"
+#~ msgstr "Создано локализованное меню GRUB для"
+
+#~ msgid "Failed to generate localized GRUB config, falling back to English"
+#~ msgstr "Не удалось сгенерировать локализованный конфиг GRUB, используется английский"
+
+#~ msgid "Using localized SYSLINUX configuration for"
+#~ msgstr "Используется локализованная конфигурация SYSLINUX для"
+
+#~ msgid "Localized configuration not found for"
+#~ msgstr "Локализованная конфигурация не найдена для"
+
+#~ msgid "using English"
+#~ msgstr "используется английский"
+
+#~ msgid "Creating ISO work directory"
+#~ msgstr "Создание рабочей директории ISO"
+
+#~ msgid "Copying boot files (GRUB BIOS only)"
+#~ msgstr "Копирование загрузочных файлов (только GRUB BIOS)"
+
+#~ msgid "Copying boot files (SYSLINUX native)"
+#~ msgstr "Копирование загрузочных файлов (SYSLINUX native)"
+
+#~ msgid "Copying boot files (SYSLINUX + GRUB)"
+#~ msgstr "Копирование загрузочных файлов (SYSLINUX + GRUB)"
+
+#~ msgid "Internal error: invalid bootloader type for boot files"
+#~ msgstr "Внутренняя ошибка: неверный тип загрузчика для загрузочных файлов"
+
+#~ msgid "Created Ventoy compatibility symlinks in ISO:"
+#~ msgstr "Созданы совместимые с Ventoy симлинки в ISO:"
+
+#~ msgid "Creating temporary persistence image"
+#~ msgstr "Создание временного образа постоянства"
+
+#~ msgid "Formatting persistence image"
+#~ msgstr "Форматирование образа постоянства"
+
+#~ msgid "Internal error: invalid bootloader type for ISO parameters"
+#~ msgstr "Внутренняя ошибка: неверный тип загрузчика для параметров ISO"
+
+#~ msgid "Generating ISO image"
+#~ msgstr "Генерация ISO-образа"
+
+#~ msgid "Failed to create ISO image"
+#~ msgstr "Не удалось создать ISO-образ"

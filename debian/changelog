@@ -1,3 +1,39 @@
+minios-tools (1.5.0) unstable; urgency=medium
+
+  * Remove the sb2iso executable, completion, documentation, and manual page;
+    ISO mastering is owned by the new minios-image-builder-cli package.
+  * Add exact, narrow clean, and selected savechanges profiles plus private
+    schema-2 JSON inventory, strict selection, union metadata, and xattr rules
+  * Run savechanges through an isolated Python engine with retained dirfds and
+    replay-safe OverlayFS xattr and selected-opacity policy
+  * Bind captures to boot and base-module fingerprints and honour caller-owned
+    cancel markers so an unprivileged caller can cooperatively stop and reap
+    the complete privileged savechanges process tree
+  * Use mounted-root union detection and non-installable non-root
+    source-test overrides
+  * Resolve mkfs.ext2 from the trusted system path and depend on e2fsprogs
+  * Rewrite dir2sb and sb2dir as rootless, non-destructive converters with
+    private staging, bounded cancellation, exact argv handling, and atomic
+    no-replace publication.
+  * Emit stable phase events and a machine-readable result under --json.
+  * Move the savechanges transaction into its separately installed Python
+    engine with an isolated interpreter and sanitized environment.
+  * Retire destructive rmsbdir, sb rm, and sb rmdir behavior; compatibility
+    commands now refuse unmount and recursive deletion.
+  * Make exact session capture fail closed on unsupported objects, unreadable
+    or non-preservable xattrs, malformed AUFS whiteouts, and unsafe topology.
+  * Bind OverlayFS and AUFS capture to the mounted writable layer and bind base
+    attestation to ordered mounted block-device bytes.
+  * Publish a versioned extraction footprint and account for simultaneous
+    staging, compression, and no-replace publication resources.
+  * Support the Bats 0.4 temporary-directory environment shipped by Bionic.
+  * Declare Python, SquashFS, and xattr tools used by the package test suite.
+  * Require the MiniOS Bionic SquashFS backport that provides zstd modules.
+  * Keep real-tool tests compatible with Bionic attr and Python 3.6.
+  * Bump script versions: dir2sb 2.0.0, sb2dir 2.0.0, savechanges 1.3.0.
+
+ -- crims0n <crims0n@minios.dev>  Mon, 10 Aug 2026 00:29:10 +0300
+
 minios-tools (1.4.14) unstable; urgency=medium
 
   * Fix "sb list" failing with "cd: /sys/fs/aufs/: No such file or

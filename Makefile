@@ -4,9 +4,12 @@ COMPLETIONS = $(shell find completion -type f)
 AUTOSTART = $(shell find autostart -type f 2>/dev/null)
 
 BINDIR = usr/bin
+LIBDIR = usr/lib/minios-tools
 LOCALEDIR = usr/share/locale
 COMPLETIONSDIR = usr/share/bash-completion/completions
 AUTOSTARTDIR = etc/xdg/autostart
+
+ENGINE_FILES = $(shell find lib -name "*.py" -type f 2>/dev/null)
 
 DOC_FILES = $(shell find doc -name "*.md")
 MAN_FILES = $(patsubst doc/%.md, man/%.1, $(DOC_FILES))
@@ -21,6 +24,10 @@ build: man
 endif
 endif
 build: locale
+
+.PHONY: test
+test:
+	bats tests/*.bats
 
 # Compilation rules
 man: $(MAN_FILES)
@@ -39,12 +46,15 @@ locale: $(MO_FILES)
 
 # Clean rule
 clean:
-	rm -rf man $(MO_FILES)
+	rm -rf man lib/__pycache__ $(MO_FILES)
 
 # Install rule
 install: build
 	install -d $(DESTDIR)/$(BINDIR)
 	install -m755 $(EXECUTABLES) $(DESTDIR)/$(BINDIR)
+
+	install -d $(DESTDIR)/$(LIBDIR)
+	[ -n "$(ENGINE_FILES)" ] && install -m644 $(ENGINE_FILES) $(DESTDIR)/$(LIBDIR) || true
 
 	install -d $(DESTDIR)/$(COMPLETIONSDIR)
 	install -m644 $(COMPLETIONS) $(DESTDIR)/$(COMPLETIONSDIR)

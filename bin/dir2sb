@@ -1,167 +1,305 @@
 #!/bin/bash
+# shellcheck disable=SC2317
 # Author: Tomas M. <http://www.slax.org/>
 # Author: crims0n <https://minios.dev>
+#
+# Convert a directory tree into a compressed .sb SquashFS module. The security
+# critical filesystem work (special-object scan, digest, and no-replace atomic
+# publication) runs in the separate minios_convert_engine.py helper, mirroring
+# the minios-image-compose bash/Python split.
 
-VERSION="1.0.1"
+set -Eeuo pipefail
+
+VERSION="2.0.0"
 BEXT="sb"
 COMP_TYPE="zstd"
 export TEXTDOMAIN="minios-tools"
 
+PROGRAM_NAME=${0##*/}
+JSON_OUTPUT=false
+KEEP_OWNERSHIP=false
+ALLOW_SPECIAL=false
+DISABLE_COLOR=false
+CHILD_PID=""
+STAGE_TEMP=""
+
+RED=""
+BOLD=""
+ENDCOLOR=""
+
+declare -a POSITIONAL=()
+
 help() {
-    echo "$(gettext "Usage"): $(basename $0) [OPTIONS]... SOURCE_DIRECTORY [TARGET_FILE]"
-    echo "$(gettext "Converts a directory to a compressed .sb module")"
-    echo ""
-    echo "$(gettext "Options"):"
-    echo "  -b, --bext EXT              $(gettext "Bundle extension. Default: sb")"
-    echo "  -c, --comp TYPE             $(gettext "Compression type (zstd, gzip, lzo, xz). Default: zstd")"
-    echo "      --help                  $(gettext "Display this help and exit")"
-    echo "      --version               $(gettext "Display version information and exit")"
-    echo ""
-    echo "$(gettext "Arguments"):"
-    echo "  SOURCE_DIRECTORY            $(gettext "The directory to convert to a module")"
-    echo "  TARGET_FILE                 $(gettext "Optional. The name of the output module file")"
-    echo ""
-    echo "$(gettext "Behavior"):"
-    echo "  * $(gettext "If SOURCE_DIRECTORY does not have a .sb extension and is not 'squashfs-root', then the directory itself is included in the module, and TARGET_FILE is required.")"
-    echo "  * $(gettext "If TARGET_FILE is not specified, SOURCE_DIRECTORY is replaced by the new module file.")"
-    exit 0
+    printf '%s: %s [OPTIONS] SOURCE_DIRECTORY TARGET.%s\n' "$(gettext "Usage")" "$PROGRAM_NAME" "$BEXT"
+    printf '%s\n\n' "$(gettext "Convert a directory tree into a compressed .sb module.")"
+    printf '%s:\n' "$(gettext "Options")"
+    printf '  -c, --comp TYPE          %s\n' "$(gettext "Compression: zstd, gzip, lzo, or xz (default: zstd)")"
+    printf '  -b, --bext EXT           %s\n' "$(gettext "Bundle extension used in help text (default: sb)")"
+    printf '      --keep-ownership     %s\n' "$(gettext "Preserve source ownership instead of normalizing to root (needs privilege)")"
+    printf '      --allow-special      %s\n' "$(gettext "Permit device nodes, sockets, and FIFOs (needs privilege)")"
+    printf '      --json               %s\n' "$(gettext "Emit phase events and a machine-readable result")"
+    printf '      --no-color           %s\n' "$(gettext "Disable colored output")"
+    printf '      --help               %s\n' "$(gettext "Display this help and exit")"
+    printf '      --version            %s\n\n' "$(gettext "Display version information and exit")"
+    printf '%s\n' "$(gettext "The contents of SOURCE_DIRECTORY become the module root. Neither the source")"
+    printf '%s\n' "$(gettext "nor an existing TARGET is modified; the module is published atomically.")"
 }
 
 brief_help() {
-    echo "$(gettext "Usage"): $(basename $0) [OPTIONS]... SOURCE_DIRECTORY [TARGET_FILE]"
-    echo "$(gettext "Try") '$(basename $0) --help' $(gettext "for more information.")"
-    exit 1
+    printf '%s: %s [OPTIONS] SOURCE_DIRECTORY TARGET.%s\n' "$(gettext "Usage")" "$PROGRAM_NAME" "$BEXT" >&2
+    printf "%s '%s --help' %s\n" "$(gettext "Try")" "$PROGRAM_NAME" "$(gettext "for more information.")" >&2
 }
 
 version() {
-    echo "$(basename $0) $VERSION"
-    exit 0
+    printf '%s %s\n' "$PROGRAM_NAME" "$VERSION"
 }
 
-while [ $# -gt 0 ]; do
-    case "$1" in
-    -b | --bext)
-        BEXT="$2"
-        shift 2
-        ;;
+console_colors() {
+    if [[ $DISABLE_COLOR == false && -z ${NO_COLOR:-} && -t 2 ]]; then
+        RED=$'\e[31m'
+        BOLD=$'\e[1m'
+        ENDCOLOR=$'\e[0m'
+    fi
+}
+
+error() {
+    printf '%s%sE:%s %s\n' "$BOLD" "$RED" "$ENDCOLOR" "$*" >&2
+}
+
+die() {
+    local status=$1
+    shift
+    error "$*"
+    exit "$status"
+}
+
+brief_option_error() {
+    error "$*"
+    brief_help
+    exit 1
+}
+
+require_value() {
+    (( $2 >= 2 )) || brief_option_error "$(gettext "Option requires an argument:") $1"
+}
+
+validate_no_line_break() {
+    [[ $2 != *$'\n'* && $2 != *$'\r'* ]] || die 1 "$1 $(gettext "must not contain newline characters")"
+}
+
+phase() {
+    if [[ $JSON_OUTPUT == true ]]; then
+        printf 'P:%s\n' "$1"
+    fi
+}
+
+remove_stage() {
+    [[ -n $STAGE_TEMP && -e $STAGE_TEMP ]] || return 0
+    rm -f -- "$STAGE_TEMP" 2>/dev/null || true
+    STAGE_TEMP=""
+}
+
+cleanup() {
+    local status=$?
+    trap - EXIT
+    trap '' INT TERM
+    remove_stage
+    exit "$status"
+}
+
+handle_signal() {
+    trap '' INT TERM
+    if [[ -n $CHILD_PID ]] && kill -0 "$CHILD_PID" 2>/dev/null; then
+        kill -TERM -- "-$CHILD_PID" 2>/dev/null || kill -TERM "$CHILD_PID" 2>/dev/null || true
+        for _ in {1..200}; do
+            kill -0 "$CHILD_PID" 2>/dev/null || break
+            sleep 0.05
+        done
+        kill -KILL -- "-$CHILD_PID" 2>/dev/null || kill -KILL "$CHILD_PID" 2>/dev/null || true
+        wait "$CHILD_PID" 2>/dev/null || true
+        CHILD_PID=""
+    fi
+    remove_stage
+    exit 130
+}
+
+trap cleanup EXIT
+trap handle_signal INT TERM
+
+while (( $# > 0 )); do
+    case $1 in
     -c | --comp)
-        COMP_TYPE="$2"
+        require_value "$1" "$#"
+        COMP_TYPE=$2
         shift 2
         ;;
-    --help)
-        help
+    --comp=*) COMP_TYPE=${1#*=}; shift ;;
+    -b | --bext)
+        require_value "$1" "$#"
+        BEXT=$2
+        shift 2
         ;;
-    --version)
-        version
-        ;;
-    *)
-        if [ "$1" == -* ]; then
-            brief_help
-        fi
-        POSARGS+=("$1")
+    --bext=*) BEXT=${1#*=}; shift ;;
+    --keep-ownership) KEEP_OWNERSHIP=true; shift ;;
+    --allow-special) ALLOW_SPECIAL=true; shift ;;
+    --json) JSON_OUTPUT=true; shift ;;
+    --no-color) DISABLE_COLOR=true; shift ;;
+    --help) help; exit 0 ;;
+    --version) version; exit 0 ;;
+    --)
         shift
+        POSITIONAL+=("$@")
+        break
         ;;
+    -*) brief_option_error "$(gettext "Unknown option:") $1" ;;
+    *) POSITIONAL+=("$1"); shift ;;
     esac
 done
 
-if [ "$(id -u)" != "0" ]; then
-    echo "This script must be run as root."
+console_colors
+
+case $COMP_TYPE in
+zstd | gzip | lzo | lz4 | xz) ;;
+*) die 1 "$(gettext "Invalid compression type:") $COMP_TYPE" ;;
+esac
+
+if (( ${#POSITIONAL[@]} != 2 )); then
     brief_help
+    exit 1
 fi
 
-if [ ${#POSARGS[@]} -eq 0 ]; then
-    brief_help
-elif [ ${#POSARGS[@]} -gt 2 ]; then
-    brief_help
+SOURCE_INPUT=${POSITIONAL[0]}
+TARGET_INPUT=${POSITIONAL[1]}
+validate_no_line_break "$(gettext "Source path")" "$SOURCE_INPUT"
+validate_no_line_break "$(gettext "Target path")" "$TARGET_INPUT"
+
+if [[ $KEEP_OWNERSHIP == true && $EUID -ne 0 ]]; then
+    die 1 "$(gettext "--keep-ownership requires root privileges")"
+fi
+if [[ $ALLOW_SPECIAL == true && $EUID -ne 0 ]]; then
+    die 1 "$(gettext "--allow-special requires root privileges")"
 fi
 
-P1="$(readlink -f "${POSARGS[0]}")"
-if [ ${#POSARGS[@]} -eq 2 ]; then
-    P2="$(readlink -f "${POSARGS[1]}")"
-else
-    P2=""
-fi
-
-if [ "$P1" = "$P2" ]; then
-    P2=""
-fi
-
-SB=$(echo "$P1" | grep -o "[.]sb/*\$")
-if [ "$(echo "$P1" | grep -o "/squashfs-root/*\$")" != "" ]; then
-    SB="true"
-fi
-
-if [ "$SB" = "" ]; then
-    KEEP="-keep-as-directory"
-    if [ "$P2" = "" ]; then
-        brief_help
+# Resolve the isolated Python engine: beside the script in a source checkout,
+# or installed under /usr/lib/minios-tools.
+SCRIPT_PATH=$(readlink -f -- "${BASH_SOURCE[0]}" 2>/dev/null || printf '%s' "${BASH_SOURCE[0]}")
+SCRIPT_DIR=${SCRIPT_PATH%/*}
+CONVERT_ENGINE=""
+for engine_candidate in \
+    "$SCRIPT_DIR/../lib/minios_convert_engine.py" \
+    "/usr/lib/minios-tools/minios_convert_engine.py"; do
+    if [[ -f $engine_candidate ]]; then
+        CONVERT_ENGINE=$(readlink -f -- "$engine_candidate")
+        break
     fi
-else
-    KEEP=""
-fi
+done
+[[ -n $CONVERT_ENGINE ]] || die 1 "$(gettext "converter engine helper not found")"
 
-if [ ! -d "$P1" ]; then
-    echo "Not a directory: $P1" >&2
-    exit 2
-fi
+PYTHON_BIN=$(command -v python3 || true)
+[[ -n $PYTHON_BIN ]] || die 1 "$(gettext "python3 is required")"
+ENV_BIN=$(command -v env || printf '/usr/bin/env')
 
-if [ "$COMP_TYPE" = "zstd" ]; then
-    COMP_OPTS="-Xcompression-level 19"
-elif [ "$COMP_TYPE" = "xz" ]; then
-    COMP_OPTS="-Xbcj x86"
-else
-    COMP_OPTS=""
-fi
+MKSQUASHFS_BIN=$(command -v mksquashfs || true)
+[[ -n $MKSQUASHFS_BIN ]] || die 1 "$(gettext "mksquashfs is required")"
 
-if [ "$P2" = "" ]; then
-    TARGET="$P1.$BEXT"
-    while [ -e "$TARGET" ]; do TARGET="$TARGET"x; done
-else
-    TARGET="$P2"
-    if [ -e "$TARGET" ]; then
-        echo "Target exists: $TARGET" >&2
-        exit 4
-    fi
-fi
-
-# squashfs-tools 4.3 (e.g. Ubuntu bionic) lacks -quiet and requires a lowercase block-size suffix.
-# squashfs-tools 4.7+ added -help-option; use it when available.
-# We use -quiet presence as a proxy for uppercase block-size support: 4.3 lacks both,
-# while 4.4+ provides both; an unusual build with only one trait is not expected.
-mksquashfs_supports_quiet() {
-   local help
-   help=$(mksquashfs -help-option quiet 2>&1 || true)
-   if echo "$help" | grep -qE '^-quiet'; then
-      return 0
-   fi
-   help=$(mksquashfs 2>&1 || true)
-   echo "$help" | grep -qE '^-quiet[[:space:]]'
+run_engine() {
+    "$ENV_BIN" -i PATH=/usr/sbin:/usr/bin:/sbin:/bin LC_ALL=C.UTF-8 LANG=C.UTF-8 \
+        "$PYTHON_BIN" -I "$CONVERT_ENGINE" "$@"
 }
 
-if mksquashfs_supports_quiet; then
-   MKSQUASHFS_QUIET=1
+# Resolve and validate the source directory (read-only input).
+SOURCE_PATH=$(readlink -f -- "$SOURCE_INPUT" 2>/dev/null || true)
+[[ -n $SOURCE_PATH && -d $SOURCE_PATH ]] || die 2 "$(gettext "Source is not a directory:") $SOURCE_INPUT"
+
+# The target must not already exist; its parent must be an existing directory
+# on which the module is atomically published.
+TARGET_NAME=${TARGET_INPUT##*/}
+[[ -n $TARGET_NAME && $TARGET_NAME != "." && $TARGET_NAME != ".." ]] ||
+    die 1 "$(gettext "Invalid target filename:") $TARGET_INPUT"
+if [[ $TARGET_INPUT == */* ]]; then
+    TARGET_PARENT_INPUT=${TARGET_INPUT%/*}
+    [[ -n $TARGET_PARENT_INPUT ]] || TARGET_PARENT_INPUT=/
 else
-   MKSQUASHFS_QUIET=0
+    TARGET_PARENT_INPUT=.
+fi
+TARGET_PARENT=$(readlink -f -- "$TARGET_PARENT_INPUT" 2>/dev/null || true)
+[[ -n $TARGET_PARENT && -d $TARGET_PARENT ]] ||
+    die 2 "$(gettext "Target directory does not exist:") $TARGET_PARENT_INPUT"
+if [[ -e $TARGET_PARENT/$TARGET_NAME || -L $TARGET_PARENT/$TARGET_NAME ]]; then
+    die 4 "$(gettext "Target already exists:") $TARGET_INPUT"
 fi
 
-MKSQUASHFS_BASE="mksquashfs $P1 $TARGET -comp $COMP_TYPE -always-use-fragments"
-if [ "$MKSQUASHFS_QUIET" = 1 ]; then
-   MKSQUASHFS_CMD="$MKSQUASHFS_BASE -b 1024K -quiet $COMP_OPTS"
+phase prepare
+
+# Reject device nodes, sockets, and FIFOs unless an explicit privileged mode is
+# requested; they cannot round-trip through a rootless conversion.
+if [[ $ALLOW_SPECIAL == false ]]; then
+    SCAN_JSON=$(run_engine scan-specials "$SOURCE_PATH") ||
+        die 3 "$(gettext "Source contains special files that cannot be packaged; re-run with the privileged special-object mode.")"
+    SOURCE_ENTRIES=$(printf '%s' "$SCAN_JSON" | sed -n 's/.*"entries":[[:space:]]*\([0-9]\+\).*/\1/p')
 else
-   MKSQUASHFS_CMD="$MKSQUASHFS_BASE -b 1024k $COMP_OPTS"
-fi
-if [ "$KEEP" = "-keep-as-directory" ]; then
-    MKSQUASHFS_CMD="$MKSQUASHFS_CMD -keep-as-directory"
+    SOURCE_ENTRIES=""
 fi
 
-if [ "$MKSQUASHFS_QUIET" = 1 ]; then
-   $MKSQUASHFS_CMD || exit 5
-else
-   $MKSQUASHFS_CMD >/dev/null 2>&1 || exit 5
+# Compression tuning.
+declare -a COMP_OPTS=()
+case $COMP_TYPE in
+zstd) COMP_OPTS=(-Xcompression-level 19) ;;
+xz) COMP_OPTS=(-Xbcj x86) ;;
+esac
+
+# Reserve a private staging file beside the target on the same filesystem.
+STAGE_TEMP=$(mktemp -p "$TARGET_PARENT" ".dir2sb.XXXXXXXXXX") ||
+    die 4 "$(gettext "Cannot reserve a staging file")"
+STAGE_NAME=${STAGE_TEMP##*/}
+
+declare -a MKSQUASHFS_CMD=(
+    "$MKSQUASHFS_BIN" "$SOURCE_PATH" "$STAGE_TEMP"
+    -comp "$COMP_TYPE" -noappend -always-use-fragments -b 1024k
+)
+if [[ $KEEP_OWNERSHIP == false ]]; then
+    MKSQUASHFS_CMD+=(-all-root)
+fi
+if (( ${#COMP_OPTS[@]} > 0 )); then
+    MKSQUASHFS_CMD+=("${COMP_OPTS[@]}")
 fi
 
-if [ "$P2" = "" ]; then
-    umount "$P1" 2>/dev/null
-    rm -Rf "$P1"
-    mv "$TARGET" "$P1"
+phase compress
+
+TOOL_LOG=$(mktemp -p "${TMPDIR:-/tmp}" ".dir2sb-log.XXXXXX") || TOOL_LOG=/dev/null
+tool_status=0
+set -m
+"${MKSQUASHFS_CMD[@]}" >"$TOOL_LOG" 2>&1 &
+CHILD_PID=$!
+set +m
+wait "$CHILD_PID" || tool_status=$?
+CHILD_PID=""
+
+if (( tool_status != 0 )); then
+    if [[ $TOOL_LOG != /dev/null ]]; then
+        tail -n 3 -- "$TOOL_LOG" >&2 || true
+        rm -f -- "$TOOL_LOG"
+    fi
+    die 5 "$(gettext "mksquashfs failed to build the module")"
+fi
+[[ $TOOL_LOG == /dev/null ]] || rm -f -- "$TOOL_LOG"
+
+phase publish
+
+PUBLISH_JSON=$(run_engine publish-file "$TARGET_PARENT" "$STAGE_NAME" \
+    "$TARGET_NAME" "$COMP_TYPE" "${SOURCE_ENTRIES:-}" \
+    "$([[ $JSON_OUTPUT == true ]] && printf 1 || printf 0)") || {
+    engine_status=$?
+    remove_stage
+    die "$engine_status" "$(gettext "Failed to publish the module")"
+}
+# Ownership of the staging file was transferred to the target name.
+STAGE_TEMP=""
+
+phase complete
+
+if [[ $JSON_OUTPUT == true ]]; then
+    printf '%s\n' "$PUBLISH_JSON"
+else
+    printf '%s: %s\n' "$(gettext "Created")" "$TARGET_PARENT/$TARGET_NAME"
 fi
