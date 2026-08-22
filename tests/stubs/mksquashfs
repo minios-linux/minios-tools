@@ -14,6 +14,12 @@ fi
 source_directory=${1:?missing source directory}
 module=${2:?missing module output}
 
+if [[ -n ${MKSQUASHFS_REPLACE_SOURCE:-} ]]; then
+    mv -- "$MKSQUASHFS_REPLACE_SOURCE" "$MKSQUASHFS_REPLACE_SOURCE.old"
+    mkdir -p "$MKSQUASHFS_REPLACE_SOURCE"
+    printf 'replacement\n' >"$MKSQUASHFS_REPLACE_SOURCE/not-source.txt"
+fi
+
 [[ ${MKSQUASHFS_NO_QUIET:-false} != true ]] || printf '%s\n' 'mksquashfs child stdout'
 
 if [[ ${MKSQUASHFS_FAIL:-false} == true ]]; then
@@ -60,5 +66,13 @@ if [[ -n ${MKSQUASHFS_STATE:-} ]]; then
     printf '%s\0' "$@" >"$MKSQUASHFS_STATE/args"
 fi
 
-cp -a -- "$source_directory" "$module.stub-tree"
-printf 'stub SquashFS module\n' >"$module"
+mkdir -p "$module.stub-tree"
+cp -a -- "$source_directory/." "$module.stub-tree/"
+if [[ ${MKSQUASHFS_INJECT_SPECIAL:-false} == true ]]; then
+    mkfifo "$module.stub-tree/injected.pipe"
+fi
+if [[ ${MKSQUASHFS_INVALID_OUTPUT:-false} == true ]]; then
+    printf 'invalid module\n' >"$module"
+else
+    printf 'stub SquashFS module\n' >"$module"
+fi

@@ -1,18 +1,40 @@
 _sb() {
     local cur prev opts
     COMPREPLY=()
-    cur="${COMP_WORDS[COMP_CWORD]}"
-    prev="${COMP_WORDS[COMP_CWORD - 1]}"
-    opts="activate deactivate list"
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev=${COMP_WORDS[COMP_CWORD - 1]}
+    opts='activate deactivate list next-boot inspect savechanges conv help version rm rmdir'
 
-    if [[ ${prev} == "activate" || ${prev} == "deactivate" ]]; then
-        COMPREPLY=($(compgen -f -- "${cur}"))
+    if [[ ${COMP_WORDS[1]:-} == inspect && $COMP_CWORD == 3 ]]; then
+        COMPREPLY=($(compgen -W '--json' -- "$cur"))
         return 0
     fi
+    if [[ ${COMP_WORDS[1]:-} == next-boot ]]; then
+        if [[ $COMP_CWORD == 2 ]]; then
+            COMPREPLY=($(compgen -W 'add remove --json' -- "$cur"))
+            return 0
+        elif [[ ${COMP_WORDS[2]:-} == add && $COMP_CWORD == 3 ]]; then
+            COMPREPLY=($(compgen -f -- "$cur"))
+            return 0
+        elif [[ $COMP_CWORD == 4 ]]; then
+            COMPREPLY=($(compgen -W '--json' -- "$cur"))
+            return 0
+        fi
+    fi
 
-    if [[ ${COMP_CWORD} == 1 ]]; then
-        COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+    case $prev in
+    activate | deactivate | conv | inspect)
+        COMPREPLY=($(compgen -f -- "$cur"))
         return 0
+        ;;
+    list | next-boot)
+        COMPREPLY=($(compgen -W '--json' -- "$cur"))
+        return 0
+        ;;
+    esac
+
+    if [[ $COMP_CWORD == 1 ]]; then
+        COMPREPLY=($(compgen -W "$opts" -- "$cur"))
     fi
 }
 complete -F _sb sb

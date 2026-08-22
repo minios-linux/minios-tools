@@ -15,11 +15,22 @@ _apt2sb() {
         COMPREPLY=($(compgen -W '00 01 02 03 04 05 06 07 08 09' -- "$cur"))
         return
         ;;
+    -c | --comp)
+        COMPREPLY=($(compgen -W 'zstd gzip lzo xz' -- "$cur"))
+        return
+        ;;
+    -b | --bext)
+        COMPREPLY=($(compgen -W 'sb sqfs sfs' -- "$cur"))
+        return
+        ;;
+    -t | --target-release)
+        return
+        ;;
     esac
 
     if [[ ${words[1]} == install ]]; then
         if [[ $cur == --* ]]; then
-            COMPREPLY=($(compgen -W '--yes --allow-downgrades --install-recommends --install-suggests --no-install-recommends --no-install-suggests --target-release --bext --comp --name --level --help --version' -- "$cur"))
+            COMPREPLY=($(compgen -W '--yes --allow-downgrades --install-recommends --install-suggests --no-install-recommends --no-install-suggests --target-release --bext --comp --name --level --json --help --version' -- "$cur"))
         elif [[ $cur == -* ]]; then
             COMPREPLY=($(compgen -W '-b -c -y -t -n -l --help --version' -- "$cur"))
         elif [[ ${#words[@]} -ge 3 && $cur != */* ]]; then
@@ -29,9 +40,9 @@ _apt2sb() {
         fi
     elif [[ ${words[1]} == upgrade ]]; then
         if [[ $cur == --* ]]; then
-            COMPREPLY=($(compgen -W '--yes --allow-downgrades --install-recommends --install-suggests --no-install-recommends --no-install-suggests --target-release --bext --comp --name --level --help --version' -- "$cur"))
+            COMPREPLY=($(compgen -W '--yes --allow-downgrades --install-recommends --install-suggests --no-install-recommends --no-install-suggests --bext --comp --name --level --json --help --version' -- "$cur"))
         elif [[ $cur == -* ]]; then
-            COMPREPLY=($(compgen -W '-b -c -y -t -n -l --help --version' -- "$cur"))
+            COMPREPLY=($(compgen -W '-b -c -y -n -l --help --version' -- "$cur"))
         fi
     else
         if [[ $cur == -* ]]; then

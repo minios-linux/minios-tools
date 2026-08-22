@@ -1,0 +1,92 @@
+#!/bin/sh
+# Save a shutdown-policy SquashFS session before local filesystems are unmounted.
+
+BOOT_STATE=${MINIOS_SHUTDOWN_BOOT_STATE:-/run/initramfs/minios-persistence/boot-state}
+SESSIONS_DIR=${MINIOS_SHUTDOWN_SESSIONS_DIR:-}
+MARKER=${MINIOS_SHUTDOWN_MARKER:-/run/initramfs/minios-persistence/shutdown-save-complete}
+SAVE_COMMAND=${MINIOS_SHUTDOWN_SAVE_COMMAND:-/usr/bin/minios-squashfs-save}
+CONSOLE=${MINIOS_SHUTDOWN_CONSOLE:-/dev/console}
+GREEN='\033[0;32m'
+WHITE='\033[1;37m'
+RESET='\033[0m'
+
+console_step() {
+    printf '%b\n' "${WHITE}[${GREEN}*${WHITE}]${RESET} $1" >>"$CONSOLE"
+}
+
+console_ok() {
+    printf '%b\n' "${WHITE}[${GREEN}OK${WHITE}]${RESET} $1" >>"$CONSOLE"
+}
+
+console_fail() {
+    printf '[ FAIL ] %s\n' "$1" >>"$CONSOLE"
+}
+
+[ -f "$BOOT_STATE" ] || exit 0
+[ "$(sed -n 's/^boot_level=//p' "$BOOT_STATE" | tail -n 1)" = ok ] || exit 0
+[ "$(sed -n 's/^mode=//p' "$BOOT_STATE" | tail -n 1)" = squashfs ] || exit 0
+SESSION=$(sed -n 's/^session=//p' "$BOOT_STATE" | tail -n 1)
+case "$SESSION" in '' | *[!0-9]*) exit 0 ;; esac
+
+if [ -z "$SESSIONS_DIR" ]; then
+    for CANDIDATE in \
+        /run/initramfs/memory/data/minios/changes \
+        /lib/live/mount/medium/minios/changes; do
+        [ -f "$CANDIDATE/session.conf" ] || continue
+        SESSIONS_DIR="$CANDIDATE"
+        break
+    done
+fi
+[ -n "$SESSIONS_DIR" ] && [ -f "$SESSIONS_DIR/session.conf" ] || exit 1
+POLICY=$(sed -n "s/^session_policy\[$SESSION\]=//p" \
+    "$SESSIONS_DIR/session.conf" | tail -n 1)
+[ -n "$POLICY" ] || POLICY=manual
+[ "$POLICY" = shutdown ] || exit 0
+
+mkdir -p "$(dirname "$MARKER")" || exit 1
+PROGRESS_PIPE="${MARKER}.progress.$$"
+ERROR_FILE="${MARKER}.error.$$"
+RESULT_FILE="${MARKER}.result.$$"
+rm -f "$MARKER" "$PROGRESS_PIPE" "$ERROR_FILE" "$RESULT_FILE"
+
+phase_reader() {
+    while IFS= read -r LINE; do
+        case "$LINE" in
+            *'"phase":"inventory"'*) console_step "Scanning session changes..." ;;
+            *'"phase":"capture"'*) console_step "Collecting session changes..." ;;
+            *'"phase":"compress"'*) console_step "Compressing session..." ;;
+            *'"phase":"verify"'*) console_step "Verifying session..." ;;
+            *'"phase":"publish"'*) console_step "Finishing session save..." ;;
+            *'"success":'*) printf '%s\n' "$LINE" >"$RESULT_FILE" ;;
+        esac
+    done
+}
+if ! mkfifo -m 600 "$PROGRESS_PIPE"; then
+    console_fail "Unable to start SquashFS session save."
+    exit 1
+fi
+trap 'rm -f "$PROGRESS_PIPE" "$ERROR_FILE" "$RESULT_FILE"' EXIT HUP INT TERM
+
+console_step "Saving SquashFS session #$SESSION..."
+phase_reader <"$PROGRESS_PIPE" &
+READER_PID=$!
+if "$SAVE_COMMAND" "$SESSION" --shutdown-finalize --json --progress \
+        >"$PROGRESS_PIPE" 2>"$ERROR_FILE"; then
+    STATUS=0
+else
+    STATUS=$?
+fi
+wait "$READER_PID" 2>/dev/null || true
+rm -f "$PROGRESS_PIPE"
+
+if [ "$STATUS" -eq 0 ]; then
+    printf 'session=%s\n' "$SESSION" >"$MARKER"
+    sync
+    console_ok "SquashFS session #$SESSION saved."
+    exit 0
+fi
+DETAIL=$(sed -n 's/^.*"message":"\([^"]*\)".*$/\1/p' "$RESULT_FILE" | tail -n 1)
+[ -n "$DETAIL" ] || DETAIL=$(tail -n 1 "$ERROR_FILE" 2>/dev/null || true)
+console_fail "SquashFS session #$SESSION was not saved."
+[ -z "$DETAIL" ] || console_fail "$DETAIL"
+exit "$STATUS"

@@ -19,6 +19,7 @@ MiniOS Tools provides utilities for creating, managing, and customizing MiniOS l
 - **sb2dir** - Extract .sb modules to directories
 - **rmsbdir** - Refuse the retired unsafe module-directory removal operation
 - **savechanges** - Save runtime changes to compressed bundles
+- **minios-squashfs-save** - Atomically save the running SquashFS persistence snapshot; MiniOS core uses the bundled shutdown helper to invoke the same backend at poweroff
 
 ## Installation
 
@@ -42,7 +43,7 @@ For detailed documentation, see the individual manual pages in the `doc/` direct
 
 ## Language Support
 
-The tools support multiple languages with full localization:
+Translations are provided for the command-line messages that use the localization layer:
 - English (en_US)
 - Russian (ru_RU)
 - German (de_DE)

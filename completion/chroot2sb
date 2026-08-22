@@ -1,54 +1,56 @@
 _chroot2sb() {
-    local cur prev words cword
+    local cur prev words cword command
     _init_completion -n = || return
 
-    if [[ ${words[@]} =~ --help ]] || [[ ${words[@]} =~ --version ]]; then
+    command=${words[1]:-}
+    case $command in
+    shell)
         return
-    fi
+        ;;
+    finish | cancel)
+        if [[ $cur == --* ]]; then
+            COMPREPLY=($(compgen -W '--json' -- "$cur"))
+        fi
+        return
+        ;;
+    prepare) ;;
+    esac
 
     case $prev in
-    -d)
+    -d | --directory | -n | --name)
         _filedir
         return
         ;;
-    -n)
-        _filedir
-        return
-        ;;
-    -l)
+    -l | --level)
         COMPREPLY=($(compgen -W '00 01 02 03 04 05 06 07 08 09' -- "$cur"))
+        return
+        ;;
+    -c | --comp)
+        COMPREPLY=($(compgen -W 'zstd gzip lzo xz' -- "$cur"))
+        return
+        ;;
+    -b | --bext)
+        COMPREPLY=($(compgen -W 'sb sqfs sfs' -- "$cur"))
         return
         ;;
     esac
 
-    if [[ "$cur" == *=* ]]; then
-        local opt="${cur%%=*}"
-        cur="${cur#*=}"
-        case $opt in
-        --directory)
-            _filedir
-            return
-            ;;
-        --name)
-            _filedir
-            return
-            ;;
-        --level)
-            COMPREPLY=($(compgen -W '00 01 02 03 04 05 06 07 08 09' -- "$cur"))
-            return
-            ;;
-        *) ;;
-        esac
+    if (( cword == 1 )); then
+        if [[ $cur == -* ]]; then
+            COMPREPLY=($(compgen -W '-b -c -d -n -l --bext --comp --directory --name --level --help --version' -- "$cur"))
+        else
+            COMPREPLY=($(compgen -W 'prepare shell finish cancel' -- "$cur"))
+        fi
+        return
     fi
 
-    if [[ "$cur" == --* ]]; then
-        COMPREPLY=($(compgen -W '--bext --comp --directory --name --level' -- "$cur"))
-    elif [[ "$cur" == -* ]]; then
-        COMPREPLY=($(compgen -W '-b -c -d -n -l' -- "$cur"))
-    else
-        COMPREPLY=($(compgen -W '--bext --comp --directory --name --level' -- "$cur"))
+    if [[ $command == prepare && $cur == --* ]]; then
+        COMPREPLY=($(compgen -W '--bext --comp --directory --name --level --json' -- "$cur"))
+    elif [[ $cur == --* ]]; then
+        COMPREPLY=($(compgen -W '--bext --comp --directory --name --level --help --version' -- "$cur"))
+    elif [[ $cur == -* ]]; then
+        COMPREPLY=($(compgen -W '-b -c -d -n -l --help --version' -- "$cur"))
     fi
-
 }
 
 complete -F _chroot2sb chroot2sb

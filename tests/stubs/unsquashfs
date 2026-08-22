@@ -4,13 +4,28 @@ set -u
 
 original_arguments=("$@")
 
+if [[ ${1:-} == -help || ${1:-} == --help ]]; then
+    cat <<'EOF'
+Usage: unsquashfs [options] filesystem [files to extract or exclude]
+	-u[ser-xattrs]		only extract user xattrs in file system.
+EOF
+    exit 0
+fi
+
+if [[ -n ${UNSQUASHFS_ARGV_LOG:-} ]]; then
+    printf '%s\0' "$@" >>"$UNSQUASHFS_ARGV_LOG"
+    printf '\n' >>"$UNSQUASHFS_ARGV_LOG"
+fi
+
 if [[ -n ${TOOL_EUID_LOG:-} ]]; then
     printf 'unsquashfs:%s\n' "$EUID" >>"$TOOL_EUID_LOG"
 fi
 
 module=${!#}
-if [[ ! -f $module || ! -s $module || ${module##*/} == invalid.sb ||
-      $module == *"${UNSQUASHFS_FAIL_PATTERN:-__never__}"* ]]; then
+module_path=$(readlink -f -- "$module")
+if [[ ! -f $module || ! -s $module || ${module_path##*/} == invalid.sb ||
+      $(<"$module") == "invalid module" ||
+      $module_path == *"${UNSQUASHFS_FAIL_PATTERN:-__never__}"* ]]; then
     printf 'unsquashfs stub: invalid SquashFS image: %s\n' "$module" >&2
     exit 1
 fi
@@ -26,13 +41,20 @@ while (( $# > 0 )); do
 done
 
 if [[ -n $destination ]]; then
-    sidecar=$module.stub-tree
+    if [[ -n ${UNSQUASHFS_EXTRACT_MARKER:-} ]]; then
+        : >"$UNSQUASHFS_EXTRACT_MARKER"
+    fi
+    sidecar=$module_path.stub-tree
     if [[ ! -d $sidecar ]]; then
         if [[ -x /usr/bin/unsquashfs ]] && /usr/bin/unsquashfs -s "$module" >/dev/null 2>&1; then
             exec /usr/bin/unsquashfs "${original_arguments[@]}"
         fi
         printf 'unsquashfs stub: module has no content manifest: %s\n' "$module" >&2
         exit 1
+    fi
+    if [[ -n ${UNSQUASHFS_REPLACE_SOURCE:-} ]]; then
+        mv -- "$UNSQUASHFS_REPLACE_SOURCE" "$UNSQUASHFS_REPLACE_SOURCE.old"
+        printf 'replacement module\n' >"$UNSQUASHFS_REPLACE_SOURCE"
     fi
     mkdir -p "$destination"
     cp -a -- "$sidecar/." "$destination/"
@@ -55,8 +77,11 @@ if [[ -n $destination ]]; then
         rm -rf -- "$destination/${tamper_path:?}"
         ;;
     esac
-elif [[ $listing == true && -d $module.stub-tree ]]; then
-    find "$module.stub-tree" -printf '%M %p\n'
+    [[ -z ${UNSQUASHFS_STATUS:-} ]] || exit "$UNSQUASHFS_STATUS"
+elif [[ $listing == true && -n ${UNSQUASHFS_LIST_STATUS:-} ]]; then
+    exit "$UNSQUASHFS_LIST_STATUS"
+elif [[ $listing == true && -d $module_path.stub-tree ]]; then
+    find "$module_path.stub-tree" -printf '%M %p\n'
 else
     printf 'Found a valid SQUASHFS superblock\n'
 fi

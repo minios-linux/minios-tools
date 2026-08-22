@@ -7,7 +7,6 @@
 ## This script runs as user at desktop startup, after live-config component
 ## 0150-keyboard-configuration has processed system-level configuration.
 
-#set -e
 
 Read_config() {
     # Read keyboard configuration from /etc/default/keyboard
@@ -38,68 +37,50 @@ Init() {
 }
 
 Config() {
-    # Detect and configure desktop environment
+    CONFIGURED=0
+
     if [ -n "${XFCE4_SESSION}" ] || pgrep -x xfce4-session >/dev/null 2>&1; then
-        Config_xfce
+        Config_xfce && CONFIGURED=1
     elif pgrep -x fluxbox >/dev/null 2>&1 || pgrep -x openbox >/dev/null 2>&1; then
-        Config_flux
+        Config_flux && CONFIGURED=1
     fi
 
-    # Apply keyboard layout using setxkbmap (universal for all WMs)
     if command -v setxkbmap >/dev/null 2>&1; then
-        # Build setxkbmap command with all available options
-        _SETXKB_CMD="setxkbmap"
-        [ -n "${XKBMODEL}" ] && _SETXKB_CMD="${_SETXKB_CMD} -model ${XKBMODEL}"
-        [ -n "${XKBLAYOUT}" ] && _SETXKB_CMD="${_SETXKB_CMD} -layout ${XKBLAYOUT}"
-        [ -n "${XKBVARIANT}" ] && _SETXKB_CMD="${_SETXKB_CMD} -variant ${XKBVARIANT}"
-        [ -n "${XKBOPTIONS}" ] && _SETXKB_CMD="${_SETXKB_CMD} -option ${XKBOPTIONS}"
-        eval ${_SETXKB_CMD}
+        set -- setxkbmap
+        [ -n "${XKBMODEL}" ] && set -- "$@" -model "${XKBMODEL}"
+        [ -n "${XKBLAYOUT}" ] && set -- "$@" -layout "${XKBLAYOUT}"
+        [ -n "${XKBVARIANT}" ] && set -- "$@" -variant "${XKBVARIANT}"
+        [ -n "${XKBOPTIONS}" ] && set -- "$@" -option "${XKBOPTIONS}"
+        "$@" && CONFIGURED=1
     fi
 
-    # Create marker file to prevent future runs in this session
-    mkdir -p "${HOME}/.config/minios"
-    touch "${MARKER_FILE}"
+    if [ "${CONFIGURED}" -eq 1 ]; then
+        mkdir -p "${HOME}/.config/minios"
+        touch "${MARKER_FILE}"
+    fi
 }
 
 Config_xfce() {
-    # Configure keyboard layout for XFCE desktop environment
-    if ! command -v xfconf-query >/dev/null 2>&1; then
-        return 0
-    fi
+    command -v xfconf-query >/dev/null 2>&1 || return 1
 
-    # Wait for xfconf to be ready (with timeout)
     _TIMEOUT=10
-    while ! xfconf-query -c keyboard-layout -l >/dev/null 2>&1 && [ ${_TIMEOUT} -gt 0 ]; do
+    while ! xfconf-query -c keyboard-layout -l >/dev/null 2>&1 && [ "${_TIMEOUT}" -gt 0 ]; do
         sleep 0.5
         _TIMEOUT=$((_TIMEOUT - 1))
     done
+    [ "${_TIMEOUT}" -gt 0 ] || return 1
 
-    # Configure XFCE keyboard settings if xfconf is ready
-    if [ ${_TIMEOUT} -gt 0 ]; then
-        # Set keyboard model
-        [ -n "${XKBMODEL}" ] && xfconf-query -c keyboard-layout -p /Default/XkbModel -t string -s "${XKBMODEL}"
-
-        # Set keyboard layout(s)
-        xfconf-query -c keyboard-layout -p /Default/XkbLayout -t string -s "${XKBLAYOUT}"
-
-        # Set keyboard variant(s)
-        [ -n "${XKBVARIANT}" ] && xfconf-query -c keyboard-layout -p /Default/XkbVariant -t string -s "${XKBVARIANT}"
-
-        # Enable keyboard layout switching
-        xfconf-query -c keyboard-layout -p /Default/XkbDisable -t bool -s false
-
-        # Set keyboard layout switch combination
-        xfconf-query -c keyboard-layout -p /Default/XkbOptions/Group -t string -s "${XKBOPTIONS}"
-    fi
+    [ -z "${XKBMODEL}" ] || xfconf-query -c keyboard-layout -p /Default/XkbModel -t string -s "${XKBMODEL}" || return 1
+    xfconf-query -c keyboard-layout -p /Default/XkbLayout -t string -s "${XKBLAYOUT}" || return 1
+    [ -z "${XKBVARIANT}" ] || xfconf-query -c keyboard-layout -p /Default/XkbVariant -t string -s "${XKBVARIANT}" || return 1
+    xfconf-query -c keyboard-layout -p /Default/XkbDisable -t bool -s false || return 1
+    xfconf-query -c keyboard-layout -p /Default/XkbOptions/Group -t string -s "${XKBOPTIONS}" || return 1
 }
 
 Config_flux() {
-    # Configure keyboard layout for Fluxbox/Openbox desktop environment
-    mkdir -p "${HOME}/.fluxbox" "${HOME}/.config/openbox"
-
-    # Save keyboard layout to configuration files
-    echo "${XKBLAYOUT}" >"${HOME}/.fluxbox/kblayout"
-    echo "${XKBLAYOUT}" >"${HOME}/.config/openbox/kblayout"
+    mkdir -p "${HOME}/.fluxbox" "${HOME}/.config/openbox" || return 1
+    printf '%s\n' "${XKBLAYOUT}" >"${HOME}/.fluxbox/kblayout" || return 1
+    printf '%s\n' "${XKBLAYOUT}" >"${HOME}/.config/openbox/kblayout" || return 1
 }
 
 Read_config

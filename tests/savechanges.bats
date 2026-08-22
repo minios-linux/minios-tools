@@ -15,8 +15,9 @@ setup() {
     TEST_MOUNTINFO="$TEST_ROOT/mountinfo"
     TEST_CMDLINE="$TEST_ROOT/cmdline"
     TEST_BOOT_ID="$TEST_ROOT/boot-id"
+    TEST_AUFS_SYSFS="$TEST_ROOT/aufs-sysfs"
 
-    mkdir -p "$CHANGES" "$OUTPUT_DIR" "$TMP_ROOT" "$TEST_TOOLS"
+    mkdir -p "$CHANGES" "$OUTPUT_DIR" "$TMP_ROOT" "$TEST_TOOLS" "$TEST_AUFS_SYSFS"
     cp -- "$STUBS/mksquashfs" "$TEST_MKSQUASHFS"
     cp -- "$STUBS/unsquashfs" "$TEST_UNSQUASHFS"
     chmod 0755 "$TEST_MKSQUASHFS" "$TEST_UNSQUASHFS"
@@ -70,6 +71,16 @@ prepare_union_fixture() {
     printf '%s\n' "${SAVECHANGES_TEST_CMDLINE_CONTENT:-BOOT_IMAGE=/minios/boot/vmlinuz}" >"$TEST_CMDLINE"
 }
 
+prepare_aufs_sysfs_fixture() {
+    local session_id=$1
+    local changes=$2
+    local session="$TEST_AUFS_SYSFS/si_$session_id"
+    mkdir -p "$session"
+    printf '%s=rw\n' "$changes" >"$session/br0"
+    printf '%s=rr+wh\n' '/lower/01-kernel.sb' >"$session/br1"
+    printf '%s=rr+wh\n' '/lower/00-core.sb' >"$session/br2"
+}
+
 assert_process_gone() {
     local process_id=$1
     for _ in {1..100}; do
@@ -94,6 +105,7 @@ run_module() {
         MINIOS_TOOLS_TEST_MOUNTINFO="$TEST_MOUNTINFO" \
         MINIOS_TOOLS_TEST_CMDLINE="$TEST_CMDLINE" \
         MINIOS_TOOLS_TEST_BOOT_ID="$TEST_BOOT_ID" \
+        MINIOS_TOOLS_TEST_AUFS_SYSFS="$TEST_AUFS_SYSFS" \
         MINIOS_TOOLS_TEST_RUNNING_SOURCE="${MINIOS_TOOLS_TEST_RUNNING_SOURCE:-}" \
         MINIOS_TOOLS_TEST_MKSQUASHFS="$TEST_MKSQUASHFS" \
         MINIOS_TOOLS_TEST_UNSQUASHFS="$TEST_UNSQUASHFS" \
@@ -124,6 +136,7 @@ run_inventory() {
         MINIOS_TOOLS_TEST_MOUNTINFO="$TEST_MOUNTINFO" \
         MINIOS_TOOLS_TEST_CMDLINE="$TEST_CMDLINE" \
         MINIOS_TOOLS_TEST_BOOT_ID="$TEST_BOOT_ID" \
+        MINIOS_TOOLS_TEST_AUFS_SYSFS="$TEST_AUFS_SYSFS" \
         NO_COLOR=1 \
         "$SAVECHANGES" "$@" --inventory-json "$target" "$CHANGES"
 }
@@ -212,6 +225,22 @@ assert_output_contains() {
     [ ! -e "$clean_state/tree/unsafe fifo" ]
 }
 
+@test "exact excludes runtime device objects before unsupported-object validation" {
+    mkdir -p "$CHANGES/dev" "$CHANGES/etc"
+    mkfifo "$CHANGES/dev/runtime-fifo"
+    write_file "$CHANGES/etc/value" kept
+
+    run_module "$OUTPUT_DIR/runtime-device.sb" "$TEST_ROOT/runtime device state" --profile exact
+    [ "$status" -eq 0 ]
+    [ -f "$TEST_ROOT/runtime device state/tree/etc/value" ]
+    [ ! -e "$TEST_ROOT/runtime device state/tree/dev/runtime-fifo" ]
+
+    mkfifo "$CHANGES/etc/unsupported-fifo"
+    run_module "$OUTPUT_DIR/non-runtime-device.sb" "$TEST_ROOT/non-runtime device state" --profile exact
+    [ "$status" -ne 0 ]
+    assert_output_contains 'exact capture cannot preserve unsupported filesystem objects: 1'
+}
+
 @test "exact fails closed on hard-linked non-regular inode topology" {
     mkdir -p "$CHANGES/usr/share"
     ln -s target "$CHANGES/usr/share/link-one"
@@ -224,6 +253,20 @@ assert_output_contains() {
     [ "$status" -ne 0 ]
     assert_output_contains 'exact capture cannot preserve hard-linked non-regular objects'
     [ ! -e "$OUTPUT_DIR/hardlinked-symlink.sb" ]
+}
+
+@test "exact ignores non-regular hardlinks outside the captured tree" {
+    mkdir -p "$CHANGES/usr/share"
+    ln -s target "$CHANGES/usr/share/link-one"
+    ln -P "$CHANGES/usr/share/link-one" "$TEST_ROOT/outside-link" ||
+        skip 'hard-linked symbolic links are unavailable'
+
+    state="$TEST_ROOT/external hardlink state"
+    run_module "$OUTPUT_DIR/external-hardlink.sb" "$state" --profile exact
+
+    [ "$status" -eq 0 ]
+    [ -L "$state/tree/usr/share/link-one" ]
+    [ "$(readlink "$state/tree/usr/share/link-one")" = target ]
 }
 
 @test "no profile retains the historical exclusions" {
@@ -524,6 +567,54 @@ assert_output_contains() {
     [ ! -e "$OUTPUT_DIR/wrong-aufs.sb" ]
 }
 
+@test "AUFS sysfs branches provide writable and ordered lower layers when mountinfo has only si" {
+    prepare_aufs_sysfs_fixture test "$CHANGES"
+    printf '24 1 0:1 / / rw - aufs aufs rw,si=test,trunc_xino\n' >"$TEST_MOUNTINFO"
+    printf '%s\n' 'BOOT_IMAGE=/minios/boot/vmlinuz union=aufs' >"$TEST_CMDLINE"
+
+    run env \
+        PATH="$STUBS:$SYSTEM_PATH" \
+        TMPDIR="$TMP_ROOT" \
+        MINIOS_TOOLS_TEST_ALLOW_NON_ROOT=1 \
+        MINIOS_TOOLS_TEST_ROOT="$TEST_ROOT" \
+        MINIOS_TOOLS_TEST_MOUNTINFO="$TEST_MOUNTINFO" \
+        MINIOS_TOOLS_TEST_CMDLINE="$TEST_CMDLINE" \
+        MINIOS_TOOLS_TEST_BOOT_ID="$TEST_BOOT_ID" \
+        MINIOS_TOOLS_TEST_AUFS_SYSFS="$TEST_AUFS_SYSFS" \
+        NO_COLOR=1 \
+        "$SAVECHANGES" --inventory-json "$OUTPUT_DIR/aufs-sysfs.json" "$CHANGES"
+    [ "$status" -eq 0 ]
+    run python3 -I -c 'import json,sys; value=json.load(open(sys.argv[1])); assert value["union_backend"] == "aufs"' \
+        "$OUTPUT_DIR/aufs-sysfs.json"
+    [ "$status" -eq 0 ]
+}
+
+@test "explicit mounted root binds a wrapper upperdir without accepting the system root" {
+    mounted_root="$TEST_ROOT/wrapper union"
+    mkdir -p "$mounted_root"
+    escaped_root=${mounted_root// /\\040}
+    escaped_changes=${CHANGES// /\\040}
+    printf '24 1 0:1 / %s rw - overlay overlay rw,lowerdir=/lower/00-core.sb,upperdir=%s,workdir=/work\n' \
+        "$escaped_root" "$escaped_changes" >"$TEST_MOUNTINFO"
+
+    run env \
+        PATH="$STUBS:$SYSTEM_PATH" \
+        TMPDIR="$TMP_ROOT" \
+        MINIOS_TOOLS_TEST_ALLOW_NON_ROOT=1 \
+        MINIOS_TOOLS_TEST_ROOT="$TEST_ROOT" \
+        MINIOS_TOOLS_TEST_MOUNTINFO="$TEST_MOUNTINFO" \
+        MINIOS_TOOLS_TEST_CMDLINE="$TEST_CMDLINE" \
+        MINIOS_TOOLS_TEST_BOOT_ID="$TEST_BOOT_ID" \
+        MINIOS_TOOLS_TEST_AUFS_SYSFS="$TEST_AUFS_SYSFS" \
+        NO_COLOR=1 \
+        "$SAVECHANGES" --mounted-root "$mounted_root" \
+        --inventory-json "$OUTPUT_DIR/wrapper-inventory.json" "$CHANGES"
+    [ "$status" -eq 0 ]
+    run python3 -I -c 'import json,sys; assert json.load(open(sys.argv[1]))["union_backend"] == "overlayfs"' \
+        "$OUTPUT_DIR/wrapper-inventory.json"
+    [ "$status" -eq 0 ]
+}
+
 @test "same-device nested mount paths are omitted using mountinfo authority" {
     write_file "$CHANGES/usr/share/kept" kept
     write_file "$CHANGES/usr/share/nested/private" private
@@ -743,6 +834,8 @@ assert open(os.path.join(replay, "etc/opaque/unselected")).read().strip() == "lo
     (( EUID == 0 )) || skip 'character-device whiteouts require root'
     mkdir -p "$CHANGES/etc"
     mknod "$CHANGES/etc/.wh.deleted" c 0 0 || skip 'the test filesystem disallows device nodes'
+    ln "$CHANGES/etc/.wh.deleted" "$CHANGES/etc/.wh.removed" ||
+        skip 'hard-linked character whiteouts are unavailable'
     python3 -I -c 'import os,sys; os.setxattr(sys.argv[1], b"user.capture-test", b"whiteout")' \
         "$CHANGES/etc/.wh.deleted" || skip 'whiteout xattrs are unavailable'
 
@@ -750,7 +843,11 @@ assert open(os.path.join(replay, "etc/opaque/unselected")).read().strip() == "lo
     run_module "$OUTPUT_DIR/overlay-whiteout.sb" "$state" --profile exact
     [ "$status" -eq 0 ]
     [ -c "$state/tree/etc/.wh.deleted" ]
+    [ -c "$state/tree/etc/.wh.removed" ]
     [ "$(stat -c '%t:%T' "$state/tree/etc/.wh.deleted")" = '0:0' ]
+    [ "$(stat -c '%t:%T' "$state/tree/etc/.wh.removed")" = '0:0' ]
+    [ "$(stat -c '%h' "$state/tree/etc/.wh.deleted")" = 1 ]
+    [ "$(stat -c '%h' "$state/tree/etc/.wh.removed")" = 1 ]
     run python3 -I -c 'import os,sys; assert os.getxattr(sys.argv[1], b"user.capture-test") == b"whiteout"' \
         "$state/tree/etc/.wh.deleted"
     [ "$status" -eq 0 ]
@@ -1113,6 +1210,24 @@ assert footprint["xattr_value_bytes"] == len("value")
     [ "$status" -eq 0 ]
 }
 
+@test "AUFS shared whiteout inode is accepted only with the complete root anchor set" {
+    mkdir -p "$CHANGES/data" "$CHANGES/other"
+    : >"$CHANGES/.wh..wh.aufs"
+    ln "$CHANGES/.wh..wh.aufs" "$CHANGES/data/.wh.deleted"
+    ln "$CHANGES/.wh..wh.aufs" "$CHANGES/other/.wh.removed"
+
+    SAVECHANGES_TEST_UNION=aufs run_module "$OUTPUT_DIR/linked-aufs.sb" \
+        "$TEST_ROOT/linked aufs state" --profile exact
+    [ "$status" -eq 0 ]
+
+    rm -f "$CHANGES/.wh..wh.aufs"
+    SAVECHANGES_TEST_UNION=aufs run_module "$OUTPUT_DIR/unanchored-aufs.sb" \
+        "$TEST_ROOT/unanchored aufs state" --profile exact
+    [ "$status" -ne 0 ]
+    assert_output_contains 'invalid AUFS whiteout representation'
+    [ ! -e "$OUTPUT_DIR/unanchored-aufs.sb" ]
+}
+
 @test "malformed AUFS whiteout representations fail closed" {
     mkdir -p "$CHANGES/data"
     write_file "$CHANGES/data/.wh.deleted" unexpected-payload
@@ -1166,6 +1281,70 @@ assert json.load(open(metadata_path, encoding="utf-8"))["base_module_fingerprint
 ' "$metadata" "$mounted_backing"
     [ "$status" -eq 0 ]
 
+}
+
+@test "base fingerprint ignores numbered SquashFS session snapshots" {
+    write_file "$CHANGES/etc/value" value
+    running_source="$TEST_ROOT/running source/minios"
+    write_file "$running_source/00-core.sb" source-core
+    write_file "$running_source/changes/1/changes.sb" session-one
+    write_file "$running_source/changes/2/changes.sb" session-two
+    mounted_backing="$TEST_ROOT/mounted backing/00-core.sb"
+    write_file "$mounted_backing" mounted-core
+
+    MINIOS_TOOLS_TEST_RUNNING_SOURCE="$running_source" \
+        SAVECHANGES_TEST_LOWER_BACKING="$mounted_backing" \
+        SAVECHANGES_TEST_UNION=aufs run_module "$OUTPUT_DIR/session-snapshots.sb" \
+        "$TEST_ROOT/session snapshot state" --profile exact
+
+    [ "$status" -eq 0 ]
+    [ -s "$OUTPUT_DIR/session-snapshots.sb" ]
+}
+
+@test "base fingerprint matches post-switch-root mounted branch aliases" {
+    write_file "$CHANGES/etc/value" value
+    running_source="$TEST_ROOT/running source/minios"
+    write_file "$running_source/00-core.sb" running-core
+    mounted_backing="$TEST_ROOT/mounted backing/00-core.sb"
+    write_file "$mounted_backing" mounted-core
+    metadata="$OUTPUT_DIR/aliased-binding.json"
+    escaped_changes=${CHANGES// /\\040}
+    escaped_backing=${mounted_backing// /\\040}
+    printf '24 1 0:1 / / rw - overlay overlay rw,lowerdir=/memory/bundles/00-core.sb,upperdir=%s,workdir=/work\n' \
+        "$escaped_changes" >"$TEST_MOUNTINFO"
+    printf '25 24 0:2 / /run/initramfs/memory/bundles/00-core.sb ro - squashfs %s ro\n' \
+        "$escaped_backing" >>"$TEST_MOUNTINFO"
+
+    state="$TEST_ROOT/aliased binding state"
+    run env \
+        PATH="$STUBS:$SYSTEM_PATH" \
+        TMPDIR="$TMP_ROOT" \
+        MINIOS_TOOLS_TEST_ALLOW_NON_ROOT=1 \
+        MINIOS_TOOLS_TEST_ROOT="$TEST_ROOT" \
+        MINIOS_TOOLS_TEST_MOUNTINFO="$TEST_MOUNTINFO" \
+        MINIOS_TOOLS_TEST_CMDLINE="$TEST_CMDLINE" \
+        MINIOS_TOOLS_TEST_BOOT_ID="$TEST_BOOT_ID" \
+        MINIOS_TOOLS_TEST_AUFS_SYSFS="$TEST_AUFS_SYSFS" \
+        MINIOS_TOOLS_TEST_RUNNING_SOURCE="$running_source" \
+        MINIOS_TOOLS_TEST_MKSQUASHFS="$TEST_MKSQUASHFS" \
+        MINIOS_TOOLS_TEST_UNSQUASHFS="$TEST_UNSQUASHFS" \
+        MKSQUASHFS_STATE="$state" \
+        NO_COLOR=1 \
+        "$SAVECHANGES" --profile exact --metadata-json "$metadata" \
+        "$OUTPUT_DIR/aliased-binding.sb" "$CHANGES"
+    [ "$status" -eq 0 ]
+    run python3 -c '
+import hashlib, json, os, sys
+metadata_path, module_path = sys.argv[1:]
+name = b"00-core.sb"
+payload = open(module_path, "rb").read()
+digest = hashlib.sha256()
+digest.update(b"minios-base-modules-v2\0")
+digest.update(name + b"\0" + str(len(payload)).encode() + b"\0" +
+              hashlib.sha256(payload).hexdigest().encode() + b"\0")
+assert json.load(open(metadata_path, encoding="utf-8"))["base_module_fingerprint"] == digest.hexdigest()
+' "$metadata" "$mounted_backing"
+    [ "$status" -eq 0 ]
 }
 
 @test "base fingerprints bind effective mounted branch order" {

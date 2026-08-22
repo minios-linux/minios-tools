@@ -11,6 +11,7 @@ setup() {
     STATE="$TEST_ROOT/state"
     TOOLS="$TEST_ROOT/tools"
     mkdir -p "$SRC" "$OUT" "$TOOLS"
+    chmod 0700 "$TEST_ROOT" "$OUT"
     cp -- "$STUBS/mksquashfs" "$TOOLS/mksquashfs"
     cp -- "$STUBS/unsquashfs" "$TOOLS/unsquashfs"
     chmod 0755 "$TOOLS/mksquashfs" "$TOOLS/unsquashfs"
@@ -96,6 +97,16 @@ run_real() {
     [ "$before" = "$(find "$SRC" | sort)" ]
 }
 
+@test "source path replacement cannot redirect the compressor" {
+    write_file "$SRC/keep.txt" original
+    run env PATH="$TOOLS:$SYSTEM_PATH" NO_COLOR=1 MKSQUASHFS_STATE="$STATE" \
+        MKSQUASHFS_REPLACE_SOURCE="$SRC" \
+        "$DIR2SB" "$SRC" "$OUT/module.sb"
+    [ "$status" -eq 0 ]
+    [ "$(cat "$STATE/tree/keep.txt")" = original ]
+    [ ! -e "$STATE/tree/not-source.txt" ]
+}
+
 # --- list-argv and root-tree semantics -----------------------------------
 
 @test "the mksquashfs invocation is list-based and normalizes ownership" {
@@ -109,7 +120,7 @@ run_real() {
     [[ $joined == *-all-root* ]]
     [[ $joined == *zstd* ]]
     # The resolved source and the reserved staging file are passed positionally.
-    [[ ${args[0]} == "$(readlink -f "$SRC")" ]]
+    [[ ${args[0]} == . ]]
     [[ ${args[1]} == *"/.dir2sb."* ]]
 }
 
@@ -128,13 +139,23 @@ run_real() {
     write_file "$SRC/file.txt" data
     run_stub --json "$SRC" "$OUT/module.sb"
     [ "$status" -eq 0 ]
-    [[ $output == *"P:prepare"* ]]
-    [[ $output == *"P:compress"* ]]
-    [[ $output == *"P:publish"* ]]
-    [[ $output == *"P:complete"* ]]
+    [[ $output == *'"phase":"prepare"'* ]]
+    [[ $output == *'"phase":"compress"'* ]]
+    [[ $output == *'"phase":"verify"'* ]]
+    [[ $output == *'"phase":"publish"'* ]]
+    [[ $output == *'"phase":"complete"'* ]]
     [[ $output == *'"product": "dir2sb"'* ]]
     [[ $output == *'"sha256":'* ]]
     [[ $output == *'"inode":'* ]]
+}
+
+@test "json mode emits only JSON objects" {
+    write_file "$SRC/file.txt" data
+    run_stub --json "$SRC" "$OUT/module.sb"
+    [ "$status" -eq 0 ]
+    while IFS= read -r line; do
+        env LINE="$line" python3 -c 'import json, os; assert isinstance(json.loads(os.environ["LINE"]), dict)'
+    done <<<"$output"
 }
 
 # --- failure and cancellation --------------------------------------------
@@ -147,6 +168,62 @@ run_real() {
     [ ! -e "$OUT/module.sb" ]
     run find "$OUT" -name '.dir2sb.*'
     [ -z "$output" ]
+}
+
+@test "an invalid staged module is never published" {
+    write_file "$SRC/file.txt" data
+    run env PATH="$TOOLS:$SYSTEM_PATH" NO_COLOR=1 \
+        MKSQUASHFS_INVALID_OUTPUT=true \
+        "$DIR2SB" "$SRC" "$OUT/module.sb"
+    [ "$status" -eq 5 ]
+    [ ! -e "$OUT/module.sb" ]
+    run find "$OUT" -name '.dir2sb.*'
+    [ -z "$output" ]
+}
+
+@test "post-build verification rejects newly introduced special files" {
+    write_file "$SRC/file.txt" data
+    run env PATH="$TOOLS:$SYSTEM_PATH" NO_COLOR=1 \
+        MKSQUASHFS_INJECT_SPECIAL=true \
+        "$DIR2SB" "$SRC" "$OUT/module.sb"
+    [ "$status" -eq 5 ]
+    [[ $output == *"special files"* ]]
+    [ ! -e "$OUT/module.sb" ]
+    run find "$OUT" -name '.dir2sb.*'
+    [ -z "$output" ]
+}
+
+@test "post-build verification fails closed when its log cannot be created" {
+    write_file "$SRC/file.txt" data
+    cat >"$TOOLS/mktemp" <<'SH'
+#!/bin/sh
+case "$*" in
+*.dir2sb-verify.*) exit 1 ;;
+esac
+exec /usr/bin/mktemp "$@"
+SH
+    chmod 0755 "$TOOLS/mktemp"
+
+    run env PATH="$TOOLS:$SYSTEM_PATH" NO_COLOR=1 \
+        "$DIR2SB" "$SRC" "$OUT/module.sb"
+    [ "$status" -eq 5 ]
+    [[ $output == *"temporary verification log"* ]]
+    [ ! -e "$OUT/module.sb" ]
+}
+
+@test "a leader-exit compressor group is terminated before publication" {
+    write_file "$SRC/file.txt" data
+    local marker="$TEST_ROOT/leader-marker"
+    run env PATH="$TOOLS:$SYSTEM_PATH" NO_COLOR=1 \
+        MKSQUASHFS_SLEEP=true MKSQUASHFS_LEADER_EXIT=true \
+        MKSQUASHFS_SLEEP_MARKER="$marker" \
+        "$DIR2SB" "$SRC" "$OUT/module.sb"
+    [ "$status" -eq 5 ]
+    local descendant
+    descendant=$(sed -n '2p' "$marker")
+    for _ in {1..100}; do kill -0 "$descendant" 2>/dev/null || break; sleep 0.05; done
+    ! kill -0 "$descendant" 2>/dev/null
+    [ ! -e "$OUT/module.sb" ]
 }
 
 @test "SIGTERM cancels the conversion, cleans up, and reaps the tool" {

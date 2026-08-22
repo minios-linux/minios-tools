@@ -6,3 +6,5 @@ man/sb.1
 man/sb2dir.1
 man/script2sb.1
 man/chroot2sb.1
+man/minios-setup-keyboard.1
+man/minios-virtual-resolution.1

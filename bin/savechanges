@@ -26,6 +26,8 @@ DISABLE_COLOR=false
 JSON_MODE=false
 WORK_PARENT_INPUT=""
 WORK_PARENT_SET=false
+MOUNTED_ROOT_INPUT="/"
+MOUNTED_ROOT_SET=false
 CHILD_PID=""
 TEST_MODE=false
 MOUNTINFO_PATH=/proc/self/mountinfo
@@ -200,6 +202,13 @@ while (( $# > 0 )); do
         shift 2
         ;;
     --work-parent=*) WORK_PARENT_SET=true; WORK_PARENT_INPUT=${1#*=}; shift ;;
+    --mounted-root)
+        require_value "$1" "$#"
+        MOUNTED_ROOT_SET=true
+        MOUNTED_ROOT_INPUT=$2
+        shift 2
+        ;;
+    --mounted-root=*) MOUNTED_ROOT_SET=true; MOUNTED_ROOT_INPUT=${1#*=}; shift ;;
     --cancel-file)
         require_value "$1" "$#"
         CANCEL_SET=true
@@ -262,6 +271,7 @@ fi
 [[ -n $OUTPUT_INPUT && $OUTPUT_INPUT != */ ]] || die 1 "$(gettext "Invalid output filename")"
 validate_no_line_break "$(gettext "Output path")" "$OUTPUT_INPUT"
 validate_no_line_break "$(gettext "Changes directory")" "$CHANGES_INPUT"
+validate_no_line_break "$(gettext "Mounted root")" "$MOUNTED_ROOT_INPUT"
 if [[ $SELECTION_SET == true ]]; then
     validate_no_line_break "$(gettext "Selection path")" "$SELECTION_INPUT"
 fi
@@ -278,12 +288,22 @@ if [[ $WORK_PARENT_SET == true ]]; then
     validate_no_line_break "$(gettext "Work parent")" "$WORK_PARENT_INPUT"
 fi
 
+default_changes_path() {
+    local candidate
+    for candidate in /run/initramfs/memory/changes /lib/live/mount/changes; do
+        [[ -d $candidate ]] || continue
+        if [[ -d $candidate/changes && -d $candidate/workdir ]]; then
+            printf '%s\n' "$candidate/changes"
+        else
+            printf '%s\n' "$candidate"
+        fi
+        return 0
+    done
+    return 1
+}
+
 if [[ -z $CHANGES_INPUT ]]; then
-    if [[ -d /run/initramfs/memory/changes ]]; then
-        CHANGES_INPUT=/run/initramfs/memory/changes
-    elif [[ -d /lib/live/mount/changes ]]; then
-        CHANGES_INPUT=/lib/live/mount/changes
-    fi
+    CHANGES_INPUT=$(default_changes_path) || true
 fi
 
 SCRIPT_PATH=$(/bin/readlink -f -- "${BASH_SOURCE[0]}") || die 1 "$(gettext "Cannot resolve script path")"
@@ -308,6 +328,12 @@ absolute_path() {
 
 OUTPUT_PATH=$(absolute_path "$OUTPUT_INPUT")
 CHANGES_PATH=$(absolute_path "$CHANGES_INPUT")
+MOUNTED_ROOT_PATH=$(absolute_path "$MOUNTED_ROOT_INPUT")
+MOUNTED_ROOT_CANONICAL=$(/usr/bin/realpath -e -- "$MOUNTED_ROOT_PATH") ||
+    die 1 "$(gettext "Invalid mounted root")"
+[[ -d $MOUNTED_ROOT_CANONICAL && $MOUNTED_ROOT_CANONICAL == "$MOUNTED_ROOT_PATH" ]] ||
+    die 1 "$(gettext "Mounted root must be a real directory without symbolic-link traversal")"
+MOUNTED_ROOT_PATH=$MOUNTED_ROOT_CANONICAL
 SELECTION_PATH=""
 METADATA_PATH=""
 CANCEL_PATH=""
@@ -339,10 +365,12 @@ if [[ $TEST_MODE == true ]]; then
         [[ $candidate == "$test_root" || $candidate == "$test_root"/* ]]
     }
     changes_test=$(/usr/bin/realpath -e -- "$CHANGES_PATH") || die 1 "$(gettext "Invalid test changes directory")"
+    mounted_root_test=$(/usr/bin/realpath -e -- "$MOUNTED_ROOT_PATH") || die 1 "$(gettext "Invalid test mounted root")"
     output_parent_input=${OUTPUT_PATH%/*}
     [[ -n $output_parent_input ]] || output_parent_input=/
     output_parent_test=$(/usr/bin/realpath -e -- "$output_parent_input") || die 1 "$(gettext "Invalid test output parent")"
-    if ! path_in_test_root "$changes_test" || ! path_in_test_root "$output_parent_test"; then
+    if ! path_in_test_root "$changes_test" || ! path_in_test_root "$output_parent_test" ||
+       { [[ $MOUNTED_ROOT_SET == true ]] && ! path_in_test_root "$mounted_root_test"; }; then
         die 1 "$(gettext "Non-root test capture is confined to MINIOS_TOOLS_TEST_ROOT")"
     fi
     if [[ -n $SELECTION_PATH ]]; then
@@ -385,6 +413,7 @@ if [[ $TEST_MODE == true ]]; then
     MOUNTINFO_PATH=${MINIOS_TOOLS_TEST_MOUNTINFO:-}
     CMDLINE_PATH=${MINIOS_TOOLS_TEST_CMDLINE:-}
     BOOT_ID_PATH=${MINIOS_TOOLS_TEST_BOOT_ID:-}
+    AUFS_SYSFS_PATH=${MINIOS_TOOLS_TEST_AUFS_SYSFS:-}
     RUNNING_SOURCE_PATH=${MINIOS_TOOLS_TEST_RUNNING_SOURCE:-}
     for fixture_path in "$MOUNTINFO_PATH" "$CMDLINE_PATH" "$BOOT_ID_PATH"; do
         [[ -n $fixture_path && ! -L $fixture_path && -f $fixture_path ]] ||
@@ -393,6 +422,16 @@ if [[ $TEST_MODE == true ]]; then
             die 1 "$(gettext "Cannot canonicalize source-test fixture")"
         path_in_test_root "$fixture_path" || die 1 "$(gettext "Source-test fixture is outside the test root")"
     done
+    if [[ -n $AUFS_SYSFS_PATH ]]; then
+        aufs_sysfs_test=$(/usr/bin/realpath -e -- "$AUFS_SYSFS_PATH") ||
+            die 1 "$(gettext "Invalid source-test AUFS sysfs fixture")"
+        if [[ ! -d $aufs_sysfs_test ]] || ! path_in_test_root "$aufs_sysfs_test"; then
+            die 1 "$(gettext "Source-test AUFS sysfs fixture is outside the test root")"
+        fi
+        AUFS_SYSFS_PATH=$aufs_sysfs_test
+    else
+        AUFS_SYSFS_PATH=$test_root
+    fi
     if [[ -n $RUNNING_SOURCE_PATH ]]; then
         running_source_test=$(/usr/bin/realpath -e -- "$RUNNING_SOURCE_PATH") ||
             die 1 "$(gettext "Invalid source-test running source")"
@@ -404,6 +443,7 @@ else
     TEMP_PARENT=${WORK_PARENT_PATH:-/tmp}
     MKSQUASHFS_BIN=/usr/bin/mksquashfs
     UNSQUASHFS_BIN=/usr/bin/unsquashfs
+    AUFS_SYSFS_PATH=/sys/fs/aufs
 fi
 
 OWNER_UID=${PKEXEC_UID:-}
@@ -412,6 +452,7 @@ OWNER_UID=${PKEXEC_UID:-}
 SAVECHANGES_ENGINE=""
 for engine_candidate in \
     "${SCRIPT_PATH%/*}/../lib/minios_savechanges_engine.py" \
+    "${SCRIPT_PATH%/*}/../lib/minios-tools/minios_savechanges_engine.py" \
     /usr/lib/minios-tools/minios_savechanges_engine.py; do
     if [[ -f $engine_candidate ]]; then
         SAVECHANGES_ENGINE=$(/bin/readlink -f -- "$engine_candidate") || true
@@ -441,4 +482,5 @@ exec "$ENV_BIN" -i "${ENGINE_ENV[@]}" "$PYTHON_BIN" -I "$SAVECHANGES_ENGINE" \
     "$SELECTION_PATH" "$METADATA_PATH" "$TEMP_PARENT" "$OWNER_UID" \
     "$([[ $TEST_MODE == true ]] && printf 1 || printf 0)" "$MKSQUASHFS_BIN" \
     "$UNSQUASHFS_BIN" "$MOUNTINFO_PATH" "$CMDLINE_PATH" "$BOOT_ID_PATH" \
-    "$RUNNING_SOURCE_PATH" "$CANCEL_PATH" "$([[ $JSON_MODE == true ]] && printf 1 || printf 0)"
+    "$RUNNING_SOURCE_PATH" "$CANCEL_PATH" "$([[ $JSON_MODE == true ]] && printf 1 || printf 0)" \
+    "$AUFS_SYSFS_PATH" "$MOUNTED_ROOT_PATH"

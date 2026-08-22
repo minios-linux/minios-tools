@@ -21,7 +21,7 @@ _savechanges() {
         mapfile -t COMPREPLY < <(compgen -W 'exact clean selected' -- "$cur")
         return
         ;;
-    --selection | --inventory-json | --metadata-json | --cancel-file)
+    --selection | --inventory-json | --metadata-json | --cancel-file | --work-parent)
         mapfile -t COMPREPLY < <(compgen -f -- "$cur")
         return
         ;;
@@ -43,7 +43,7 @@ _savechanges() {
             mapfile -t COMPREPLY < <(compgen -W 'exact clean selected' -- "$cur")
             return
             ;;
-        --selection | --inventory-json | --metadata-json | --cancel-file)
+        --selection | --inventory-json | --metadata-json | --cancel-file | --work-parent)
             mapfile -t COMPREPLY < <(compgen -f -- "$cur")
             return
             ;;
@@ -52,10 +52,10 @@ _savechanges() {
 
     if [[ $cur == --* ]]; then
         mapfile -t COMPREPLY < <(compgen -W \
-            '--comp --bext --profile --selection --inventory-json --metadata-json --cancel-file --no-color --help --version' -- "$cur")
+            '--comp --bext --profile --selection --inventory-json --metadata-json --cancel-file --work-parent --no-color --help --version' -- "$cur")
     elif [[ $cur == -* ]]; then
         mapfile -t COMPREPLY < <(compgen -W \
-            '-c -b --comp --bext --profile --selection --inventory-json --metadata-json --cancel-file --no-color --help --version' -- "$cur")
+            '-c -b --comp --bext --profile --selection --inventory-json --metadata-json --cancel-file --work-parent --no-color --help --version' -- "$cur")
     else
         mapfile -t COMPREPLY < <(compgen -f -- "$cur")
     fi

@@ -1,3 +1,6 @@
+# Capture engine for savechanges.
+# Inventories writable union changes, preserves profile-required metadata,
+# builds and verifies SquashFS modules, and supports bounded cancellation.
 from __future__ import print_function
 
 import ctypes
@@ -6,6 +9,7 @@ import hashlib
 import json
 import os
 import posixpath
+import re
 import signal
 import stat
 import subprocess
@@ -320,7 +324,53 @@ def decode_mount_field(value):
     return value
 
 
-def read_root_mount(mountinfo_path):
+def read_aufs_branches(sysfs_path, session_id):
+    sysfs_path = os.fsencode(sysfs_path)
+    if not re.match(br"^[A-Za-z0-9_-]+$", session_id):
+        fail("mounted AUFS root reports an invalid session identifier")
+    session_path = os.path.join(sysfs_path, b"si_" + session_id)
+    try:
+        names = os.listdir(session_path)
+    except OSError:
+        fail("mounted AUFS branch information is unavailable")
+    branches = []
+    for name in names:
+        encoded = os.fsencode(name)
+        match = re.match(br"^br([0-9]+)$", encoded)
+        if not match:
+            continue
+        branches.append((int(match.group(1)), encoded))
+    if not branches or len(branches) > 4096:
+        fail("mounted AUFS branch information is invalid")
+    branches.sort()
+    if [index for index, _name in branches] != list(range(len(branches))):
+        fail("mounted AUFS branch order is incomplete")
+    upperdir = None
+    lowerdirs = []
+    for _index, name in branches:
+        path = os.path.join(session_path, name)
+        descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+        try:
+            value = os.read(descriptor, 1024 * 1024).rstrip(b"\n")
+        finally:
+            os.close(descriptor)
+        if b"=" not in value:
+            fail("mounted AUFS branch record is invalid")
+        branch_path, branch_mode = value.rsplit(b"=", 1)
+        branch_path = decode_mount_field(branch_path)
+        if not branch_path.startswith(b"/") or not branch_mode:
+            fail("mounted AUFS branch record is invalid")
+        if branch_mode.startswith(b"rw"):
+            if upperdir is not None:
+                fail("mounted AUFS root reports multiple writable branches")
+            upperdir = branch_path
+        else:
+            lowerdirs.append(branch_path)
+    return upperdir, lowerdirs
+
+
+def read_root_mount(mountinfo_path, aufs_sysfs_path, mounted_root):
+    mounted_root = os.path.normpath(os.fsencode(mounted_root))
     try:
         with open(mountinfo_path, "rb") as stream:
             lines = stream.readlines()
@@ -332,12 +382,13 @@ def read_root_mount(mountinfo_path):
             continue
         mounted = sections[0].split()
         filesystem = sections[1].split()
-        if len(mounted) < 5 or len(filesystem) < 3 or decode_mount_field(mounted[4]) != b"/":
+        if len(mounted) < 5 or len(filesystem) < 3 or decode_mount_field(mounted[4]) != mounted_root:
             continue
         fstype = filesystem[0]
         options = filesystem[2].split(b",")
         upperdir = None
         lowerdirs = []
+        aufs_session_id = None
         for option in options:
             if option.startswith(b"upperdir="):
                 upperdir = decode_mount_field(option.split(b"=", 1)[1])
@@ -356,8 +407,12 @@ def read_root_mount(mountinfo_path):
                         upperdir = decode_mount_field(path)
                     else:
                         lowerdirs.append(decode_mount_field(path))
+            elif fstype == b"aufs" and option.startswith(b"si="):
+                aufs_session_id = option.split(b"=", 1)[1]
+        if fstype == b"aufs" and upperdir is None and aufs_session_id:
+            upperdir, lowerdirs = read_aufs_branches(aufs_sysfs_path, aufs_session_id)
         return fstype, upperdir, lowerdirs
-    fail("mounted root filesystem is absent from mountinfo")
+    fail("mounted capture root is absent from mountinfo")
 
 
 def read_union_intent(cmdline_path):
@@ -377,8 +432,8 @@ def read_union_intent(cmdline_path):
     return None
 
 
-def detect_union(mountinfo_path, cmdline_path):
-    fstype, upperdir, lowerdirs = read_root_mount(mountinfo_path)
+def detect_union(mountinfo_path, cmdline_path, aufs_sysfs_path, mounted_root):
+    fstype, upperdir, lowerdirs = read_root_mount(mountinfo_path, aufs_sysfs_path, mounted_root)
     intent = read_union_intent(cmdline_path)
     if fstype == b"overlay":
         backend = "overlayfs"
@@ -491,7 +546,8 @@ def mounted_branch_source(mountinfo_path, branch_path, test_mode):
             lines = stream.readlines()
     except OSError:
         fail("cannot read mounted filesystem information")
-    branch_path = os.path.normpath(branch_path)
+    branch_paths = {os.path.normpath(candidate) for candidate in
+                    mounted_path_candidates(os.path.normpath(branch_path))}
     for line in lines:
         sections = line.rstrip(b"\n").split(b" - ", 1)
         if len(sections) != 2:
@@ -499,7 +555,7 @@ def mounted_branch_source(mountinfo_path, branch_path, test_mode):
         mounted = sections[0].split()
         filesystem = sections[1].split()
         if (len(mounted) < 5 or len(filesystem) < 2 or
-                os.path.normpath(decode_mount_field(mounted[4])) != branch_path):
+                os.path.normpath(decode_mount_field(mounted[4])) not in branch_paths):
             continue
         source = decode_mount_field(filesystem[1])
         try:
@@ -616,10 +672,15 @@ def running_base_fingerprint(lowerdirs, backend, mountinfo_path, test_mode,
     if source is None and test_mode:
         return None
     module_paths = {}
-    if source is not None:
+    # Production attestation hashes the backing source of each actually mounted
+    # lower branch.  The source-tree lookup exists only for the non-root test
+    # fallback and must not treat numbered persistence snapshots as base modules.
+    if source is not None and test_mode:
         for directory, directory_names, file_names in os.walk(source, followlinks=False):
             directory_names[:] = [name for name in directory_names
                                   if not os.path.islink(os.path.join(directory, name))]
+            if os.path.normpath(directory) == os.path.normpath(source):
+                directory_names[:] = [name for name in directory_names if name != b"changes"]
             for text_name in file_names:
                 name = os.fsencode(text_name)
                 if not name.endswith(b".sb"):
@@ -704,8 +765,7 @@ def union_whiteout(path, metadata, backend):
     if backend == "overlayfs" and character:
         return path, "overlay-char"
     if backend == "aufs" and aufs_name:
-        if (not stat.S_ISREG(metadata.st_mode) or metadata.st_size != 0 or
-                metadata.st_nlink != 1):
+        if not stat.S_ISREG(metadata.st_mode) or metadata.st_size != 0:
             fail("invalid AUFS whiteout representation")
         target_name = base[4:]
         if (target_name in (b"", b".", b"..") or
@@ -852,6 +912,20 @@ def scan_tree(root_fd, backend, nested_mounts=None):
                 pass
         raise
     entries.sort(key=lambda item: item["path"])
+    if backend == "aufs":
+        anchor = next((item for item in entries if item["path"] == b".wh..wh.aufs"), None)
+        linked_whiteouts = [item for item in entries
+                            if item["representation"] == "aufs-file" and item["stat"].st_nlink > 1]
+        if linked_whiteouts:
+            if (anchor is None or anchor["kind"] != "regular" or anchor["stat"].st_size != 0):
+                fail("invalid AUFS whiteout representation")
+            identity = (anchor["stat"].st_dev, anchor["stat"].st_ino)
+            links = [item for item in entries
+                     if (item["stat"].st_dev, item["stat"].st_ino) == identity]
+            if (anchor["stat"].st_nlink != len(links) or
+                    any((item["stat"].st_dev, item["stat"].st_ino) != identity
+                        for item in linked_whiteouts)):
+                fail("invalid AUFS whiteout representation")
     return root_metadata, entries
 
 
@@ -1065,19 +1139,30 @@ def make_plan(root_fd, entries, backend, profile, destination, includes, exclude
     stripped_opaque = set()
     unsafe_count = 0
     if profile == "exact":
-        unsupported = sum(entry["kind"] == "unsupported" for entry in entries)
+        exact_candidates = [entry for entry in entries
+                            if not entry["crosses"] and not is_internal(entry["path"]) and
+                            not is_runtime(entry["path"]) and
+                            not (destination and path_at_or_below(entry["path"], destination))]
+        unsupported = sum(entry["kind"] == "unsupported" for entry in exact_candidates)
         if unsupported:
             fail("exact capture cannot preserve unsupported filesystem objects: {}".format(
                 unsupported))
-        for entry in entries:
-            if entry["kind"] in ("symlink", "whiteout") and entry["stat"].st_nlink != 1:
-                fail("exact capture cannot preserve hard-linked non-regular objects")
+        linked_nonregular = {}
+        for entry in exact_candidates:
+            semantic_whiteout = (entry["kind"] == "whiteout" and
+                                 entry["representation"] in ("overlay-char", "aufs-file"))
+            if (entry["kind"] in ("symlink", "whiteout") and entry["stat"].st_nlink != 1 and
+                    not semantic_whiteout):
+                identity = (entry["stat"].st_dev, entry["stat"].st_ino)
+                linked_nonregular[identity] = linked_nonregular.get(identity, 0) + 1
             if entry["unsafe_union_xattr"] == "dependency":
                 fail("exact capture found dependency-bearing union xattr")
             if entry["unsafe_union_xattr"] == "unknown":
                 fail("exact capture found unknown union xattr")
             if entry["unsafe_union_xattr"] == "unreadable":
                 fail("exact capture cannot verify union xattrs")
+        if any(count > 1 for count in linked_nonregular.values()):
+            fail("exact capture cannot preserve hard-linked non-regular objects")
     for entry in entries:
         path = entry["path"]
         if entry["kind"] == "unsupported":
@@ -1384,7 +1469,9 @@ def copy_plan(root_fd, root_metadata, all_entries, selected, stripped_opaque,
             if (current.st_dev, current.st_ino) != (planned.st_dev, planned.st_ino):
                 fail("changes entry identity changed during capture")
             if stat.S_ISREG(current.st_mode):
-                copy_regular(parent_fd, name, planned, output, hardlinks, profile, backend)
+                link_map = ({} if entry["kind"] == "whiteout" and
+                            entry["representation"] == "aufs-file" else hardlinks)
+                copy_regular(parent_fd, name, planned, output, link_map, profile, backend)
             elif stat.S_ISLNK(current.st_mode):
                 if stable_snapshot(current) != stable_snapshot(planned):
                     fail("symbolic link changed before capture")
@@ -1977,12 +2064,12 @@ def module_size_bound(footprint):
 
 def execute(arguments):
     global JSON_MODE, TEST_MODE
-    if len(arguments) != 18:
+    if len(arguments) != 20:
         fail("invalid privileged engine invocation")
     (mode, profile, compression, output_path, changes_path, selection_path,
       metadata_path, temp_parent, owner_text, test_text, mksquashfs_path,
       unsquashfs_path, mountinfo_path, cmdline_path, boot_id_path,
-       running_source_path, cancel_path, json_text) = arguments
+       running_source_path, cancel_path, json_text, aufs_sysfs_path, mounted_root) = arguments
     JSON_MODE = json_text == "1"
     test_mode = test_text == "1"
     TEST_MODE = test_mode
@@ -2021,7 +2108,8 @@ def execute(arguments):
     changes_canonical, root_fd = open_input_directory(changes_path)
     if changes_canonical == b"/":
         fail("refusing filesystem root as changes directory")
-    backend, upperdir, lowerdirs = detect_union(mountinfo_path, cmdline_path)
+    backend, upperdir, lowerdirs = detect_union(
+        mountinfo_path, cmdline_path, aufs_sysfs_path, mounted_root)
     root_fd = unwrap_changes(root_fd, backend, upperdir)
     capture_root_path = os.path.realpath(os.readlink(
         os.fsencode("/proc/self/fd/{}".format(root_fd))))

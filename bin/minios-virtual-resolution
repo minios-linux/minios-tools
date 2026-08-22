@@ -60,16 +60,11 @@ if [[ -z "$DESIRED_RESOLUTION" ]]; then
     DESIRED_RESOLUTION="1280x800"
 fi
 
-# Check if the novirtres parameter is set
-if ! grep -q 'novirtres' /proc/cmdline; then
-    # Check if running in a virtual environment and if guest utilities are active
-    if is_virtual && ! guest_utils_active; then
-        # Switch to the desired screen size
-        OUTPUT=$(xrandr 2>/dev/null | grep -iv disconnected | grep -i 'connected' | head -n 1 | cut -d " " -f 1)
-        xrandr --output "$OUTPUT" --mode "$DESIRED_RESOLUTION" -s "$DESIRED_RESOLUTION"
+# Configure the virtual display when automatic guest display management is absent.
+if ! grep -q 'novirtres' /proc/cmdline && is_virtual && ! guest_utils_active; then
+    OUTPUT=$(xrandr 2>/dev/null | grep -iv disconnected | grep -i 'connected' | head -n 1 | cut -d " " -f 1)
+    if [[ -n "$OUTPUT" ]] && xrandr --output "$OUTPUT" --mode "$DESIRED_RESOLUTION" -s "$DESIRED_RESOLUTION"; then
+        mkdir -p "$HOME/.config/minios"
+        touch "$MARKER_FILE"
     fi
 fi
-
-# Create marker file to prevent future executions
-mkdir -p "$HOME/.config/minios"
-touch "$MARKER_FILE"

@@ -4,15 +4,20 @@
 **apt2sb** - Converts repository packages into modules.
 
 ## SYNOPSIS
-`apt2sb [COMMAND] [OPTIONS] PACKAGE1 [PACKAGE2] [...]`
+`apt2sb install [OPTIONS] PACKAGE1 [PACKAGE2] [...]`
+
+`apt2sb upgrade [OPTIONS]`
+
+`apt2sb --help|--version`
 
 ## DESCRIPTION
-Installs packages from repositories and packages them into a module.
+Installs packages from repositories and packages them into a module. Package
+installation and upgrade require root and a supported MiniOS live session.
 
 ## COMMANDS
-* `install`  
+* `install`
     Install package(s).
-    
+
 * `upgrade`  
     Upgrade installed packages.
 
@@ -29,6 +34,12 @@ Installs packages from repositories and packages them into a module.
 * `-b, --bext EXT`  
     Bundle extension. Default: sb
 
+* `--json`
+    Emit pure NDJSON on stdout for machine consumers. The stream contains
+    `prepare`, `update`, `packages`, `capture`, and `complete` phase events,
+    followed by one final `apt2sb` result. A failed run emits no final result.
+    APT and diagnostic output is written to stderr in this mode.
+
 * `--help`  
     Display help and exit
 
@@ -39,7 +50,7 @@ Installs packages from repositories and packages them into a module.
 
 For `install` and `upgrade` commands:
 
-* `-y, --yes` 
+* `-y, --yes`
     Automatic yes to prompts.
 
 * `--allow-downgrades`
@@ -51,14 +62,17 @@ For `install` and `upgrade` commands:
 * `--install-suggests`
     Consider suggested packages as a dependency for installing.
 
-* `--no-install-recommends` 
+* `--no-install-recommends`
     Do not consider recommended packages as a dependency for installing.
 
-* `--no-install-suggests` 
+* `--no-install-suggests`
     Do not consider suggested packages as a dependency for installing.
 
-* `-t, --target-release` 
-    Default release to install packages from.
+For `install` only:
+
+* `--target-release RELEASE`
+    Use RELEASE as the APT default release for `install`. The `-t` alias is also
+    accepted. The option is rejected for `upgrade`.
 
 
 ## CREATING MODULES
@@ -75,16 +89,35 @@ For `install` and `upgrade` commands:
 9. The script will install the packages, convert them to a module, and save it with the specified filename, filter level, compression type, and extension.
 
 ### Upgrading Installed Packages:
-1. Run the script with the `upgrade` command to upgrade all installed packages.
+1. Run the script with root privileges and the `upgrade` command to upgrade all installed packages.
 2. Use the `-y` or `--yes` option if you want to accept all confirmations automatically.
-3. Use other APT options as needed.
+3. Without `--name`, the default target is `upgrade.sb`.
+4. Use other APT options as needed, but not `--target-release`.
+
+## MACHINE OUTPUT
+
+With `--json`, stdout is reserved for NDJSON. The final result has
+`tool=apt2sb`, operation `install` or `upgrade`, and reports the output path,
+compressed and uncompressed sizes, entry count, SHA-256, compression, and the
+number of requested package operands. The underlying `savechanges` protocol is
+internal and is not forwarded to the caller.
+
+When `apt2sb` is launched through `pkexec`, local package files are opened with
+the invoking user's `PKEXEC_UID` before being copied into the private build
+union. The privileged wrapper therefore cannot use a local `.deb` that the
+invoking user cannot read.
+
+## EXIT STATUS
+
+Help and version queries return 0. Usage, setup, APT, capture, and cleanup
+failures return non-zero. A failed machine run publishes no final result.
 
 ## EXAMPLES
 - `apt2sb install chromium chromium-sandbox`
 - `apt2sb install -y --level 03 chromium chromium-sandbox`
 - `apt2sb install -y --no-install-recommends ./google-chrome-stable_current_amd64.deb -n 06-google-chrome.sb -l 3`
-- `apt2sb install -y libreoffice -c lz4`
-- `apt2sb upgrade -y`
+- `apt2sb install -y libreoffice -c xz`
+- `apt2sb upgrade -y -n upgrades.sb`
 
 ## SEE ALSO
 

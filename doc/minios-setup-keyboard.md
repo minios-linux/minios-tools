@@ -9,7 +9,8 @@
 ## DESCRIPTION
 This script applies keyboard layout settings to XFCE and Fluxbox/Openbox desktop environments based on system keyboard configuration from `/etc/default/keyboard`.
 
-The script runs as user at desktop startup, after live-config component `0150-keyboard-configuration` has processed system-level configuration.
+The script runs as a desktop user after live-config component
+`0150-keyboard-configuration` has processed system-level configuration.
 
 ## CONFIGURATION
 
@@ -27,7 +28,7 @@ If `XKBOPTIONS` is not set, the script defaults to `grp:alt_shift_toggle` for la
 
 The script:
 
-1. Checks if it has already run in the current session (using marker file)
+1. Checks whether its persistent marker file already exists
 2. Reads keyboard configuration from `/etc/default/keyboard`
 3. Detects the running desktop environment (XFCE or Fluxbox/Openbox)
 4. Applies keyboard settings using:
@@ -35,12 +36,15 @@ The script:
    - `xfconf-query` for XFCE persistent settings
    - Configuration files for Fluxbox/Openbox
 
-The script only runs once per session to avoid repeatedly applying the same configuration.
+The script runs once until the marker file is removed. With a persistent home,
+the marker survives later logins and boots.
 
 ## FILES
 
 * `/etc/default/keyboard` - System keyboard configuration file
 * `~/.config/minios/keyboard-configured` - Marker file to prevent multiple runs
+
+Remove the marker before running the command again to force reconfiguration.
 
 ## DESKTOP ENVIRONMENTS
 

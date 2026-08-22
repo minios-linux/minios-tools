@@ -10,3 +10,7 @@ man/
 
 # Compiled translation files
 po/*.mo
+
+# Python caches
+__pycache__/
+.pytest_cache/

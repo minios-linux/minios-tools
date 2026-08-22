@@ -6,19 +6,23 @@ savechanges - capture writable MiniOS session changes in a SquashFS module
 
 ## SYNOPSIS
 
-**savechanges** [*OPTIONS*] *TARGET.sb* [*CHANGES_DIRECTORY*]
+**savechanges** [*OPTIONS*] *TARGET* [*CHANGES_DIRECTORY*]
 
 **savechanges** [*OPTIONS*] **--inventory-json** *FILE* [*CHANGES_DIRECTORY*]
 
 ## DESCRIPTION
 
-**savechanges** reads the writable layer of a running MiniOS session. Creating a module or inventory requires root because the layer can contain files that are readable only by root. The bash frontend validates the command line and launches the separate **/usr/lib/minios-tools/minios_savechanges_engine.py** helper. The privileged filesystem work is performed by that isolated Python transaction using trusted system tools and a sanitized environment.
+**savechanges** reads the writable layer of a running MiniOS session. Creating a
+module or inventory requires root because the layer can contain files readable
+only by root.
 
-Without **--profile**, the historical savechanges policy remains active: transient files, logs, caches, boot data, and the other paths excluded by earlier releases are omitted.
+Without **--profile**, the legacy policy is used. It omits empty directories,
+caches, logs, boot data, runtime and pseudo-filesystem paths, and selected
+session and system files; parents required by retained files are recreated.
 
 The profile modes provide explicit session-capture policies. All modes omit runtime and pseudo-mount content, internal union bookkeeping, the output itself, and nested filesystems. The **exact** profile rejects unsupported filesystem objects rather than silently omitting them. Backend-specific deletion and opacity metadata is retained only when it can be represented safely. A target that already exists, including a symbolic link, is never overwritten.
 
-The changes directory defaults to **/run/initramfs/memory/changes** or **/lib/live/mount/changes**. The filesystem mounted at **/** is authoritative for backend detection; a kernel **union=** argument is treated only as intent. For OverlayFS, the effective changes directory must match the mounted root's **upperdir**. For AUFS, it must match the writable branch reported by the mounted root. A wrapper containing only **changes/** and **workdir/** is unwrapped safely, including repeated wrappers. An OverlayFS-shaped wrapper is rejected for other mounted backends. Nested mount roots are identified from mount information as well as device changes, so a same-device bind mount is not traversed.
+The changes directory defaults to **/run/initramfs/memory/changes** or **/lib/live/mount/changes**. When that location contains the standard OverlayFS **changes/** and **workdir/** pair, the inner **changes/** directory is selected directly; unrelated builder workspace entries beside the pair are never traversed. The filesystem mounted at **/** is authoritative for backend detection; a kernel **union=** argument is treated only as intent. For OverlayFS, the effective changes directory must match the mounted root's **upperdir**. For AUFS, it must match the writable branch reported by the mounted root. An explicitly supplied wrapper containing only **changes/** and **workdir/** is unwrapped safely, including repeated wrappers. An OverlayFS-shaped wrapper is rejected for other mounted backends. Nested mount roots are identified from mount information as well as device changes, so a same-device bind mount is not traversed.
 
 ## OPTIONS
 
@@ -26,7 +30,8 @@ The changes directory defaults to **/run/initramfs/memory/changes** or **/lib/li
 : Use **zstd**, **gzip**, **lzo**, or **xz** compression. The default is **zstd**.
 
 **-b**, **--bext** *EXT*
-: Set the bundle extension displayed by help. The default is **sb**. This retains compatibility with the historical CLI; the exact target pathname is still supplied positionally.
+: Set the bundle extension displayed by help. The default is **sb**. The exact
+  target pathname is still supplied positionally.
 
 **--profile** *PROFILE*
 : Select **exact**, **clean**, or **selected** behavior.
@@ -114,9 +119,23 @@ The module metadata and JSON result contain an additive **extraction_footprint**
 
 ## OUTPUT SAFETY
 
-Temporary data is created in a mode 0700 directory outside the changes root. The transaction retains descriptors for the changes root, source directories, destination parent, and temporary storage. Paths are opened without following symbolic links, regular-file identity and metadata are checked before and after reads, and copies do not use line-oriented parsing. Space and inode preflight account for synthesized parent directories, retained links and attributes, the staging tree and private module, plus the no-replace publication copy; when work and output share a filesystem their simultaneous peak is checked as one requirement. Space is checked again from the measured staged footprint before compression. The module is created with xattr storage enabled and is accepted only when **mksquashfs** succeeds, creates a nonempty regular file, **unsquashfs -s** recognizes it, and **unsquashfs -ll** can list it completely.
+Temporary data is created in a mode-0700 directory outside the changes root.
+The capture retains filesystem descriptors for its inputs, output parent, and
+temporary storage; symbolic-link replacement of those paths cannot redirect the
+capture. Space and inode preflight account for staging, compression, and the
+no-replace publication copy, including their simultaneous use on one
+filesystem. The module is accepted only when **mksquashfs** succeeds, creates a
+nonempty regular file, **unsquashfs -s** recognizes it, and **unsquashfs -ll**
+lists it successfully.
 
-The final output is copied to a private random file in the retained destination directory and published with an atomic no-replace operation. Existing paths, paths that appear during capture, and replaced destination ancestors are left untouched. Explicit-profile modules, inventories, and metadata are mode 0600; only the historical no-profile module remains mode 0644. INT, TERM, and a valid cancellation marker interrupt in-process inventory and copy work. A privileged monitor sends TERM and then bounded KILL to the complete active tool process group, including descendants whose leader has exited, reaps it, and removes private or incomplete temporary data.
+The final output is copied to a private random file in the retained destination
+directory and published with an atomic no-replace operation. Existing paths,
+paths that appear during capture, and replaced destination ancestors are left
+untouched. Explicit-profile modules, inventories, and metadata are mode 0600;
+modules created without **--profile** are mode 0644. INT, TERM, and a valid
+cancellation marker interrupt in-process inventory and copy work. A privileged
+monitor terminates and reaps the active tool process group and removes private
+or incomplete temporary data.
 
 ## OUTPUT PROTOCOL
 
@@ -133,9 +152,10 @@ The entry count is the number of paths in the copied staging tree, excluding its
 root. Uncompressed logical size counts stable regular-file data once per inode,
 so hard-linked names do not multiply the extraction-memory estimate.
 
-Without **--json**, the historical frontend-readable records remain:
-
-Human-readable messages use stable **I:**, **W:**, and **E:** prefixes. Frontends can consume these untranslated phase identifiers:
+Without **--json**, phase, information, and warning records use standard output
+with stable **P:**, **I:**, and **W:** prefixes. **E:** records and child-tool
+diagnostics use standard error. Frontends can consume these untranslated phase
+identifiers:
 
 **P:capture-inventory**
 : Selection validation and changes-layer inventory.
@@ -154,7 +174,7 @@ Human-readable messages use stable **I:**, **W:**, and **E:** prefixes. Frontend
 
 ## EXAMPLES
 
-Use the historical policy:
+Use the legacy policy:
 
     savechanges mychanges.sb
 
@@ -180,13 +200,11 @@ Write an inventory without creating a module:
 : Successful completion.
 
 **1**
-: Invalid options, output, tools, free space, compression, publication, or SquashFS validation.
+: Invalid options, permissions, paths, tools, free space, capture policy,
+  compression, publication, or SquashFS validation failure.
 
 **2**
-: Invalid or changing writable layer, unsafe copy, selection plan, or inventory failure.
-
-**4**
-: Secure temporary storage could not be created or prepared.
+: The default live writable changes directory could not be detected.
 
 **130**
 : Interrupted by INT or TERM, or cancelled through **--cancel-file**.

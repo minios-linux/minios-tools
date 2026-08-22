@@ -1,3 +1,64 @@
+minios-tools (1.6.0) unstable; urgency=medium
+
+  * Bind converter inputs to retained descriptors so path replacement cannot
+    redirect compression, extraction, or source hashing.
+  * Stage conversions in identity-checked private directories and roll back
+    only outputs whose published inode is still owned.
+  * Use the renameat2 syscall on Bionic glibc and fail closed when atomic
+    no-replace directory publication is unavailable.
+  * Reject every non-zero unsquashfs result instead of publishing a partial
+    extraction, including failed pre-extraction listings.
+  * Reap complete converter process groups, validate staged modules with
+    unsquashfs, and emit pure NDJSON under --json.
+  * Make legacy build wrappers propagate failed inner operations, copy dotfiles,
+    and parse apt target releases without treating values as packages.
+  * Add pure-NDJSON `apt2sb --json`, keep APT diagnostics off machine stdout,
+    wrap the final savechanges result, and bind local package reads to the
+    invoking `pkexec` user.
+  * Add pure-NDJSON `script2sb --json`, bind script and machine-mode seed
+    inputs to the invoking `pkexec` user, and use no-follow filesystem-engine
+    copying without changing legacy `cp -a` behavior.
+  * Add split `chroot2sb prepare/shell/finish/cancel` lifecycle for embedded
+    terminals, with root-owned opaque sessions, caller binding, flock
+    serialization, and device/inode-verified private workspaces.
+  * Resolve AUFS writable and lower branches through the mounted session's
+    ordered sysfs records when mountinfo reports only the session identifier.
+  * Bind legacy wrapper captures to their temporary mounted unions and select
+    the effective Dracut OverlayFS upper directory by default.
+  * Preserve exact capture of OverlayFS whiteouts whose extra hard link belongs
+    only to the external workdir, while still rejecting in-tree non-regular
+    hard-link topology.
+  * Refresh command manuals and keep the engine responsibility notes concise.
+  * Make `sb list` rootless, add stable `sb list --json` runtime module output,
+    and gate runtime mutations on the filesystem actually mounted at `/`.
+  * Add rootless `sb next-boot [--json]` using the effective MiniOS data tree,
+    current boot filters, source override precedence, and Debian live-layout
+    compatibility without adding a new initramfs state contract.
+  * Add rootless `sb inspect FILE [--json]` for fail-closed SquashFS content
+    inspection without extracting the module.
+  * Move `sb` machine-protocol serialization into `minios_protocol.py` and
+    reuse the existing filesystem engine for no-follow module-store mutations,
+    eliminating inline Python from Bash frontends.
+  * Add privileged `sb next-boot add/remove` with durable-store selection,
+    caller-bound source access, no-follow dirfd mutations, staged SquashFS
+    validation, atomic no-replace publication, and read-only base protection.
+  * Resolve Python helpers relative to the installed `usr/bin` layout as well
+    as the source tree and canonical `/usr/lib/minios-tools` location.
+  * Make rootless `sb2dir` restore only user xattrs so root-only OverlayFS
+    metadata does not reject otherwise extractable MiniOS modules.
+  * Remove the repository-local translation update script; translation refreshes
+    are driven by lokit from the main MiniOS repository.
+  * Fix the remaining AUFS session-id transformation flagged by ShellCheck.
+  * Add the SquashFS running-session save backend and shutdown helper used by
+    MiniOS core, so shutdown saves do not depend on Session Manager.
+  * Build base-module fingerprints only from the mounted union lower layers;
+    numbered persistence snapshots no longer masquerade as duplicate modules.
+  * Preserve shared OverlayFS 0:0 whiteouts semantically during exact capture,
+    including the hard-linked whiteouts created by package removal.
+  * Surface the common SquashFS save backend error when shutdown saving fails.
+
+ -- crims0n <crims0n@minios.dev>  Tue, 11 Aug 2026 21:30:00 +0300
+
 minios-tools (1.5.0) unstable; urgency=medium
 
   * Remove the sb2iso executable, completion, documentation, and manual page;

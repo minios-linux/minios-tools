@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: minios-tools 1.4.2\n"
+"Project-Id-Version: minios-tools 1.6.0\n"
 "Report-Msgid-Bugs-To: support@minios.dev\n"
-"POT-Creation-Date: 2026-08-10 05:30+0300\n"
-"PO-Revision-Date: 2026-08-10 02:31+0000\n"
+"POT-Creation-Date: 2026-08-19 00:04+0300\n"
+"PO-Revision-Date: 2026-08-12 17:17+0000\n"
 "Last-Translator: crims0n <crims0n@minios.dev>\n"
 "Language-Team: none\n"
 "Language: fr\n"
@@ -17,679 +17,654 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: bin/apt2sb:20 bin/apt2sb:53 bin/chroot2sb:19 bin/chroot2sb:39 bin/dir2sb:33
-#: bin/dir2sb:49 bin/savechanges:43 bin/savechanges:65 bin/sb:39 bin/sb:68
-#: bin/sb2dir:32 bin/sb2dir:46 bin/script2sb:20 bin/script2sb:42
+#: bin/apt2sb:33 bin/apt2sb:68 bin/apt2sb:71 bin/chroot2sb:38 bin/chroot2sb:66
+#: bin/chroot2sb:69 bin/dir2sb:36 bin/dir2sb:52 bin/savechanges:45
+#: bin/savechanges:67 bin/sb:34 bin/sb:67 bin/sb2dir:36 bin/sb2dir:51
+#: bin/script2sb:30 bin/script2sb:54 bin/script2sb:57
 msgid "Usage"
 msgstr "Utilisation"
 
-#: bin/apt2sb:21
+#: bin/apt2sb:34
 msgid "Installs packages from repositories and packages them into a module."
 msgstr "Installe des paquets depuis des dépôts et les emballe dans un module."
 
-#: bin/apt2sb:23 bin/sb:43
+#: bin/apt2sb:36 bin/sb:38
 msgid "Commands"
 msgstr "Commandes"
 
-#: bin/apt2sb:24
+#: bin/apt2sb:37
 msgid "Install package(s)"
 msgstr "Installer le(s) paquet(s)"
 
-#: bin/apt2sb:25
+#: bin/apt2sb:38
 msgid "Upgrade installed packages"
 msgstr "Mettre à niveau les paquets installés"
 
-#: bin/apt2sb:27 bin/chroot2sb:22 bin/dir2sb:35 bin/savechanges:46
-#: bin/sb2dir:34 bin/script2sb:23
+#: bin/apt2sb:40 bin/chroot2sb:47 bin/dir2sb:38 bin/savechanges:48
+#: bin/sb2dir:38 bin/script2sb:33
 msgid "Options"
 msgstr "Options"
 
-#: bin/apt2sb:28
+#: bin/apt2sb:41
 msgid "Use NAME as the filename for the module instead of PACKAGE1"
 msgstr "Utiliser NOM comme nom de fichier pour le module au lieu de PAQUET1"
 
-#: bin/apt2sb:29 bin/chroot2sb:25 bin/script2sb:28
+#: bin/apt2sb:42 bin/chroot2sb:50 bin/script2sb:38
 msgid "Use LEVEL as the filter level"
 msgstr "Utiliser NIVEAU comme niveau de filtre"
 
-#: bin/apt2sb:30 bin/chroot2sb:26 bin/script2sb:25
+#: bin/apt2sb:43 bin/chroot2sb:51 bin/script2sb:35
 msgid "Compression type (zstd, gzip, lzo, xz). Default: zstd"
 msgstr "Type de compression (zstd, gzip, lzo, xz). Par défaut : zstd"
 
-#: bin/apt2sb:31 bin/chroot2sb:27 bin/script2sb:24
+#: bin/apt2sb:44 bin/chroot2sb:52 bin/script2sb:34
 msgid "Bundle extension. Default: sb"
 msgstr "Extension du paquet. Par défaut : sb"
 
-#: bin/apt2sb:32 bin/chroot2sb:28 bin/dir2sb:42 bin/savechanges:58 bin/sb:53
-#: bin/sb2dir:39 bin/script2sb:30
+#: bin/apt2sb:45 bin/script2sb:40
+msgid "Emit machine-readable phase events and result"
+msgstr "Émettre des événements de phase et un résultat lisibles par machine"
+
+#: bin/apt2sb:46 bin/chroot2sb:53 bin/dir2sb:45 bin/savechanges:60 bin/sb:52
+#: bin/sb2dir:44 bin/script2sb:41
 msgid "Display this help and exit"
 msgstr "Afficher cette aide et quitter"
 
-#: bin/apt2sb:33 bin/chroot2sb:29 bin/dir2sb:43 bin/savechanges:59 bin/sb:54
-#: bin/sb2dir:40 bin/script2sb:31
+#: bin/apt2sb:47 bin/chroot2sb:54 bin/dir2sb:46 bin/savechanges:61 bin/sb:53
+#: bin/sb2dir:45 bin/script2sb:42
 msgid "Display version information and exit"
 msgstr "Afficher les informations de version et quitter"
 
-#: bin/apt2sb:35
+#: bin/apt2sb:49
 msgid "Apt Options (for install/upgrade command)"
 msgstr "Options d'Apt (pour les commandes installer/mettre à niveau)"
 
-#: bin/apt2sb:36
+#: bin/apt2sb:50
 msgid "Automatic yes to prompts"
 msgstr "Répondre oui automatiquement aux invites"
 
-#: bin/apt2sb:37
+#: bin/apt2sb:51
 msgid "Allow downgrades of packages"
 msgstr "Autoriser les rétrogradations de paquets"
 
-#: bin/apt2sb:38
+#: bin/apt2sb:52
 msgid "Consider recommended packages as a dependency for installing"
 msgstr "Considérer les paquets recommandés comme une dépendance à l'installation"
 
-#: bin/apt2sb:39
+#: bin/apt2sb:53
 msgid "Consider suggested packages as a dependency for installing"
 msgstr "Considérer les paquets suggérés comme une dépendance à l'installation"
 
-#: bin/apt2sb:40
+#: bin/apt2sb:54
 msgid "Do not consider recommended packages as a dependency for installing"
 msgstr "Ne pas considérer les paquets recommandés comme une dépendance à l'installation"
 
-#: bin/apt2sb:41
+#: bin/apt2sb:55
 msgid "Do not consider suggested packages as a dependency for installing"
 msgstr "Ne pas considérer les paquets suggérés comme une dépendance à l'installation"
 
-#: bin/apt2sb:42
-msgid "Default release to install packages from"
+#: bin/apt2sb:56
+msgid "Default release for package installation"
 msgstr "Version par défaut pour l'installation des paquets"
 
-#: bin/apt2sb:44 bin/chroot2sb:31 bin/sb:56 bin/script2sb:33
+#: bin/apt2sb:58 bin/chroot2sb:56 bin/sb:55 bin/script2sb:44
 msgid "Examples"
 msgstr "Exemples"
 
-#: bin/apt2sb:54 bin/chroot2sb:40 bin/dir2sb:50 bin/savechanges:66 bin/sb:70
-#: bin/sb2dir:47 bin/script2sb:43
+#: bin/apt2sb:69 bin/apt2sb:72 bin/chroot2sb:67 bin/chroot2sb:70 bin/dir2sb:53
+#: bin/savechanges:68 bin/sb:69 bin/sb2dir:52 bin/script2sb:55 bin/script2sb:58
 msgid "Try"
 msgstr "Essayez"
 
-#: bin/apt2sb:54 bin/chroot2sb:40 bin/dir2sb:50 bin/savechanges:66 bin/sb:70
-#: bin/sb2dir:47 bin/script2sb:43
+#: bin/apt2sb:69 bin/apt2sb:72 bin/chroot2sb:67 bin/chroot2sb:70 bin/dir2sb:53
+#: bin/savechanges:68 bin/sb:69 bin/sb2dir:52 bin/script2sb:55 bin/script2sb:58
 msgid "for more information."
 msgstr "pour plus d'informations."
 
-#: bin/chroot2sb:20 bin/script2sb:21
-msgid "Packages a module from changes made by an installation script"
-msgstr "Emballe un module à partir des modifications effectuées par un script d'installation"
+#: bin/chroot2sb:39
+msgid "Packages a module from changes made in an interactive chroot"
+msgstr "Emballe un module à partir des modifications effectuées dans un chroot interactif"
 
-#: bin/chroot2sb:23 bin/script2sb:26
+#: bin/chroot2sb:41
+msgid "Lifecycle commands"
+msgstr "Commandes de cycle de vie"
+
+#: bin/chroot2sb:42
+msgid "Prepare a protected interactive build session"
+msgstr "Préparer une session de construction interactive protégée"
+
+#: bin/chroot2sb:43
+msgid "Attach an interactive chroot shell to the current terminal"
+msgstr "Attacher un shell chroot interactif au terminal actuel"
+
+#: bin/chroot2sb:44
+msgid "Capture and close a prepared session"
+msgstr "Capturer et fermer une session préparée"
+
+#: bin/chroot2sb:45
+msgid "Discard and close a prepared session"
+msgstr "Abandonner et fermer une session préparée"
+
+#: bin/chroot2sb:48 bin/script2sb:36
 msgid "Copy contents of DIR to the root of the module"
 msgstr "Copier le contenu de DIR dans la racine du module"
 
-#: bin/chroot2sb:24 bin/script2sb:27
+#: bin/chroot2sb:49 bin/script2sb:37
 msgid "Use NAME as the filename for the module"
 msgstr "Utiliser NOM comme nom de fichier pour le module"
 
-#: bin/dir2sb:34
+#: bin/dir2sb:37
 msgid "Convert a directory tree into a compressed .sb module."
 msgstr "Convertit un arbre de répertoires en un module compressé .sb."
 
-#: bin/dir2sb:36 bin/savechanges:47
-msgid "Compression: zstd, gzip, lzo, or xz (default: zstd)"
-msgstr "Compression : zstd, gzip, lzo ou xz (par défaut : zstd)"
+#: bin/dir2sb:39
+msgid "Compression: zstd, gzip, lzo, lz4, or xz (default: zstd)"
+msgstr "Compression : zstd, gzip, lzo, lz4 ou xz (par défaut : zstd)"
 
-#: bin/dir2sb:37 bin/savechanges:48
+#: bin/dir2sb:40 bin/savechanges:50 bin/sb2dir:39
 msgid "Bundle extension used in help text (default: sb)"
 msgstr "Extension du bundle utilisée dans l'aide (par défaut : sb)"
 
-#: bin/dir2sb:38
+#: bin/dir2sb:41
 msgid "Preserve source ownership instead of normalizing to root (needs privilege)"
 msgstr "Préserver la propriété source au lieu de normaliser à root (privilèges requis)"
 
-#: bin/dir2sb:39 bin/sb2dir:36
+#: bin/dir2sb:42 bin/sb2dir:41
 msgid "Permit device nodes, sockets, and FIFOs (needs privilege)"
 msgstr "Autoriser les nœuds de périphériques, sockets et FIFOs (privilèges requis)"
 
-#: bin/dir2sb:40 bin/sb2dir:37
+#: bin/dir2sb:43 bin/sb2dir:42
 msgid "Emit phase events and a machine-readable result"
 msgstr "Émettre les événements de phase et un résultat lisible par une machine"
 
-#: bin/dir2sb:41 bin/savechanges:57 bin/sb2dir:38
+#: bin/dir2sb:44 bin/savechanges:59 bin/sb2dir:43
 msgid "Disable colored output"
 msgstr "Désactiver la sortie en couleur"
 
-#: bin/dir2sb:44
+#: bin/dir2sb:47
 msgid "The contents of SOURCE_DIRECTORY become the module root. Neither the source"
 msgstr "Le contenu de SOURCE_DIRECTORY devient la racine du module. Ni la source"
 
-#: bin/dir2sb:45
+#: bin/dir2sb:48
 msgid "nor an existing TARGET is modified; the module is published atomically."
 msgstr "ni une TARGET existante n'est modifié ; le module est publié de façon atomique."
 
-#: bin/dir2sb:83 bin/savechanges:100 bin/sb2dir:80
+#: bin/dir2sb:86 bin/savechanges:102 bin/sb2dir:85
 msgid "Option requires an argument:"
 msgstr "L'option requiert un argument :"
 
-#: bin/dir2sb:87 bin/savechanges:108 bin/sb2dir:84
+#: bin/dir2sb:90 bin/savechanges:110 bin/sb2dir:89
 msgid "must not contain newline characters"
 msgstr "ne doit pas contenir de caractères de nouvelle ligne"
 
-#: bin/dir2sb:154 bin/savechanges:219 bin/sb2dir:145
+#: bin/dir2sb:195 bin/savechanges:228 bin/sb2dir:188
 msgid "Unknown option:"
 msgstr "Option inconnue :"
 
-#: bin/dir2sb:163 bin/savechanges:241
+#: bin/dir2sb:204 bin/savechanges:250
 msgid "Invalid compression type:"
 msgstr "Type de compression invalide :"
 
-#: bin/dir2sb:173 bin/sb2dir:159
+#: bin/dir2sb:214 bin/sb2dir:202
 msgid "Source path"
 msgstr "Chemin source"
 
-#: bin/dir2sb:174 bin/sb2dir:160
+#: bin/dir2sb:215 bin/sb2dir:203
 msgid "Target path"
 msgstr "Chemin de destination"
 
-#: bin/dir2sb:177 bin/sb2dir:163
+#: bin/dir2sb:218 bin/sb2dir:206
 msgid "--keep-ownership requires root privileges"
 msgstr "--keep-ownership nécessite les privilèges root"
 
-#: bin/dir2sb:180 bin/sb2dir:166
+#: bin/dir2sb:221 bin/sb2dir:209
 msgid "--allow-special requires root privileges"
 msgstr "--allow-special nécessite les privilèges root"
 
-#: bin/dir2sb:196 bin/sb2dir:180
+#: bin/dir2sb:237 bin/sb2dir:224
 msgid "converter engine helper not found"
 msgstr "Assistant du moteur de conversion introuvable"
 
-#: bin/dir2sb:199 bin/sb2dir:183
+#: bin/dir2sb:240 bin/sb2dir:227
 msgid "python3 is required"
 msgstr "python3 est requis"
 
-#: bin/dir2sb:203
+#: bin/dir2sb:244
 msgid "mksquashfs is required"
 msgstr "mksquashfs est requis"
 
-#: bin/dir2sb:212
+#: bin/dir2sb:246 bin/sb2dir:231
+msgid "unsquashfs is required"
+msgstr "unsquashfs est requis"
+
+#: bin/dir2sb:255
 msgid "Source is not a directory:"
 msgstr "La source n'est pas un répertoire :"
 
-#: bin/dir2sb:218
+#: bin/dir2sb:261
 msgid "Invalid target filename:"
 msgstr "Nom de fichier cible invalide :"
 
-#: bin/dir2sb:227
+#: bin/dir2sb:270
 msgid "Target directory does not exist:"
 msgstr "Le répertoire cible n'existe pas :"
 
-#: bin/dir2sb:229 bin/sb2dir:215
+#: bin/dir2sb:272 bin/sb2dir:272
 msgid "Target already exists:"
 msgstr "La cible existe déjà :"
 
-#: bin/dir2sb:238
+#: bin/dir2sb:281
 msgid "Source contains special files that cannot be packaged; re-run with the privileged special-object mode."
 msgstr "La source contient des fichiers spéciaux qui ne peuvent pas être empaquetés ; relancez avec le mode privilégié pour objets spéciaux."
 
-#: bin/dir2sb:253
-msgid "Cannot reserve a staging file"
-msgstr "Impossible de réserver un fichier de préparation"
+#: bin/dir2sb:293
+msgid "Cannot retain the source directory"
+msgstr "Impossible de conserver l'accès au répertoire source"
 
-#: bin/dir2sb:283
+#: bin/dir2sb:296
+msgid "Source directory changed during validation"
+msgstr "Le répertoire source a changé pendant la validation"
+
+#: bin/dir2sb:307 bin/sb2dir:294
+msgid "Cannot reserve a private workspace"
+msgstr "Impossible de réserver un espace de travail privé"
+
+#: bin/dir2sb:343
 msgid "mksquashfs failed to build the module"
 msgstr "Échec de mksquashfs lors de la création du module"
 
-#: bin/dir2sb:294
+#: bin/dir2sb:351
+msgid "Cannot create a temporary verification log"
+msgstr "Impossible de créer un journal temporaire de vérification"
+
+#: bin/dir2sb:365
+msgid "staged module failed SquashFS validation"
+msgstr "Le module préparé n'a pas passé la validation SquashFS"
+
+#: bin/dir2sb:371
+msgid "staged module contains special files that were not present during validation"
+msgstr "Le module préparé contient des fichiers spéciaux absents lors de la validation"
+
+#: bin/dir2sb:384
 msgid "Failed to publish the module"
 msgstr "Échec de la publication du module"
 
-#: bin/dir2sb:304 bin/sb2dir:285
+#: bin/dir2sb:397 bin/sb2dir:348
 msgid "Created"
 msgstr "Créé"
 
-#: bin/savechanges:45
+#: bin/savechanges:47
 msgid "Capture the writable layer of a running MiniOS session."
 msgstr "Capture la couche inscriptible d'une session MiniOS en cours d'exécution."
 
 #: bin/savechanges:49
+msgid "Compression: zstd, gzip, lzo, or xz (default: zstd)"
+msgstr "Compression : zstd, gzip, lzo ou xz (par défaut : zstd)"
+
+#: bin/savechanges:51
 msgid "Capture profile: exact, clean, or selected"
 msgstr "Profil de capture : exact, clean ou selected"
 
-#: bin/savechanges:50
+#: bin/savechanges:52
 msgid "Strict JSON selection for the selected profile"
 msgstr "Sélection JSON stricte pour le profil sélectionné"
 
-#: bin/savechanges:52
+#: bin/savechanges:54
 msgid "Write a metadata inventory instead of a module"
 msgstr "Écrire un inventaire de métadonnées au lieu d'un module"
 
-#: bin/savechanges:53
+#: bin/savechanges:55
 msgid "Write capture metadata beside a module"
 msgstr "Écrire les métadonnées de capture à côté d'un module"
 
-#: bin/savechanges:54
+#: bin/savechanges:56
 msgid "Use a validated directory for private capture staging"
 msgstr "Utilisez un répertoire validé pour la mise en attente privée de capture"
 
-#: bin/savechanges:55
+#: bin/savechanges:57
 msgid "Emit pure NDJSON phase and result events"
 msgstr "Émettre des événements de phase et de résultat au format NDJSON pur"
 
-#: bin/savechanges:56
+#: bin/savechanges:58
 msgid "Cancel when FILE is created in its secure parent directory"
 msgstr "Annuler lorsque le fichier FILE est créé dans son répertoire parent sécurisé"
 
-#: bin/savechanges:60
+#: bin/savechanges:62
 msgid "Without --profile, the historical exclusion policy is used."
 msgstr "Sans --profile, la politique d'exclusion historique est utilisée."
 
-#: bin/savechanges:61
+#: bin/savechanges:63
 msgid "New profiles and inventories are published mode 0600."
 msgstr "Les nouveaux profils et inventaires sont publiés en mode 0600."
 
-#: bin/savechanges:150
+#: bin/savechanges:152
 msgid "--json cannot be combined with --help or --version"
 msgstr "--json ne peut pas être utilisé avec --help ou --version"
 
-#: bin/savechanges:231 bin/savechanges:234
+#: bin/savechanges:240 bin/savechanges:243
 msgid "Invalid capture profile:"
 msgstr "Profil de capture invalide :"
 
-#: bin/savechanges:236
+#: bin/savechanges:245
 msgid "The selected profile requires --selection"
 msgstr "Le profil sélectionné requiert --selection"
 
-#: bin/savechanges:238
+#: bin/savechanges:247
 msgid "--selection is only valid with --profile selected"
 msgstr "--selection n'est valable qu'avec --profile selected"
 
-#: bin/savechanges:244
+#: bin/savechanges:253
 msgid "Invalid bundle extension:"
 msgstr "Extension de bundle invalide :"
 
-#: bin/savechanges:247
+#: bin/savechanges:256
 msgid "Inventory mode accepts at most one changes directory"
 msgstr "Le mode inventaire accepte au maximum un répertoire de changements"
 
-#: bin/savechanges:248
+#: bin/savechanges:257
 msgid "--metadata-json is not valid in inventory mode"
 msgstr "--metadata-json n'est pas valide en mode inventaire"
 
-#: bin/savechanges:262
+#: bin/savechanges:271
 msgid "Invalid output filename"
 msgstr "Nom de fichier de sortie invalide"
 
-#: bin/savechanges:263
+#: bin/savechanges:272
 msgid "Output path"
 msgstr "Chemin de sortie"
 
-#: bin/savechanges:264
+#: bin/savechanges:273
 msgid "Changes directory"
 msgstr "Répertoire des changements"
 
-#: bin/savechanges:266
+#: bin/savechanges:274
+msgid "Mounted root"
+msgstr "Racine montée"
+
+#: bin/savechanges:276
 msgid "Selection path"
 msgstr "Chemin de sélection"
 
-#: bin/savechanges:269
+#: bin/savechanges:279
 msgid "Invalid metadata output filename"
 msgstr "Nom de fichier de sortie des métadonnées invalide"
 
-#: bin/savechanges:270
+#: bin/savechanges:280
 msgid "Metadata output path"
 msgstr "Chemin de sortie des métadonnées"
 
-#: bin/savechanges:273
+#: bin/savechanges:283
 msgid "Invalid cancel marker filename"
 msgstr "Nom de fichier du marqueur d'annulation invalide"
 
-#: bin/savechanges:274
+#: bin/savechanges:284
 msgid "Cancel marker path"
 msgstr "Chemin du marqueur d'annulation"
 
-#: bin/savechanges:277
+#: bin/savechanges:287
 msgid "Invalid work parent"
 msgstr "Parent de travail invalide"
 
-#: bin/savechanges:278
+#: bin/savechanges:288
 msgid "Work parent"
 msgstr "Parent de travail"
 
-#: bin/savechanges:289
+#: bin/savechanges:309
 msgid "Cannot resolve script path"
 msgstr "Impossible de résoudre le chemin du script"
 
-#: bin/savechanges:297
+#: bin/savechanges:317
 msgid "This script must be run as root."
 msgstr "Ce script doit être exécuté en tant que root."
 
-#: bin/savechanges:299
+#: bin/savechanges:319
 msgid "Cannot detect the live writable changes directory"
 msgstr "Impossible de détecter le répertoire de changements inscriptible en direct"
 
-#: bin/savechanges:332
+#: bin/savechanges:333
+msgid "Invalid mounted root"
+msgstr "Racine montée invalide"
+
+#: bin/savechanges:335
+msgid "Mounted root must be a real directory without symbolic-link traversal"
+msgstr "La racine montée doit être un répertoire réel sans traversée de liens symboliques"
+
+#: bin/savechanges:358
 msgid "Trusted /usr/bin/python3 is unavailable"
 msgstr "Le /usr/bin/python3 de confiance est indisponible"
 
-#: bin/savechanges:333
+#: bin/savechanges:359
 msgid "Trusted /usr/bin/env is unavailable"
 msgstr "Le /usr/bin/env de confiance est indisponible"
 
-#: bin/savechanges:336
+#: bin/savechanges:362
 msgid "Invalid test root"
 msgstr "Racine de test invalide"
 
-#: bin/savechanges:341
+#: bin/savechanges:367
 msgid "Invalid test changes directory"
 msgstr "Répertoire de changements de test invalide"
 
-#: bin/savechanges:344
+#: bin/savechanges:368
+msgid "Invalid test mounted root"
+msgstr "Racine montée de test invalide"
+
+#: bin/savechanges:371
 msgid "Invalid test output parent"
 msgstr "Répertoire parent de sortie de test invalide"
 
-#: bin/savechanges:346
+#: bin/savechanges:374
 msgid "Non-root test capture is confined to MINIOS_TOOLS_TEST_ROOT"
 msgstr "La capture de test sans droits root est limitée à MINIOS_TOOLS_TEST_ROOT"
 
-#: bin/savechanges:349
+#: bin/savechanges:377
 msgid "Invalid test selection"
 msgstr "Sélection de test invalide"
 
-#: bin/savechanges:350
+#: bin/savechanges:378
 msgid "Test selection is outside the test root"
 msgstr "La sélection de test est en dehors de la racine de test"
 
-#: bin/savechanges:355
+#: bin/savechanges:383
 msgid "Invalid test metadata parent"
 msgstr "Parenté de métadonnées de test invalide"
 
-#: bin/savechanges:356
+#: bin/savechanges:384
 msgid "Test metadata output is outside the test root"
 msgstr "La sortie des métadonnées de test est en dehors de la racine du test"
 
-#: bin/savechanges:362
+#: bin/savechanges:390
 msgid "Invalid test cancel marker parent"
 msgstr "Parenté du marqueur d’annulation de test invalide"
 
-#: bin/savechanges:364
+#: bin/savechanges:392
 msgid "Test cancel marker is outside the test root"
 msgstr "Le marqueur d’annulation de test est en dehors de la racine du test"
 
-#: bin/savechanges:368
+#: bin/savechanges:396
 msgid "Invalid test work parent"
 msgstr "Parent de travail de test invalide"
 
-#: bin/savechanges:370
+#: bin/savechanges:398
 msgid "Test work parent is outside the test root"
 msgstr "Le parent de travail de test est en dehors de la racine de test"
 
-#: bin/savechanges:378
+#: bin/savechanges:406
 msgid "Test capture tools were not provided"
 msgstr "Outils de capture de test non fournis"
 
-#: bin/savechanges:379
+#: bin/savechanges:407
 msgid "Invalid test mksquashfs"
 msgstr "Test mksquashfs invalide"
 
-#: bin/savechanges:380
+#: bin/savechanges:408
 msgid "Invalid test unsquashfs"
 msgstr "Test unsquashfs invalide"
 
-#: bin/savechanges:382
+#: bin/savechanges:410
 msgid "Test tools are outside the test root"
 msgstr "Les outils de test sont en dehors de la racine du test"
 
-#: bin/savechanges:391
+#: bin/savechanges:420
 msgid "Invalid source-test fixture"
 msgstr "Fixture source-test invalide"
 
-#: bin/savechanges:393
+#: bin/savechanges:422
 msgid "Cannot canonicalize source-test fixture"
 msgstr "Impossible de canoniser le fixture source-test"
 
-#: bin/savechanges:394
+#: bin/savechanges:423
 msgid "Source-test fixture is outside the test root"
 msgstr "Le fixture source-test est en dehors de la racine du test"
 
-#: bin/savechanges:398
+#: bin/savechanges:427
+msgid "Invalid source-test AUFS sysfs fixture"
+msgstr "Données de test sysfs AUFS invalides"
+
+#: bin/savechanges:429
+msgid "Source-test AUFS sysfs fixture is outside the test root"
+msgstr "Les données de test sysfs AUFS se trouvent hors de la racine de test"
+
+#: bin/savechanges:437
 msgid "Invalid source-test running source"
 msgstr "Source en cours d’exécution source-test invalide"
 
-#: bin/savechanges:400
+#: bin/savechanges:439
 msgid "Source-test running source is outside the test root"
 msgstr "La source en cours d’exécution source-test est en dehors de la racine du test"
 
-#: bin/savechanges:410
+#: bin/savechanges:450
 msgid "Invalid PKEXEC_UID"
 msgstr "PKEXEC_UID invalide"
 
-#: bin/savechanges:421
+#: bin/savechanges:462
 msgid "savechanges engine helper not found"
 msgstr "Assistant du moteur savechanges introuvable"
 
-#: bin/sb:40
+#: bin/sb:35
 msgid "Manage MiniOS bundles."
 msgstr "Gérer les paquets MiniOS."
 
-#: bin/sb:41 bin/sb:69
+#: bin/sb:36 bin/sb:68
 msgid "To run some of the commands in this script, your Linux kernel must support AUFS."
 msgstr "Pour exécuter certaines des commandes de ce script, votre noyau Linux doit prendre en charge AUFS."
 
-#: bin/sb:44
+#: bin/sb:39
 msgid "Activate a MiniOS bundle"
 msgstr "Activer un paquet MiniOS"
 
-#: bin/sb:45
+#: bin/sb:40
 msgid "Deactivate an active MiniOS bundle"
 msgstr "Désactiver un paquet MiniOS actif"
 
-#: bin/sb:46
+#: bin/sb:41
 msgid "List active MiniOS bundles"
 msgstr "Lister les paquets MiniOS actifs"
 
-#: bin/sb:47
+#: bin/sb:42
+msgid "List modules selected for the next boot"
+msgstr "Afficher les modules sélectionnés pour le prochain démarrage"
+
+#: bin/sb:43
+msgid "Add a module to the next boot"
+msgstr "Ajouter un module au prochain démarrage"
+
+#: bin/sb:44
+msgid "Remove a user module from the next boot"
+msgstr "Retirer un module utilisateur du prochain démarrage"
+
+#: bin/sb:45
+msgid "Inspect a SquashFS module without extracting it"
+msgstr "Inspecter un module SquashFS sans l'extraire"
+
+#: bin/sb:46
 msgid "Save changes made at runtime to the bundle"
 msgstr "Sauvegarder les changements faits en temps réel dans le paquet"
 
-#: bin/sb:49 bin/sb:50
+#: bin/sb:48 bin/sb:49
 msgid "Refuse unsafe removal of an unpacked bundle directory"
 msgstr "Refuser la suppression non sécurisée d’un répertoire de bundle décompressé"
 
-#: bin/sb:51
+#: bin/sb:50
 msgid "Convert an .sb bundle to directory or vice versa"
 msgstr "Convertir un paquet .sb en répertoire ou vice versa"
 
-#: bin/sb2dir:33
+#: bin/sb2dir:37
 msgid "Convert a compressed .sb module into a directory tree."
 msgstr "Convertit un module compressé .sb en un arbre de répertoires."
 
-#: bin/sb2dir:35
+#: bin/sb2dir:40
 msgid "Restore the module ownership instead of the invoking user (needs privilege)"
 msgstr "Restaurer la propriété du module au lieu de celle de l'utilisateur appelant (privilèges requis)"
 
-#: bin/sb2dir:41
+#: bin/sb2dir:46
 msgid "TARGET_DIRECTORY must not already exist; it is created atomically. Neither"
 msgstr "TARGET_DIRECTORY ne doit pas déjà exister ; il est créé de façon atomique. Ni"
 
-#: bin/sb2dir:42
+#: bin/sb2dir:47
 msgid "the source module nor any existing path is modified."
 msgstr "le module source ni aucun chemin existant ne sont modifiés."
 
-#: bin/sb2dir:187
-msgid "unsquashfs is required"
-msgstr "unsquashfs est requis"
+#: bin/sb2dir:240
+msgid "unsquashfs lacks selective xattr extraction support"
+msgstr "unsquashfs ne prend pas en charge l'extraction sélective des xattrs"
 
-#: bin/sb2dir:197
+#: bin/sb2dir:252
 msgid "Source module is not a readable file:"
 msgstr "Le module source n'est pas un fichier lisible :"
 
-#: bin/sb2dir:203
+#: bin/sb2dir:253
+msgid "Cannot retain the source module"
+msgstr "Impossible de conserver l'accès au module source"
+
+#: bin/sb2dir:260
 msgid "Invalid target directory name:"
 msgstr "Nom de répertoire cible invalide :"
 
-#: bin/sb2dir:213
+#: bin/sb2dir:270
 msgid "Target parent directory does not exist:"
 msgstr "Le répertoire parent de la cible n'existe pas :"
 
-#: bin/sb2dir:225
+#: bin/sb2dir:286
+msgid "unsquashfs failed to inspect the module"
+msgstr "Échec de l’inspection du module avec unsquashfs"
+
+#: bin/sb2dir:288
 msgid "Module contains special files that cannot be extracted rootlessly; re-run with the privileged special-object mode."
 msgstr "Le module contient des fichiers spéciaux qui ne peuvent pas être extraits sans privilèges root ; relancez avec le mode privilégié pour objets spéciaux."
 
-#: bin/sb2dir:231
-msgid "Cannot reserve a staging directory"
-msgstr "Impossible de réserver un répertoire de préparation"
-
-#: bin/sb2dir:253
-msgid "Some extended attributes were not restored"
-msgstr "Certains attributs étendus n'ont pas été restaurés"
-
-#: bin/sb2dir:262
+#: bin/sb2dir:321
 msgid "unsquashfs failed to extract the module"
 msgstr "Échec de unsquashfs lors de l'extraction du module"
 
-#: bin/sb2dir:275
+#: bin/sb2dir:335
 msgid "Failed to publish the directory"
 msgstr "Échec de la publication du répertoire"
 
-#: bin/script2sb:29
+#: bin/script2sb:31
+msgid "Packages a module from changes made by an installation script"
+msgstr "Emballe un module à partir des modifications effectuées par un script d'installation"
+
+#: bin/script2sb:39
 msgid "Use FILE as the installation script"
 msgstr "Utiliser FICHIER comme script d'installation"
 
 #: autostart/minios-setup-keyboard.desktop:7
+#: debian/minios-tools/etc/xdg/autostart/minios-setup-keyboard.desktop:7
 msgid "MiniOS Keyboard Setup"
 msgstr "Configuration du clavier MiniOS"
 
 #: autostart/minios-setup-keyboard.desktop:17
+#: debian/minios-tools/etc/xdg/autostart/minios-setup-keyboard.desktop:17
 msgid "Configure keyboard layout from boot parameters"
 msgstr "Configure la disposition du clavier à partir des paramètres de démarrage"
 
 #: autostart/minios-virtual-resolution.desktop:7
+#: debian/minios-tools/etc/xdg/autostart/minios-virtual-resolution.desktop:7
 msgid "MiniOS Virtual Resolution Change"
 msgstr "Changement de résolution virtuelle MiniOS"
 
 #: autostart/minios-virtual-resolution.desktop:17
+#: debian/minios-tools/etc/xdg/autostart/minios-virtual-resolution.desktop:17
 msgid "Script for automatic resolution change in virtualization environment on XFCE startup"
 msgstr "Script pour le changement automatique de résolution dans un environnement de virtualisation au démarrage de XFCE"
-
-#~ msgid "Erase module directory created by sb2dir"
-#~ msgstr "Effacer le répertoire du module créé par sb2dir"
-
-#~ msgid "source_directory.sb"
-#~ msgstr "repertoire_source.sb"
-
-#~ msgid "Directory does not exist:"
-#~ msgstr "Le répertoire n'existe pas :"
-
-#~ msgid "Module directory deleted:"
-#~ msgstr "Répertoire du module supprimé :"
-
-#~ msgid "Remove an unpacked bundle directory"
-#~ msgstr "Supprimer un répertoire de paquet décompressé"
-
-#~ msgid "Generate MiniOS ISO image, adding specified modules."
-#~ msgstr "Générer une image ISO MiniOS en ajoutant les modules spécifiés."
-
-#~ msgid "Exclude any existing path or file matching REGEX"
-#~ msgstr "Exclure tout chemin ou fichier existant correspondant à REGEX"
-
-#~ msgid "Specify output ISO filename (default"
-#~ msgstr "Spécifier le nom de fichier ISO de sortie (par défaut"
-
-#~ msgid "Set menu type: multilang or language code"
-#~ msgstr "Définir le type de menu : multilangue ou code de langue"
-
-#~ msgid "  multilang: menu with language selection (default)"
-#~ msgstr "  multilang : menu avec sélection de la langue (par défaut)"
-
-#~ msgid "  language: specific language (en_US, ru_RU, de_DE, etc.)"
-#~ msgstr "  language : langue spécifique (en_US, ru_RU, de_DE, etc.)"
-
-#~ msgid "Create basic MiniOS ISO with current system:"
-#~ msgstr "Créer un ISO MiniOS de base avec le système actuel :"
-
-#~ msgid "Create ISO with custom filename:"
-#~ msgstr "Créer un ISO avec un nom de fichier personnalisé :"
-
-#~ msgid "Create ISO excluding specific modules:"
-#~ msgstr "Créer une ISO en excluant certains modules :"
-
-#~ msgid "Create minimal text-mode ISO:"
-#~ msgstr "Créer une ISO minimale en mode texte :"
-
-#~ msgid "Create ISO with additional modules:"
-#~ msgstr "Créer une ISO avec des modules supplémentaires :"
-
-#~ msgid "Create Russian localized ISO:"
-#~ msgstr "Créer une ISO localisée en russe :"
-
-#~ msgid "grub.template.cfg template not found"
-#~ msgstr "Modèle grub.template.cfg introuvable"
-
-#~ msgid "Cannot find MiniOS source directory with boot files"
-#~ msgstr "Impossible de trouver le répertoire source MiniOS avec les fichiers de démarrage"
-
-#~ msgid "Detected bootloader type"
-#~ msgstr "Type de bootloader détecté"
-
-#~ msgid "Unknown bootloader type"
-#~ msgstr "Type de bootloader inconnu"
-
-#~ msgid "Valid types: grub-only, syslinux-native, syslinux-grub"
-#~ msgstr "Types valides : grub-only, syslinux-native, syslinux-grub"
-
-#~ msgid "If you loaded the system into RAM, use 'toram=full' in the kernel parameters."
-#~ msgstr "Si vous avez chargé le système en RAM, utilisez « toram=full » dans les paramètres du noyau."
-
-#~ msgid "Using multilingual menu"
-#~ msgstr "Utilisation du menu multilingue"
-
-#~ msgid "Using multilingual SYSLINUX configuration"
-#~ msgstr "Utilisation de la configuration SYSLINUX multilingue"
-
-#~ msgid "Configuring localized menu for"
-#~ msgstr "Configuration du menu localisé pour"
-
-#~ msgid "Generated localized GRUB menu for"
-#~ msgstr "Menu GRUB localisé généré pour"
-
-#~ msgid "Failed to generate localized GRUB config, falling back to English"
-#~ msgstr "Échec de la génération de la configuration GRUB localisée, retour à l’anglais"
-
-#~ msgid "Using localized SYSLINUX configuration for"
-#~ msgstr "Utilisation de la configuration SYSLINUX localisée pour"
-
-#~ msgid "Localized configuration not found for"
-#~ msgstr "Configuration localisée introuvable pour"
-
-#~ msgid "using English"
-#~ msgstr "utilisation de l’anglais"
-
-#~ msgid "Creating ISO work directory"
-#~ msgstr "Création du répertoire de travail ISO"
-
-#~ msgid "Copying boot files (GRUB BIOS only)"
-#~ msgstr "Copie des fichiers de démarrage (GRUB BIOS uniquement)"
-
-#~ msgid "Copying boot files (SYSLINUX native)"
-#~ msgstr "Copie des fichiers de démarrage (SYSLINUX natif)"
-
-#~ msgid "Copying boot files (SYSLINUX + GRUB)"
-#~ msgstr "Copie des fichiers de démarrage (SYSLINUX + GRUB)"
-
-#~ msgid "Internal error: invalid bootloader type for boot files"
-#~ msgstr "Erreur interne : type de bootloader invalide pour les fichiers de démarrage"
-
-#~ msgid "Created Ventoy compatibility symlinks in ISO:"
-#~ msgstr "Liens symboliques de compatibilité Ventoy créés dans l’ISO :"
-
-#~ msgid "Creating temporary persistence image"
-#~ msgstr "Création de l'image de persistance temporaire"
-
-#~ msgid "Formatting persistence image"
-#~ msgstr "Formatage de l'image de persistance"
-
-#~ msgid "Internal error: invalid bootloader type for ISO parameters"
-#~ msgstr "Erreur interne : type de bootloader invalide pour les paramètres ISO"
-
-#~ msgid "Generating ISO image"
-#~ msgstr "Génération de l'image ISO"
-
-#~ msgid "Failed to create ISO image"
-#~ msgstr "Échec de la création de l'image ISO"

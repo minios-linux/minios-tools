@@ -3,14 +3,12 @@
 # Author: Tomas M. <http://www.slax.org/>
 # Author: crims0n <https://minios.dev>
 #
-# Convert a directory tree into a compressed .sb SquashFS module. The security
-# critical filesystem work (special-object scan, digest, and no-replace atomic
-# publication) runs in the separate minios_convert_engine.py helper, mirroring
-# the minios-image-compose bash/Python split.
+# Convert a directory tree into a compressed .sb SquashFS module. Filesystem
+# validation and atomic publication are handled by minios_convert_engine.py.
 
 set -Eeuo pipefail
 
-VERSION="2.0.0"
+VERSION="2.0.1"
 BEXT="sb"
 COMP_TYPE="zstd"
 export TEXTDOMAIN="minios-tools"
@@ -22,6 +20,11 @@ ALLOW_SPECIAL=false
 DISABLE_COLOR=false
 CHILD_PID=""
 STAGE_TEMP=""
+SOURCE_FD=""
+WORKSPACE_NAME=""
+WORKSPACE_DEVICE=""
+WORKSPACE_INODE=""
+TOOL_LOG=""
 
 RED=""
 BOLD=""
@@ -33,7 +36,7 @@ help() {
     printf '%s: %s [OPTIONS] SOURCE_DIRECTORY TARGET.%s\n' "$(gettext "Usage")" "$PROGRAM_NAME" "$BEXT"
     printf '%s\n\n' "$(gettext "Convert a directory tree into a compressed .sb module.")"
     printf '%s:\n' "$(gettext "Options")"
-    printf '  -c, --comp TYPE          %s\n' "$(gettext "Compression: zstd, gzip, lzo, or xz (default: zstd)")"
+    printf '  -c, --comp TYPE          %s\n' "$(gettext "Compression: zstd, gzip, lzo, lz4, or xz (default: zstd)")"
     printf '  -b, --bext EXT           %s\n' "$(gettext "Bundle extension used in help text (default: sb)")"
     printf '      --keep-ownership     %s\n' "$(gettext "Preserve source ownership instead of normalizing to root (needs privilege)")"
     printf '      --allow-special      %s\n' "$(gettext "Permit device nodes, sockets, and FIFOs (needs privilege)")"
@@ -89,37 +92,75 @@ validate_no_line_break() {
 
 phase() {
     if [[ $JSON_OUTPUT == true ]]; then
-        printf 'P:%s\n' "$1"
+        printf '{"event":"phase","phase":"%s"}\n' "$1"
     fi
 }
 
+process_group_alive() {
+    [[ -n ${1:-} ]] && kill -0 -- "-$1" 2>/dev/null
+}
+
+stop_child_group() {
+    local pgid=${CHILD_PID:-}
+    [[ -n $pgid ]] || return 0
+    kill -TERM -- "-$pgid" 2>/dev/null || true
+    for _ in {1..80}; do process_group_alive "$pgid" || break; sleep 0.05; done
+    if process_group_alive "$pgid"; then
+        kill -KILL -- "-$pgid" 2>/dev/null || true
+        for _ in {1..40}; do process_group_alive "$pgid" || break; sleep 0.05; done
+    fi
+    wait "$pgid" 2>/dev/null || true
+    CHILD_PID=""
+    ! process_group_alive "$pgid"
+}
+
+finish_child_group() {
+    local pgid=$CHILD_PID
+    for _ in {1..50}; do
+        process_group_alive "$pgid" || { CHILD_PID=""; return 0; }
+        sleep 0.02
+    done
+    stop_child_group
+    return 1
+}
+
 remove_stage() {
-    [[ -n $STAGE_TEMP && -e $STAGE_TEMP ]] || return 0
-    rm -f -- "$STAGE_TEMP" 2>/dev/null || true
+    [[ -n $WORKSPACE_NAME ]] || return 0
+    run_engine cleanup-workspace "$TARGET_PARENT" "$WORKSPACE_NAME" \
+        "$WORKSPACE_DEVICE" "$WORKSPACE_INODE" >/dev/null 2>&1 || true
     STAGE_TEMP=""
+    WORKSPACE_NAME=""
+    WORKSPACE_DEVICE=""
+    WORKSPACE_INODE=""
+}
+
+close_source() {
+    [[ -n $SOURCE_FD ]] || return 0
+    exec {SOURCE_FD}<&-
+    SOURCE_FD=""
+}
+
+remove_tool_log() {
+    [[ -z $TOOL_LOG || $TOOL_LOG == /dev/null ]] || rm -f -- "$TOOL_LOG"
+    TOOL_LOG=""
 }
 
 cleanup() {
     local status=$?
     trap - EXIT
     trap '' INT TERM
+    remove_tool_log
     remove_stage
+    close_source
     exit "$status"
 }
 
 handle_signal() {
     trap '' INT TERM
-    if [[ -n $CHILD_PID ]] && kill -0 "$CHILD_PID" 2>/dev/null; then
-        kill -TERM -- "-$CHILD_PID" 2>/dev/null || kill -TERM "$CHILD_PID" 2>/dev/null || true
-        for _ in {1..200}; do
-            kill -0 "$CHILD_PID" 2>/dev/null || break
-            sleep 0.05
-        done
-        kill -KILL -- "-$CHILD_PID" 2>/dev/null || kill -KILL "$CHILD_PID" 2>/dev/null || true
-        wait "$CHILD_PID" 2>/dev/null || true
-        CHILD_PID=""
-    fi
+    stop_child_group || true
+    remove_tool_log
     remove_stage
+    close_source
     exit 130
 }
 
@@ -180,13 +221,13 @@ if [[ $ALLOW_SPECIAL == true && $EUID -ne 0 ]]; then
     die 1 "$(gettext "--allow-special requires root privileges")"
 fi
 
-# Resolve the isolated Python engine: beside the script in a source checkout,
-# or installed under /usr/lib/minios-tools.
+# Resolve the bundled or installed converter engine.
 SCRIPT_PATH=$(readlink -f -- "${BASH_SOURCE[0]}" 2>/dev/null || printf '%s' "${BASH_SOURCE[0]}")
 SCRIPT_DIR=${SCRIPT_PATH%/*}
 CONVERT_ENGINE=""
 for engine_candidate in \
     "$SCRIPT_DIR/../lib/minios_convert_engine.py" \
+    "$SCRIPT_DIR/../lib/minios-tools/minios_convert_engine.py" \
     "/usr/lib/minios-tools/minios_convert_engine.py"; do
     if [[ -f $engine_candidate ]]; then
         CONVERT_ENGINE=$(readlink -f -- "$engine_candidate")
@@ -201,6 +242,8 @@ ENV_BIN=$(command -v env || printf '/usr/bin/env')
 
 MKSQUASHFS_BIN=$(command -v mksquashfs || true)
 [[ -n $MKSQUASHFS_BIN ]] || die 1 "$(gettext "mksquashfs is required")"
+UNSQUASHFS_BIN=$(command -v unsquashfs || true)
+[[ -n $UNSQUASHFS_BIN ]] || die 1 "$(gettext "unsquashfs is required")"
 
 run_engine() {
     "$ENV_BIN" -i PATH=/usr/sbin:/usr/bin:/sbin:/bin LC_ALL=C.UTF-8 LANG=C.UTF-8 \
@@ -237,9 +280,20 @@ if [[ $ALLOW_SPECIAL == false ]]; then
     SCAN_JSON=$(run_engine scan-specials "$SOURCE_PATH") ||
         die 3 "$(gettext "Source contains special files that cannot be packaged; re-run with the privileged special-object mode.")"
     SOURCE_ENTRIES=$(printf '%s' "$SCAN_JSON" | sed -n 's/.*"entries":[[:space:]]*\([0-9]\+\).*/\1/p')
+    SOURCE_DEVICE=$(printf '%s' "$SCAN_JSON" | sed -n 's/.*"device":[[:space:]]*\([0-9]\+\).*/\1/p')
+    SOURCE_INODE=$(printf '%s' "$SCAN_JSON" | sed -n 's/.*"inode":[[:space:]]*\([0-9]\+\).*/\1/p')
 else
     SOURCE_ENTRIES=""
+    SOURCE_DEVICE=$(stat -Lc '%d' -- "$SOURCE_PATH")
+    SOURCE_INODE=$(stat -Lc '%i' -- "$SOURCE_PATH")
 fi
+
+# Keep the validated directory open so replacing its pathname cannot redirect
+# mksquashfs to another tree.
+exec {SOURCE_FD}<"$SOURCE_PATH" || die 5 "$(gettext "Cannot retain the source directory")"
+SOURCE_BOUND="/proc/$$/fd/$SOURCE_FD"
+[[ $(stat -Lc '%d:%i' -- "$SOURCE_BOUND") == "$SOURCE_DEVICE:$SOURCE_INODE" ]] ||
+    die 5 "$(gettext "Source directory changed during validation")"
 
 # Compression tuning.
 declare -a COMP_OPTS=()
@@ -248,13 +302,15 @@ zstd) COMP_OPTS=(-Xcompression-level 19) ;;
 xz) COMP_OPTS=(-Xbcj x86) ;;
 esac
 
-# Reserve a private staging file beside the target on the same filesystem.
-STAGE_TEMP=$(mktemp -p "$TARGET_PARENT" ".dir2sb.XXXXXXXXXX") ||
-    die 4 "$(gettext "Cannot reserve a staging file")"
-STAGE_NAME=${STAGE_TEMP##*/}
+# Reserve a private workspace beside the target on the same filesystem.
+WORKSPACE_INFO=$(run_engine create-workspace "$TARGET_PARENT" ".dir2sb.") ||
+    die 4 "$(gettext "Cannot reserve a private workspace")"
+read -r WORKSPACE_NAME WORKSPACE_DEVICE WORKSPACE_INODE <<<"$WORKSPACE_INFO"
+STAGE_NAME=module
+STAGE_TEMP="$TARGET_PARENT/$WORKSPACE_NAME/$STAGE_NAME"
 
 declare -a MKSQUASHFS_CMD=(
-    "$MKSQUASHFS_BIN" "$SOURCE_PATH" "$STAGE_TEMP"
+    "$MKSQUASHFS_BIN" . "$STAGE_TEMP"
     -comp "$COMP_TYPE" -noappend -always-use-fragments -b 1024k
 )
 if [[ $KEEP_OWNERSHIP == false ]]; then
@@ -269,32 +325,69 @@ phase compress
 TOOL_LOG=$(mktemp -p "${TMPDIR:-/tmp}" ".dir2sb-log.XXXXXX") || TOOL_LOG=/dev/null
 tool_status=0
 set -m
-"${MKSQUASHFS_CMD[@]}" >"$TOOL_LOG" 2>&1 &
+(
+    cd -- "$SOURCE_BOUND" || exit 125
+    exec "${MKSQUASHFS_CMD[@]}"
+) >"$TOOL_LOG" 2>&1 &
 CHILD_PID=$!
 set +m
 wait "$CHILD_PID" || tool_status=$?
-CHILD_PID=""
+finish_child_group || tool_status=125
 
 if (( tool_status != 0 )); then
     if [[ $TOOL_LOG != /dev/null ]]; then
         tail -n 3 -- "$TOOL_LOG" >&2 || true
         rm -f -- "$TOOL_LOG"
+        TOOL_LOG=""
     fi
     die 5 "$(gettext "mksquashfs failed to build the module")"
 fi
 [[ $TOOL_LOG == /dev/null ]] || rm -f -- "$TOOL_LOG"
+TOOL_LOG=""
+
+phase verify
+
+TOOL_LOG=$(mktemp -p "${TMPDIR:-/tmp}" ".dir2sb-verify.XXXXXX") ||
+    die 5 "$(gettext "Cannot create a temporary verification log")"
+tool_status=0
+set -m
+"$UNSQUASHFS_BIN" -ll "$STAGE_TEMP" >"$TOOL_LOG" 2>&1 &
+CHILD_PID=$!
+set +m
+wait "$CHILD_PID" || tool_status=$?
+finish_child_group || tool_status=125
+if (( tool_status != 0 )); then
+    if [[ $TOOL_LOG != /dev/null ]]; then
+        tail -n 3 -- "$TOOL_LOG" >&2 || true
+        rm -f -- "$TOOL_LOG"
+        TOOL_LOG=""
+    fi
+    die 5 "$(gettext "staged module failed SquashFS validation")"
+fi
+if [[ $ALLOW_SPECIAL == false ]] &&
+   awk '{ t = substr($1, 1, 1); if (t == "b" || t == "c" || t == "p" || t == "s") found = 1 } END { exit(found ? 0 : 1) }' "$TOOL_LOG"; then
+    rm -f -- "$TOOL_LOG"
+    TOOL_LOG=""
+    die 5 "$(gettext "staged module contains special files that were not present during validation")"
+fi
+[[ $TOOL_LOG == /dev/null ]] || rm -f -- "$TOOL_LOG"
+TOOL_LOG=""
 
 phase publish
 
-PUBLISH_JSON=$(run_engine publish-file "$TARGET_PARENT" "$STAGE_NAME" \
-    "$TARGET_NAME" "$COMP_TYPE" "${SOURCE_ENTRIES:-}" \
+PUBLISH_JSON=$(run_engine publish-file "$TARGET_PARENT" "$WORKSPACE_NAME" \
+    "$WORKSPACE_DEVICE" "$WORKSPACE_INODE" "$STAGE_NAME" "$TARGET_NAME" \
+    "$COMP_TYPE" "${SOURCE_ENTRIES:-}" \
     "$([[ $JSON_OUTPUT == true ]] && printf 1 || printf 0)") || {
     engine_status=$?
     remove_stage
     die "$engine_status" "$(gettext "Failed to publish the module")"
 }
-# Ownership of the staging file was transferred to the target name.
+# The engine published the staged file and removed the empty workspace.
 STAGE_TEMP=""
+WORKSPACE_NAME=""
+WORKSPACE_DEVICE=""
+WORKSPACE_INODE=""
 
 phase complete
 

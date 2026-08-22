@@ -8,6 +8,7 @@ LIBDIR = usr/lib/minios-tools
 LOCALEDIR = usr/share/locale
 COMPLETIONSDIR = usr/share/bash-completion/completions
 AUTOSTARTDIR = etc/xdg/autostart
+MANDIR = usr/share/man/man1
 
 ENGINE_FILES = $(shell find lib -name "*.py" -type f 2>/dev/null)
 
@@ -25,7 +26,8 @@ endif
 endif
 build: locale
 
-.PHONY: test
+.PHONY: build test man locale clean install
+
 test:
 	bats tests/*.bats
 
@@ -54,15 +56,20 @@ install: build
 	install -m755 $(EXECUTABLES) $(DESTDIR)/$(BINDIR)
 
 	install -d $(DESTDIR)/$(LIBDIR)
-	[ -n "$(ENGINE_FILES)" ] && install -m644 $(ENGINE_FILES) $(DESTDIR)/$(LIBDIR) || true
+	if [ -n "$(ENGINE_FILES)" ]; then install -m644 $(ENGINE_FILES) $(DESTDIR)/$(LIBDIR); fi
 
 	install -d $(DESTDIR)/$(COMPLETIONSDIR)
 	install -m644 $(COMPLETIONS) $(DESTDIR)/$(COMPLETIONSDIR)
 
 	install -d $(DESTDIR)/$(AUTOSTARTDIR)
-	[ -n "$(AUTOSTART)" ] && install -m644 $(AUTOSTART) $(DESTDIR)/$(AUTOSTARTDIR) || true
+	if [ -n "$(AUTOSTART)" ]; then install -m644 $(AUTOSTART) $(DESTDIR)/$(AUTOSTARTDIR); fi
 
-	for MO_FILE in $(MO_FILES); do \
+	set -e; if ls man/*.1 >/dev/null 2>&1; then \
+		install -d $(DESTDIR)/$(MANDIR); \
+		install -m644 man/*.1 $(DESTDIR)/$(MANDIR); \
+	fi
+
+	set -e; for MO_FILE in $(MO_FILES); do \
 		LOCALE=$$(basename $$MO_FILE .mo); \
 		echo "Copying mo file $$MO_FILE to $(DESTDIR)/$(LOCALEDIR)/$$LOCALE/LC_MESSAGES/minios-tools.mo"; \
 		install -Dm644 "$$MO_FILE" "$(DESTDIR)/$(LOCALEDIR)/$$LOCALE/LC_MESSAGES/minios-tools.mo"; \

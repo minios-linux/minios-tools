@@ -1,23 +1,48 @@
 #!/bin/bash
 # Author: crims0n <https://minios.dev>
-set -e          # exit on error
-set -o pipefail # exit on pipeline error
-set -u          # treat unset variable as error
+set -e
+set -o pipefail
+set -u
 
-VERSION="1.0.3"
+VERSION="1.0.4"
 BEXT="sb"
 COMP_TYPE="zstd"
 FILTER_LEVEL=""
-RESOLVCONFLNK=""
 DIRECTORY=""
 FILENAME=""
+TMP=""
+CHANGES=""
+UNION=""
+BUNDLES=""
+SYSTEMCHANGES=""
+RESOLV_BACKUP=""
+RESOLV_HAD_UPPER=false
+SESSION_ROOT="/run/minios-tools/chroot2sb"
+SESSION_ID=""
+SESSION_DIR=""
+SESSION_UID=""
+SESSION_PHASE=""
+SESSION_SEED=0
+WORK_PARENT=""
+WORK_NAME=""
+WORK_DEV=""
+WORK_INO=""
+SESSION_LOCK_FD=""
+JSON_OUTPUT=false
+
 # Force classic mount(2) syscall to work around an overlayfs bug in util-linux >= 2.39.0
 export LIBMOUNT_FORCE_MOUNT2="always"
 export TEXTDOMAIN="minios-tools"
 
 help() {
-    echo "$(gettext "Usage"): $(basename $0) [OPTIONS]..."
-    echo "$(gettext "Packages a module from changes made by an installation script")"
+    echo "$(gettext "Usage"): $(basename "$0") [OPTIONS]..."
+    echo "$(gettext "Packages a module from changes made in an interactive chroot")"
+    echo ""
+    echo "$(gettext "Lifecycle commands"):"
+    echo "  prepare [OPTIONS] [--json]  $(gettext "Prepare a protected interactive build session")"
+    echo "  shell SESSION_ID            $(gettext "Attach an interactive chroot shell to the current terminal")"
+    echo "  finish SESSION_ID [--json]  $(gettext "Capture and close a prepared session")"
+    echo "  cancel SESSION_ID [--json]  $(gettext "Discard and close a prepared session")"
     echo ""
     echo "$(gettext "Options"):"
     echo "  -d, --directory DIR     $(gettext "Copy contents of DIR to the root of the module")"
@@ -29,231 +54,865 @@ help() {
     echo "      --version           $(gettext "Display version information and exit")"
     echo ""
     echo "$(gettext "Examples"):"
-    echo "  $(basename $0) --level 03 --comp gzip"
-    echo "  $(basename $0) -n 06-chromium.$BEXT -l 3 -c xz"
-    echo "  $(basename $0) -d /path/to/copy/contents -b mod"
+    echo "  $(basename "$0") prepare -n 06-chromium.$BEXT --json"
+    echo "  $(basename "$0") shell session.ABC123"
+    echo "  $(basename "$0") finish session.ABC123 --json"
+    echo "  $(basename "$0") --level 03 --comp gzip"
     exit 0
 }
 
 brief_help() {
-    echo "$(gettext "Usage"): $(basename $0) [OPTIONS]..."
-    echo "$(gettext "Try") '$(basename $0) --help' $(gettext "for more information.")"
+    if [[ ${JSON_OUTPUT:-false} == true ]]; then
+        echo "$(gettext "Usage"): $(basename "$0") [OPTIONS]..." >&2
+        echo "$(gettext "Try") '$(basename "$0") --help' $(gettext "for more information.")" >&2
+    else
+        echo "$(gettext "Usage"): $(basename "$0") [OPTIONS]..."
+        echo "$(gettext "Try") '$(basename "$0") --help' $(gettext "for more information.")"
+    fi
     exit 1
 }
 
 version() {
-    echo "$(basename $0) $VERSION"
+    echo "$(basename "$0") $VERSION"
     exit 0
+}
+
+option_requires_value() {
+    local option=$1
+    local count=$2
+    if (( count < 2 )); then
+        echo "Option requires an argument: $option" >&2
+        brief_help
+    fi
+}
+
+validate_comp() {
+    case $1 in
+    zstd | gzip | lzo | xz) ;;
+    *)
+        echo "Invalid compression type: $1" >&2
+        brief_help
+        ;;
+    esac
+}
+
+validate_level() {
+    [[ $1 =~ ^[0-9]+$ ]] || {
+        echo "Invalid filter level: $1" >&2
+        brief_help
+    }
 }
 
 aufs_is_supported() {
     grep -q aufs /proc/filesystems
 }
 
-safe_umount() {
-    local mount_point="$1"
-    local max_attempts=3
-    local attempt=1
-
-    # Check if mount point is actually mounted
-    if ! findmnt "$mount_point" >/dev/null 2>&1; then
-        return 0
-    fi
-
-    # Try to unmount with multiple attempts
-    while [ $attempt -le $max_attempts ]; do
-        if umount "$mount_point" 2>/dev/null; then
-            return 0
-        fi
-
-        # Check again if it was unmounted by another process
-        if ! findmnt "$mount_point" >/dev/null 2>&1; then
-            return 0
-        fi
-
-        # Wait a bit before retry
-        sleep 0.5
-        attempt=$((attempt + 1))
-    done
-
-    # Last resort: try lazy unmount
-    umount -l "$mount_point" 2>/dev/null || true
+is_mounted() {
+    findmnt -rn --mountpoint "$1" >/dev/null 2>&1
 }
 
-while [ $# -gt 0 ]; do
-    case "$1" in
+safe_umount() {
+    local mount_point=$1
+
+    is_mounted "$mount_point" || return 0
+    for _ in 1 2 3; do
+        umount "$mount_point" 2>/dev/null || true
+        is_mounted "$mount_point" || return 0
+        sleep 0.5
+    done
+    ! is_mounted "$mount_point"
+}
+
+has_mounts_under() {
+    local root=$1
+    local target
+    local mounts
+
+    mounts=$(findmnt -rn -o TARGET) || return 0
+    while IFS= read -r target; do
+        [[ $target == "$root" || $target == "$root/"* ]] && return 0
+    done <<<"$mounts"
+    return 1
+}
+
+detach_chroot_mounts() {
+    local ok=true
+    local mount_point
+
+    for mount_point in "$UNION/sys" "$UNION/proc" "$UNION/dev/pts" "$UNION/dev"; do
+        safe_umount "$mount_point" || ok=false
+    done
+    [[ $ok == true ]]
+}
+
+restore_resolv_conf() {
+    rm -f -- "$CHANGES/etc/resolv.conf" 2>/dev/null || true
+    if [[ $RESOLV_HAD_UPPER == true && -n $RESOLV_BACKUP ]]; then
+        mkdir -p -- "$CHANGES/etc"
+        cp -a -- "$RESOLV_BACKUP" "$CHANGES/etc/resolv.conf"
+    fi
+}
+
+cleanup() {
+    local status=$?
+    local cleanup_failed=false
+
+    trap - EXIT
+    set +e
+
+    if [[ -n $UNION ]]; then
+        detach_chroot_mounts || cleanup_failed=true
+        safe_umount "$UNION" || cleanup_failed=true
+    fi
+
+    if [[ -n $TMP ]]; then
+        if has_mounts_under "$TMP"; then
+            cleanup_failed=true
+        else
+            rm -rf -- "$TMP"
+        fi
+    fi
+
+    if [[ $cleanup_failed == true ]]; then
+        echo "Cleanup incomplete; temporary directory was preserved: $TMP" >&2
+        (( status == 0 )) && status=1
+    fi
+
+    exit "$status"
+}
+
+require_live_layout() {
+    if [[ -d /run/initramfs/memory/bundles && -d /run/initramfs/memory/changes ]]; then
+        BUNDLES=/run/initramfs/memory/bundles
+        SYSTEMCHANGES=/run/initramfs/memory/changes
+    elif [[ -d /lib/live/mount/bundles && -d /lib/live/mount/changes ]]; then
+        BUNDLES=/lib/live/mount/bundles
+        SYSTEMCHANGES=/lib/live/mount/changes
+    else
+        echo "This command requires a supported MiniOS live session." >&2
+        exit 1
+    fi
+}
+
+build_lowers() {
+    local roflag=""
+    local bundle prefix
+    local i
+    local -a bundles=()
+    local -a lowers=()
+
+    aufs_is_supported && roflag="=ro"
+    shopt -s nullglob
+    bundles=("$BUNDLES"/*)
+    shopt -u nullglob
+    (( ${#bundles[@]} > 0 )) || {
+        echo "No MiniOS bundles found in $BUNDLES." >&2
+        exit 1
+    }
+
+    for (( i=${#bundles[@]}-1; i>=0; i-- )); do
+        bundle=${bundles[$i]}
+        if [[ -n $FILTER_LEVEL ]]; then
+            prefix=${bundle##*/}
+            if [[ $prefix =~ ^([0-9]+) ]] && (( 10#${BASH_REMATCH[1]} > 10#$FILTER_LEVEL )); then
+                continue
+            fi
+        fi
+        lowers+=("$bundle$roflag")
+    done
+
+    (( ${#lowers[@]} > 0 )) || {
+        echo "No MiniOS bundles remain after applying the filter level." >&2
+        exit 1
+    }
+
+    local IFS=:
+    LOWERS=${lowers[*]}
+}
+
+helper_path() {
+    local NAME="$1" SCRIPT_PATH SCRIPT_DIR CANDIDATE
+    SCRIPT_PATH=$(realpath -m -- "${BASH_SOURCE[0]}" 2>/dev/null || true)
+    SCRIPT_DIR=${SCRIPT_PATH%/*}
+    for CANDIDATE in \
+        "$SCRIPT_DIR/../lib/$NAME" \
+        "$SCRIPT_DIR/../lib/minios-tools/$NAME" \
+        "/usr/lib/minios-tools/$NAME"; do
+        [[ -f $CANDIDATE ]] || continue
+        realpath -e -- "$CANDIDATE"
+        return 0
+    done
+    return 1
+}
+
+run_protocol() {
+    local HELPER PYTHON
+    HELPER=$(helper_path minios_protocol.py) || {
+        echo "MiniOS Tools protocol helper is unavailable." >&2
+        return 1
+    }
+    PYTHON=$(command -v python3) || {
+        echo "python3 is required." >&2
+        return 1
+    }
+    "$PYTHON" -I "$HELPER" "$@"
+}
+
+run_convert_engine() {
+    local ENGINE PYTHON
+    ENGINE=$(helper_path minios_convert_engine.py) || {
+        echo "MiniOS Tools filesystem engine is unavailable." >&2
+        return 1
+    }
+    PYTHON=$(command -v python3) || {
+        echo "python3 is required." >&2
+        return 1
+    }
+    "$PYTHON" -I "$ENGINE" "$@"
+}
+
+session_caller_uid() {
+    if [[ -n ${PKEXEC_UID:-} ]]; then
+        [[ $PKEXEC_UID =~ ^[0-9]+$ ]] || {
+            echo "Invalid PKEXEC_UID." >&2
+            return 1
+        }
+        printf '%s\n' "$PKEXEC_UID"
+    else
+        printf '0\n'
+    fi
+}
+
+require_lifecycle_root() {
+    if (( EUID != 0 )); then
+        echo "This command must be run as root." >&2
+        return 1
+    fi
+}
+
+lifecycle_tools() {
+    local command
+    PATH=/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH
+    for command in awk chroot find findmnt flock mount mktemp python3 realpath savechanges stat umount; do
+        command -v "$command" >/dev/null 2>&1 || {
+            echo "Required command not found: $command" >&2
+            return 1
+        }
+    done
+}
+
+safe_state_value() {
+    [[ $1 != *$'\n'* && $1 != *$'\r'* && $1 != *$'\t'* ]]
+}
+
+lifecycle_brief_help() {
+    echo "Usage: $(basename "$0") prepare [OPTIONS] [--json]" >&2
+    echo "       $(basename "$0") shell SESSION_ID" >&2
+    echo "       $(basename "$0") finish SESSION_ID [--json]" >&2
+    echo "       $(basename "$0") cancel SESSION_ID [--json]" >&2
+    return 1
+}
+
+parse_lifecycle_options() {
+    DIRECTORY=""
+    FILENAME=""
+    FILTER_LEVEL=""
+    COMP_TYPE="zstd"
+    BEXT="sb"
+    JSON_OUTPUT=false
+    while (( $# > 0 )); do
+        case $1 in
+        -d | --directory)
+            option_requires_value "$1" "$#"
+            DIRECTORY=$2
+            shift 2
+            ;;
+        -n | --name)
+            option_requires_value "$1" "$#"
+            FILENAME=$2
+            shift 2
+            ;;
+        -l | --level)
+            option_requires_value "$1" "$#"
+            validate_level "$2"
+            printf -v FILTER_LEVEL '%02d' "$((10#$2))"
+            shift 2
+            ;;
+        -c | --comp)
+            option_requires_value "$1" "$#"
+            validate_comp "$2"
+            COMP_TYPE=$2
+            shift 2
+            ;;
+        -b | --bext)
+            option_requires_value "$1" "$#"
+            [[ -n $2 ]] || lifecycle_brief_help
+            BEXT=$2
+            shift 2
+            ;;
+        --json)
+            JSON_OUTPUT=true
+            shift
+            ;;
+        *)
+            echo "Unexpected lifecycle option: $1" >&2
+            lifecycle_brief_help
+            ;;
+        esac
+    done
+}
+
+choose_work_parent() {
+    if [[ -d $SYSTEMCHANGES/changes && -d $SYSTEMCHANGES/workdir ]] &&
+       [[ -z $(find "$SYSTEMCHANGES" -mindepth 1 -maxdepth 1 ! -name changes ! -name workdir -print -quit) ]]; then
+        WORK_PARENT=$SYSTEMCHANGES
+    else
+        run_convert_engine ensure-directory "$SYSTEMCHANGES" tmp || return 1
+        WORK_PARENT=$SYSTEMCHANGES/tmp
+    fi
+}
+
+prepare_workspace_cleanup() {
+    local status=$?
+    trap - EXIT
+    set +e
+    if [[ -n ${UNION:-} ]]; then
+        detach_chroot_mounts || true
+        safe_umount "$UNION" || true
+    fi
+    if [[ -n ${WORK_PARENT:-} && -n ${WORK_NAME:-} && -n ${WORK_DEV:-} && -n ${WORK_INO:-} ]]; then
+        if [[ -z ${TMP:-} ]] || ! has_mounts_under "$TMP"; then
+            run_convert_engine cleanup-workspace \
+                "$WORK_PARENT" "$WORK_NAME" "$WORK_DEV" "$WORK_INO" >/dev/null 2>&1 || true
+        fi
+    fi
+    if [[ -n ${SESSION_DIR:-} ]]; then
+        rm -f -- "$SESSION_DIR/state" "$SESSION_DIR/lock" 2>/dev/null || true
+        rmdir -- "$SESSION_DIR" 2>/dev/null || true
+    fi
+    exit "$status"
+}
+
+ensure_session_root() {
+    mkdir -p -- /run/minios-tools "$SESSION_ROOT"
+    chown root:root "$SESSION_ROOT"
+    chmod 0700 "$SESSION_ROOT"
+}
+
+write_session_state() {
+    local state="$SESSION_DIR/state"
+    if ! safe_state_value "$SESSION_UID" || ! safe_state_value "$WORK_PARENT" ||
+       ! safe_state_value "$WORK_NAME" || ! safe_state_value "$WORK_DEV" ||
+       ! safe_state_value "$WORK_INO" || ! safe_state_value "$FILENAME" ||
+       ! safe_state_value "$COMP_TYPE"; then
+        echo "Unsafe chroot session state value." >&2
+        return 1
+    fi
+    umask 077
+    {
+        printf 'schema\t1\n'
+        printf 'uid\t%s\n' "$SESSION_UID"
+        printf 'phase\tready\n'
+        printf 'work_parent\t%s\n' "$WORK_PARENT"
+        printf 'work_name\t%s\n' "$WORK_NAME"
+        printf 'work_device\t%s\n' "$WORK_DEV"
+        printf 'work_inode\t%s\n' "$WORK_INO"
+        printf 'output\t%s\n' "$FILENAME"
+        printf 'compression\t%s\n' "$COMP_TYPE"
+        printf 'seed\t%s\n' "$SESSION_SEED"
+        printf 'resolv_upper\t%s\n' "$([[ $RESOLV_HAD_UPPER == true ]] && printf 1 || printf 0)"
+    } >"$state"
+    chmod 0600 "$state"
+}
+
+session_id_valid() {
+    [[ $1 =~ ^session\.[A-Za-z0-9]+$ ]]
+}
+
+load_session_state() {
+    local ID="$1" KEY VALUE EXTRA MODE UID_NOW SCHEMA=""
+    session_id_valid "$ID" || {
+        echo "Invalid chroot session id." >&2
+        return 1
+    }
+    SESSION_ID=$ID
+    SESSION_DIR="$SESSION_ROOT/$SESSION_ID"
+    [[ -d $SESSION_DIR && -f $SESSION_DIR/state ]] || {
+        echo "Chroot session does not exist: $SESSION_ID" >&2
+        return 1
+    }
+    MODE=$(stat -Lc '%u:%a' -- "$SESSION_DIR" 2>/dev/null || true)
+    [[ $MODE == 0:700 ]] || {
+        echo "Chroot session directory has invalid ownership or mode." >&2
+        return 1
+    }
+    MODE=$(stat -Lc '%u:%a' -- "$SESSION_DIR/state" 2>/dev/null || true)
+    [[ $MODE == 0:600 ]] || {
+        echo "Chroot session state has invalid ownership or mode." >&2
+        return 1
+    }
+
+    SESSION_UID=""
+    SESSION_PHASE=""
+    WORK_PARENT=""
+    WORK_NAME=""
+    WORK_DEV=""
+    WORK_INO=""
+    FILENAME=""
+    COMP_TYPE=""
+    SESSION_SEED=""
+    RESOLV_HAD_UPPER=false
+    while IFS=$'\t' read -r KEY VALUE EXTRA; do
+        [[ -z ${EXTRA:-} ]] || {
+            echo "Malformed chroot session state." >&2
+            return 1
+        }
+        case $KEY in
+        schema) SCHEMA=$VALUE ;;
+        uid) SESSION_UID=$VALUE ;;
+        phase) SESSION_PHASE=$VALUE ;;
+        work_parent) WORK_PARENT=$VALUE ;;
+        work_name) WORK_NAME=$VALUE ;;
+        work_device) WORK_DEV=$VALUE ;;
+        work_inode) WORK_INO=$VALUE ;;
+        output) FILENAME=$VALUE ;;
+        compression) COMP_TYPE=$VALUE ;;
+        seed) SESSION_SEED=$VALUE ;;
+        resolv_upper) [[ $VALUE == 1 ]] && RESOLV_HAD_UPPER=true ;;
+        *)
+            echo "Unknown chroot session state field: $KEY" >&2
+            return 1
+            ;;
+        esac
+    done <"$SESSION_DIR/state"
+
+    [[ $SCHEMA == 1 && $SESSION_UID =~ ^[0-9]+$ &&
+       $SESSION_PHASE =~ ^(ready|finishing|captured|cancelling)$ &&
+       -n $WORK_PARENT && -n $WORK_NAME && $WORK_DEV =~ ^[0-9]+$ &&
+       $WORK_INO =~ ^[0-9]+$ && -n $FILENAME &&
+       $COMP_TYPE =~ ^(zstd|gzip|lzo|xz)$ && $SESSION_SEED =~ ^[01]$ ]] || {
+        echo "Incomplete or invalid chroot session state." >&2
+        return 1
+    }
+    UID_NOW=$(session_caller_uid) || return 1
+    [[ $SESSION_UID == "$UID_NOW" ]] || {
+        echo "Chroot session belongs to another invoking user." >&2
+        return 1
+    }
+    run_convert_engine check-workspace \
+        "$WORK_PARENT" "$WORK_NAME" "$WORK_DEV" "$WORK_INO" || {
+        echo "Chroot workspace identity is no longer valid." >&2
+        return 1
+    }
+    TMP="$WORK_PARENT/$WORK_NAME"
+    CHANGES="$TMP/changes"
+    UNION="$TMP/union"
+    RESOLV_BACKUP="$TMP/resolv.conf.backup"
+}
+
+set_session_phase() {
+    local PHASE="$1" TEMP
+    TEMP=$(mktemp "$SESSION_DIR/state.XXXXXXXX") || return 1
+    if ! awk -F '\t' -v phase="$PHASE" 'BEGIN { OFS="\t" } $1 == "phase" { $2=phase } { print }' \
+            "$SESSION_DIR/state" >"$TEMP"; then
+        rm -f -- "$TEMP"
+        return 1
+    fi
+    chmod 0600 "$TEMP"
+    mv -f -- "$TEMP" "$SESSION_DIR/state"
+    SESSION_PHASE=$PHASE
+}
+
+lock_session() {
+    exec {SESSION_LOCK_FD}>"$SESSION_DIR/lock"
+    chmod 0600 "$SESSION_DIR/lock"
+    flock -n "$SESSION_LOCK_FD" || {
+        echo "Chroot session is currently in use." >&2
+        return 1
+    }
+}
+
+remove_session_record() {
+    rm -f -- "$SESSION_DIR/state" "$SESSION_DIR/lock"
+    rmdir -- "$SESSION_DIR"
+}
+
+cleanup_session_workspace() {
+    detach_chroot_mounts || return 1
+    restore_resolv_conf
+    rm -f -- "$CHANGES/root/.bash_history" 2>/dev/null || true
+    safe_umount "$UNION" || return 1
+    has_mounts_under "$TMP" && return 1
+    run_convert_engine cleanup-workspace \
+        "$WORK_PARENT" "$WORK_NAME" "$WORK_DEV" "$WORK_INO"
+}
+
+prepare_lifecycle_session() {
+    local WORK_INFO PREFIX
+    parse_lifecycle_options "$@"
+    require_lifecycle_root || return 1
+    lifecycle_tools || return 1
+    require_live_layout
+    SESSION_UID=$(session_caller_uid) || return 1
+
+    if [[ -n $DIRECTORY ]]; then
+        DIRECTORY=$(realpath -m -- "$DIRECTORY")
+        run_convert_engine check-input directory "$DIRECTORY" "$SESSION_UID" || {
+            echo "Seed directory is not readable by the invoking user: $DIRECTORY" >&2
+            return 1
+        }
+        SESSION_SEED=1
+    else
+        SESSION_SEED=0
+    fi
+
+    if [[ -z $FILENAME ]]; then
+        if [[ -n $FILTER_LEVEL ]]; then
+            PREFIX="$(printf '%02d' "$((10#$FILTER_LEVEL + 1))")-"
+        else
+            PREFIX=""
+        fi
+        FILENAME="$PREFIX$(date +%Y%m%d-%H%M).$BEXT"
+    fi
+    safe_state_value "$FILENAME" || {
+        echo "Output filename contains unsupported control characters." >&2
+        return 1
+    }
+    FILENAME=$(realpath -m -- "$FILENAME")
+
+    [[ $JSON_OUTPUT == false ]] || run_protocol phase prepare
+    build_lowers
+    choose_work_parent || return 1
+    WORK_INFO=$(run_convert_engine create-workspace "$WORK_PARENT" ".chroot2sb.") || return 1
+    read -r WORK_NAME WORK_DEV WORK_INO <<<"$WORK_INFO"
+    TMP="$WORK_PARENT/$WORK_NAME"
+    CHANGES="$TMP/changes"
+    UNION="$TMP/union"
+    trap prepare_workspace_cleanup EXIT
+
+    mkdir -p -- "$CHANGES" "$UNION"
+    if aufs_is_supported; then
+        mount -t aufs -o "br=$CHANGES=rw:$LOWERS" none "$UNION"
+    else
+        mkdir -p -- "$TMP/work"
+        mount -t overlay -o "lowerdir=$LOWERS,upperdir=$CHANGES,workdir=$TMP/work" overlay "$UNION"
+    fi
+    for dir in boot dev proc sys tmp media mnt run; do
+        mkdir -p -- "$UNION/$dir"
+    done
+    chmod 1777 "$UNION/tmp"
+    for dir in dev dev/pts proc sys; do
+        mount --bind "/$dir" "$UNION/$dir"
+    done
+
+    if [[ -n $DIRECTORY ]]; then
+        [[ $JSON_OUTPUT == false ]] || run_protocol phase seed
+        run_convert_engine copy-tree "$DIRECTORY" "$UNION" "$SESSION_UID"
+    fi
+
+    if [[ -e $CHANGES/etc/resolv.conf || -L $CHANGES/etc/resolv.conf ]]; then
+        RESOLV_BACKUP=$TMP/resolv.conf.backup
+        cp -a -- "$CHANGES/etc/resolv.conf" "$RESOLV_BACKUP"
+        RESOLV_HAD_UPPER=true
+    else
+        RESOLV_HAD_UPPER=false
+    fi
+    mkdir -p -- "$UNION/etc"
+    rm -f -- "$UNION/etc/resolv.conf"
+    cp -L -- /etc/resolv.conf "$UNION/etc/resolv.conf"
+
+    ensure_session_root
+    umask 077
+    SESSION_DIR=$(mktemp -d "$SESSION_ROOT/session.XXXXXXXXXXXXXXXX")
+    chmod 0700 "$SESSION_DIR"
+    SESSION_ID=${SESSION_DIR##*/}
+    write_session_state
+    trap - EXIT
+
+    if [[ $JSON_OUTPUT == true ]]; then
+        run_protocol chroot2sb-prepare "$SESSION_ID" "$FILENAME" "$COMP_TYPE" "$SESSION_SEED"
+    else
+        printf 'Prepared chroot session: %s\n' "$SESSION_ID"
+    fi
+}
+
+shell_lifecycle_session() {
+    local STATUS
+    [[ $# -eq 1 ]] || lifecycle_brief_help
+    require_lifecycle_root || return 1
+    lifecycle_tools || return 1
+    load_session_state "$1" || return 1
+    lock_session || return 1
+    [[ $SESSION_PHASE == ready ]] || {
+        echo "Chroot session is not available for a shell: $SESSION_PHASE" >&2
+        return 1
+    }
+    set +e
+    chroot "$UNION"
+    STATUS=$?
+    set -e
+    return "$STATUS"
+}
+
+finish_lifecycle_session() {
+    local ID JSON=false SAVE_JSON RESULT
+    [[ $# -ge 1 && $# -le 2 ]] || lifecycle_brief_help
+    ID=$1
+    if [[ $# -eq 2 ]]; then
+        [[ $2 == --json ]] || lifecycle_brief_help
+        JSON=true
+    fi
+    require_lifecycle_root || return 1
+    lifecycle_tools || return 1
+    load_session_state "$ID" || return 1
+    lock_session || return 1
+    [[ $SESSION_PHASE =~ ^(ready|finishing|captured)$ ]] || {
+        echo "Chroot session cannot be finished from state: $SESSION_PHASE" >&2
+        return 1
+    }
+    SAVE_JSON="$TMP/chroot2sb-savechanges.ndjson"
+
+    if [[ $SESSION_PHASE != captured ]]; then
+        set_session_phase finishing
+        detach_chroot_mounts || {
+            echo "Failed to unmount one or more chroot filesystems." >&2
+            return 1
+        }
+        restore_resolv_conf
+        rm -f -- "$CHANGES/root/.bash_history" 2>/dev/null || true
+        if [[ -s $SAVE_JSON ]] && run_protocol chroot2sb-result \
+                "$COMP_TYPE" "$SESSION_SEED" "$SAVE_JSON" >/dev/null 2>&1; then
+            set_session_phase captured
+        else
+            rm -f -- "$SAVE_JSON"
+            [[ $JSON == false ]] || run_protocol phase capture
+            if ! savechanges --json --mounted-root "$UNION" \
+                    "$FILENAME" "$CHANGES" -c "$COMP_TYPE" >"$SAVE_JSON"; then
+                echo "Module capture failed; chroot session was preserved." >&2
+                return 1
+            fi
+            set_session_phase captured
+        fi
+    fi
+
+    RESULT=$(run_protocol chroot2sb-result "$COMP_TYPE" "$SESSION_SEED" "$SAVE_JSON") || {
+        echo "Cannot construct chroot2sb result from savechanges output." >&2
+        return 1
+    }
+    if ! safe_umount "$UNION"; then
+        echo "Cannot unmount the chroot build union; session was preserved." >&2
+        return 1
+    fi
+    if has_mounts_under "$TMP" || ! run_convert_engine cleanup-workspace \
+            "$WORK_PARENT" "$WORK_NAME" "$WORK_DEV" "$WORK_INO"; then
+        echo "Cannot clean the chroot workspace; session was preserved." >&2
+        return 1
+    fi
+    remove_session_record
+    if [[ $JSON == true ]]; then
+        run_protocol phase complete
+        printf '%s\n' "$RESULT"
+    else
+        printf 'Created: %s\n' "$FILENAME"
+    fi
+}
+
+cancel_lifecycle_session() {
+    local ID JSON=false
+    [[ $# -ge 1 && $# -le 2 ]] || lifecycle_brief_help
+    ID=$1
+    if [[ $# -eq 2 ]]; then
+        [[ $2 == --json ]] || lifecycle_brief_help
+        JSON=true
+    fi
+    require_lifecycle_root || return 1
+    lifecycle_tools || return 1
+    load_session_state "$ID" || return 1
+    lock_session || return 1
+    [[ $SESSION_PHASE != captured ]] || {
+        echo "The module was already captured; run finish again to complete cleanup." >&2
+        return 1
+    }
+    set_session_phase cancelling
+    cleanup_session_workspace || {
+        echo "Cannot cancel the chroot session safely; session was preserved." >&2
+        return 1
+    }
+    remove_session_record
+    if [[ $JSON == true ]]; then
+        run_protocol chroot2sb-cancel "$SESSION_ID"
+    else
+        printf 'Cancelled chroot session: %s\n' "$SESSION_ID"
+    fi
+}
+
+case "${1:-}" in
+prepare)
+    shift
+    prepare_lifecycle_session "$@"
+    exit $?
+    ;;
+shell)
+    shift
+    shell_lifecycle_session "$@"
+    exit $?
+    ;;
+finish)
+    shift
+    finish_lifecycle_session "$@"
+    exit $?
+    ;;
+cancel)
+    shift
+    cancel_lifecycle_session "$@"
+    exit $?
+    ;;
+esac
+
+while (( $# > 0 )); do
+    case $1 in
     -d | --directory)
-        DIRECTORY="$2"
+        option_requires_value "$1" "$#"
+        [[ -n $2 ]] || { echo "Option requires a non-empty argument: $1" >&2; brief_help; }
+        DIRECTORY=$2
         shift 2
         ;;
     -n | --name)
-        FILENAME="$2"
+        option_requires_value "$1" "$#"
+        [[ -n $2 ]] || { echo "Option requires a non-empty argument: $1" >&2; brief_help; }
+        FILENAME=$2
         shift 2
         ;;
     -l | --level)
-        FILTER_LEVEL=$(printf "%02d" "$2")
+        option_requires_value "$1" "$#"
+        validate_level "$2"
+        printf -v FILTER_LEVEL '%02d' "$((10#$2))"
         shift 2
         ;;
     -c | --comp)
-        COMP_TYPE="$2"
+        option_requires_value "$1" "$#"
+        validate_comp "$2"
+        COMP_TYPE=$2
         shift 2
         ;;
     -b | --bext)
-        BEXT="$2"
+        option_requires_value "$1" "$#"
+        [[ -n $2 ]] || { echo "Option requires a non-empty argument: $1" >&2; brief_help; }
+        BEXT=$2
         shift 2
         ;;
-    --help)
-        help
+    --help) help ;;
+    --version) version ;;
+    -*)
+        echo "Unknown option: $1" >&2
+        brief_help
         ;;
-    --version)
-        version
-        ;;
-    *) # unknown option
-        if [ "$1" == -* ]; then
-            brief_help
-        fi
+    *)
+        echo "Unexpected argument: $1" >&2
+        brief_help
         ;;
     esac
 done
 
-if [ "$(id -u)" != "0" ]; then
-    echo "This script must be run as root."
+if (( EUID != 0 )); then
+    echo "This script must be run as root." >&2
     brief_help
 fi
 
-CHROOT_BIN="$(command -v chroot)"
-if [ -z "$CHROOT_BIN" ]; then
-    for candidate in /usr/sbin/chroot /sbin/chroot; do
-        if [ -x "$candidate" ]; then
-            CHROOT_BIN="$candidate"
-            break
-        fi
-    done
-fi
-if [ -z "$CHROOT_BIN" ]; then
-    echo "chroot not found" >&2
-    exit 1
-fi
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+require_live_layout
+for required_command in chroot find findmnt mount umount savechanges; do
+    command -v "$required_command" >/dev/null 2>&1 || {
+        echo "Required command not found: $required_command" >&2
+        exit 1
+    }
+done
+CHROOT_BIN=$(command -v chroot)
 
-if [ "$DIRECTORY" ] && { [ ! -d "$DIRECTORY" ] || [ -d "$DIRECTORY" ] && [ ! -r "$DIRECTORY" ]; }; then
-    echo "The specified directory must exist and be readable."
+if [[ -n $DIRECTORY && ( ! -d $DIRECTORY || ! -r $DIRECTORY ) ]]; then
+    echo "The specified directory must exist and be readable." >&2
     brief_help
 fi
-
-# Detect initramfs type and set paths
-if [ -d "/run/initramfs/memory/bundles" ]; then
-    # livekit initramfs
-    BUNDLES="/run/initramfs/memory/bundles"
-    SYSTEMCHANGES="/run/initramfs/memory/changes"
-elif [ -d "/lib/live/mount/bundles" ]; then
-    # dracut initramfs
-    BUNDLES="/lib/live/mount/bundles"
-    SYSTEMCHANGES="/lib/live/mount/changes"
+if [[ -n $DIRECTORY ]]; then
+    DIRECTORY=$(readlink -f -- "$DIRECTORY")
 fi
 
-# We use the changes folder to store temporary files and perform module
-# builds because it is on the physical file system, which will avoid RAM
-# leaks when building a large module.
-if [ -d "$SYSTEMCHANGES/changes" ] && [ -d "$SYSTEMCHANGES/workdir" ] && [ "$(ls -1 "$SYSTEMCHANGES" | egrep -v '^changes' | egrep -v '^workdir')" = "" ]; then
-    TMP=$(mktemp -d "$SYSTEMCHANGES"/build2sb.XXXXX)
+build_lowers
+
+if [[ -d $SYSTEMCHANGES/changes && -d $SYSTEMCHANGES/workdir ]] &&
+   [[ -z $(find "$SYSTEMCHANGES" -mindepth 1 -maxdepth 1 ! -name changes ! -name workdir -print -quit) ]]; then
+    TMP=$(mktemp -d "$SYSTEMCHANGES/build2sb.XXXXX")
 else
-    mkdir -p "$SYSTEMCHANGES/tmp"
-    TMP=$(mktemp -d "$SYSTEMCHANGES/tmp"/build2sb.XXXXX)
+    mkdir -p -- "$SYSTEMCHANGES/tmp"
+    TMP=$(mktemp -d "$SYSTEMCHANGES/tmp/build2sb.XXXXX")
 fi
-CHANGES="$TMP/changes"
-UNION="$TMP/union"
+CHANGES=$TMP/changes
+UNION=$TMP/union
+trap cleanup EXIT
 
-trap 'set +e; if [ "$RESOLVCONFLNK" = "true" ]; then rm -f "$CHANGES/etc/resolv.conf" 2>/dev/null; else safe_umount "$UNION/etc/resolv.conf"; fi; safe_umount "$UNION/sys"; safe_umount "$UNION/proc"; safe_umount "$UNION/dev/pts"; safe_umount "$UNION/dev"; rm "$CHANGES/install" 2>/dev/null; rmdir "$CHANGES"/* 2>/dev/null || true; safe_umount "$UNION"; safe_umount "$TMP"; rm -rf "$TMP"' EXIT
-
-#mount -t tmpfs tmpfs "$TMP"
-mkdir -p "$CHANGES"
-mkdir -p "$UNION"
-
-ROFLAG=""
-if aufs_is_supported; then
-    ROFLAG="=ro"
-fi
-
-if [ -n "$FILTER_LEVEL" ]; then
-    for BUNDLE in $(ls -1dr "$BUNDLES"/*); do
-        if [[ $(basename "$BUNDLE") =~ ^[0-9]+ ]]; then
-            if [ ${BASH_REMATCH[0]} -gt $FILTER_LEVEL ]; then
-                continue
-            fi
-        fi
-        LOWERS+=$(printf '%s%s:' "$BUNDLE" "$ROFLAG")
-    done
-else
-    for BUNDLE in $(ls -1dr "$BUNDLES"/*); do
-        LOWERS+=$(printf '%s%s:' "$BUNDLE" "$ROFLAG")
-    done
-fi
-
-LOWERS=${LOWERS/%:/}
+mkdir -p -- "$CHANGES" "$UNION"
 
 if aufs_is_supported; then
     mount -t aufs -o "br=$CHANGES=rw:$LOWERS" none "$UNION"
 else
-    mkdir $TMP/work
-    mount -t overlay -o lowerdir="$LOWERS",upperdir="$CHANGES",workdir="$TMP"/work overlay "$UNION"
+    mkdir -p -- "$TMP/work"
+    mount -t overlay -o "lowerdir=$LOWERS,upperdir=$CHANGES,workdir=$TMP/work" overlay "$UNION"
 fi
 
-for DIR in boot dev proc sys tmp media mnt run; do
-    mkdir -p "$UNION/$DIR"
+for dir in boot dev proc sys tmp media mnt run; do
+    mkdir -p -- "$UNION/$dir"
+done
+chmod 1777 "$UNION/tmp"
+
+for dir in dev dev/pts proc sys; do
+    mount --bind "/$dir" "$UNION/$dir"
 done
 
-chmod ugo+rwx "$UNION/tmp"
-
-for DIR in dev dev/pts proc sys; do
-    mount --bind "/$DIR" "$UNION/$DIR"
-done
-
-if [ "$DIRECTORY" ]; then
-    cd "$DIRECTORY" && cp --parents -afr * "$UNION/"
-    cd -
+if [[ -n $DIRECTORY ]]; then
+    cp -a "$DIRECTORY"/. "$UNION/"
 fi
 
-if [ -L "$UNION/etc/resolv.conf" ]; then
-    rm "$UNION/etc/resolv.conf"
-    echo "nameserver 8.8.8.8" >"$UNION/etc/resolv.conf"
-    RESOLVCONFLNK="true"
-else
-    mount --bind "/etc/resolv.conf" "$UNION/etc/resolv.conf"
+if [[ -e $CHANGES/etc/resolv.conf || -L $CHANGES/etc/resolv.conf ]]; then
+    RESOLV_BACKUP=$TMP/resolv.conf.backup
+    cp -a -- "$CHANGES/etc/resolv.conf" "$RESOLV_BACKUP"
+    RESOLV_HAD_UPPER=true
 fi
+mkdir -p -- "$UNION/etc"
+rm -f -- "$UNION/etc/resolv.conf"
+cp -L -- /etc/resolv.conf "$UNION/etc/resolv.conf"
 
 echo "Entering chroot environment..."
 echo "When finished, enter 'exit' in chroot to create the module."
 if ! "$CHROOT_BIN" "$UNION"; then
-    FAILED="true"
+    FAILED=true
 else
-    FAILED="false"
+    FAILED=false
 fi
 
-if [ "$RESOLVCONFLNK" = "true" ]; then
-    rm -f "$CHANGES/etc/resolv.conf"
-else
-    safe_umount "$UNION/etc/resolv.conf"
+if ! detach_chroot_mounts; then
+    echo "Failed to unmount one or more chroot filesystems; no module was created." >&2
+    exit 1
 fi
-safe_umount "$UNION/sys"
-safe_umount "$UNION/proc"
-safe_umount "$UNION/dev/pts"
-safe_umount "$UNION/dev"
 
-if [ -f "$CHANGES/root/.bash_history" ]; then
-    rm "$CHANGES/root/.bash_history"
-fi
+restore_resolv_conf
+rm -f -- "$CHANGES/root/.bash_history" 2>/dev/null || true
 rmdir "$CHANGES"/* 2>/dev/null || true
 
-if [ "$FAILED" != "true" ]; then
-    if [ ! "$FILENAME" ]; then
-        if [ -n "$FILTER_LEVEL" ]; then
-            PREFIX="$(printf "%02d" $((10#$FILTER_LEVEL + 1)))-"
+if [[ $FAILED != true ]]; then
+    if [[ -z $FILENAME ]]; then
+        if [[ -n $FILTER_LEVEL ]]; then
+            PREFIX="$(printf '%02d' "$((10#$FILTER_LEVEL + 1))")-"
         else
             PREFIX=""
         fi
-        FILENAME="$PREFIX$(date +%Y%m%d-%H%M).${BEXT}"
+        FILENAME="$PREFIX$(date +%Y%m%d-%H%M).$BEXT"
     fi
 
-    echo "Saving changes made by installation script into a module $FILENAME..."
-    savechanges "$FILENAME" "$CHANGES" -c "$COMP_TYPE"
+    echo "Saving changes made in the chroot into a module $FILENAME..."
+    savechanges --mounted-root "$UNION" "$FILENAME" "$CHANGES" -c "$COMP_TYPE"
+else
+    echo "Chroot command failed; no module was created." >&2
+    exit 1
 fi

@@ -1,23 +1,33 @@
 #!/bin/bash
 # Author: crims0n <https://minios.dev>
-set -e          # exit on error
-set -o pipefail # exit on pipeline error
-set -u          # treat unset variable as error
+set -e
+set -o pipefail
+set -u
 
-VERSION="1.2.4"
+VERSION="1.2.5"
 BEXT="sb"
 COMP_TYPE="zstd"
 FILTER_LEVEL=""
-RESOLVCONFLNK=""
 DIRECTORY=""
 FILENAME=""
 INSTALL_SCRIPT=""
+TMP=""
+CHANGES=""
+UNION=""
+BUNDLES=""
+SYSTEMCHANGES=""
+RESOLV_BACKUP=""
+RESOLV_HAD_UPPER=false
+INSTALL_PATH=""
+JSON_OUTPUT=false
+SAVECHANGES_JSON=""
+
 # Force classic mount(2) syscall to work around an overlayfs bug in util-linux >= 2.39.0
 export LIBMOUNT_FORCE_MOUNT2="always"
 export TEXTDOMAIN="minios-tools"
 
 help() {
-    echo "$(gettext "Usage"): $(basename $0) [OPTIONS]... --script FILE"
+    echo "$(gettext "Usage"): $(basename "$0") [OPTIONS]... --script FILE"
     echo "$(gettext "Packages a module from changes made by an installation script")"
     echo ""
     echo "$(gettext "Options"):"
@@ -27,253 +37,464 @@ help() {
     echo "  -n, --name NAME             $(gettext "Use NAME as the filename for the module")"
     echo "  -l, --level LEVEL           $(gettext "Use LEVEL as the filter level")"
     echo "  -s, --script FILE           $(gettext "Use FILE as the installation script")"
+    echo "      --json                  $(gettext "Emit machine-readable phase events and result")"
     echo "      --help                  $(gettext "Display this help and exit")"
     echo "      --version               $(gettext "Display version information and exit")"
     echo ""
     echo "$(gettext "Examples"):"
-    echo "  $(basename $0) -s /path/to/install_script.sh"
-    echo "  $(basename $0) --level 03 --script /path/to/install_script.sh"
-    echo "  $(basename $0) -s /path/to/install_script.sh -n 06-chromium.$BEXT -l 3 -c lzo"
-    echo "  $(basename $0) -d /path/to/copy/contents -n my-module.$BEXT"
+    echo "  $(basename "$0") -s /path/to/install_script.sh"
+    echo "  $(basename "$0") --level 03 --script /path/to/install_script.sh"
+    echo "  $(basename "$0") -s /path/to/install_script.sh -n 06-chromium.$BEXT -l 3 -c lzo"
+    echo "  $(basename "$0") -d /path/to/copy/contents -s /path/to/install_script.sh -n my-module.$BEXT"
     exit 0
 }
 
 brief_help() {
-    echo "$(gettext "Usage"): $(basename $0) [COMMANDS] [OPTIONS]... --script FILE"
-    echo "$(gettext "Try") '$(basename $0) --help' $(gettext "for more information.")"
+    if [[ $JSON_OUTPUT == true ]]; then
+        echo "$(gettext "Usage"): $(basename "$0") [OPTIONS]... --script FILE" >&2
+        echo "$(gettext "Try") '$(basename "$0") --help' $(gettext "for more information.")" >&2
+    else
+        echo "$(gettext "Usage"): $(basename "$0") [OPTIONS]... --script FILE"
+        echo "$(gettext "Try") '$(basename "$0") --help' $(gettext "for more information.")"
+    fi
     exit 1
 }
 
 version() {
-    echo "$(basename $0) $VERSION"
+    echo "$(basename "$0") $VERSION"
     exit 0
+}
+
+helper_path() {
+    local NAME="$1" SCRIPT_PATH SCRIPT_DIR CANDIDATE
+    SCRIPT_PATH=$(realpath -m -- "${BASH_SOURCE[0]}" 2>/dev/null || true)
+    SCRIPT_DIR=${SCRIPT_PATH%/*}
+    for CANDIDATE in \
+        "$SCRIPT_DIR/../lib/$NAME" \
+        "$SCRIPT_DIR/../lib/minios-tools/$NAME" \
+        "/usr/lib/minios-tools/$NAME"; do
+        [[ -f $CANDIDATE ]] || continue
+        realpath -e -- "$CANDIDATE"
+        return 0
+    done
+    return 1
+}
+
+run_protocol() {
+    local HELPER PYTHON
+    HELPER=$(helper_path minios_protocol.py) || {
+        echo "MiniOS Tools protocol helper is unavailable." >&2
+        return 1
+    }
+    PYTHON=$(command -v python3) || {
+        echo "python3 is required." >&2
+        return 1
+    }
+    "$PYTHON" -I "$HELPER" "$@"
+}
+
+run_convert_engine() {
+    local ENGINE PYTHON
+    ENGINE=$(helper_path minios_convert_engine.py) || {
+        echo "MiniOS Tools filesystem engine is unavailable." >&2
+        return 1
+    }
+    PYTHON=$(command -v python3) || {
+        echo "python3 is required." >&2
+        return 1
+    }
+    "$PYTHON" -I "$ENGINE" "$@"
+}
+
+machine_phase() {
+    [[ $JSON_OUTPUT == true ]] || return 0
+    run_protocol phase "$1"
+}
+
+message() {
+    if [[ $JSON_OUTPUT == true ]]; then
+        printf '%s\n' "$*" >&2
+    else
+        printf '%s\n' "$*"
+    fi
+}
+
+run_visible() {
+    if [[ $JSON_OUTPUT == true ]]; then
+        "$@" >&2
+    else
+        "$@"
+    fi
+}
+
+option_requires_value() {
+    local option=$1
+    local count=$2
+    if (( count < 2 )); then
+        echo "Option requires an argument: $option" >&2
+        brief_help
+    fi
+}
+
+validate_comp() {
+    case $1 in
+    zstd | gzip | lzo | xz) ;;
+    *)
+        echo "Invalid compression type: $1" >&2
+        brief_help
+        ;;
+    esac
+}
+
+validate_level() {
+    [[ $1 =~ ^[0-9]+$ ]] || {
+        echo "Invalid filter level: $1" >&2
+        brief_help
+    }
 }
 
 aufs_is_supported() {
     grep -q aufs /proc/filesystems
 }
 
-safe_umount() {
-    local mount_point="$1"
-    local max_attempts=3
-    local attempt=1
-
-    # Check if mount point is actually mounted
-    if ! findmnt "$mount_point" >/dev/null 2>&1; then
-        return 0
-    fi
-
-    # Try to unmount with multiple attempts
-    while [ $attempt -le $max_attempts ]; do
-        if umount "$mount_point" 2>/dev/null; then
-            return 0
-        fi
-
-        # Check again if it was unmounted by another process
-        if ! findmnt "$mount_point" >/dev/null 2>&1; then
-            return 0
-        fi
-
-        # Wait a bit before retry
-        sleep 0.5
-        attempt=$((attempt + 1))
-    done
-
-    # Last resort: try lazy unmount
-    umount -l "$mount_point" 2>/dev/null || true
+is_mounted() {
+    findmnt -rn --mountpoint "$1" >/dev/null 2>&1
 }
 
-if [ $# -eq 0 ]; then
+safe_umount() {
+    local mount_point=$1
+    local attempt
+
+    is_mounted "$mount_point" || return 0
+    for attempt in 1 2 3; do
+        umount "$mount_point" 2>/dev/null || true
+        is_mounted "$mount_point" || return 0
+        sleep 0.5
+    done
+    ! is_mounted "$mount_point"
+}
+
+has_mounts_under() {
+    local root=$1
+    local target
+    local mounts
+
+    mounts=$(findmnt -rn -o TARGET) || return 0
+    while IFS= read -r target; do
+        [[ $target == "$root" || $target == "$root/"* ]] && return 0
+    done <<<"$mounts"
+    return 1
+}
+
+detach_chroot_mounts() {
+    local ok=true
+    local mount_point
+
+    for mount_point in "$UNION/sys" "$UNION/proc" "$UNION/dev/pts" "$UNION/dev"; do
+        safe_umount "$mount_point" || ok=false
+    done
+    [[ $ok == true ]]
+}
+
+restore_resolv_conf() {
+    rm -f -- "$CHANGES/etc/resolv.conf" 2>/dev/null || true
+    if [[ $RESOLV_HAD_UPPER == true && -n $RESOLV_BACKUP ]]; then
+        mkdir -p -- "$CHANGES/etc"
+        cp -a -- "$RESOLV_BACKUP" "$CHANGES/etc/resolv.conf"
+    fi
+}
+
+cleanup() {
+    local status=$?
+    local cleanup_failed=false
+
+    trap - EXIT
+    set +e
+
+    if [[ -n $UNION ]]; then
+        detach_chroot_mounts || cleanup_failed=true
+        safe_umount "$UNION" || cleanup_failed=true
+    fi
+
+    if [[ -n $TMP ]]; then
+        if has_mounts_under "$TMP"; then
+            cleanup_failed=true
+        else
+            rm -rf -- "$TMP"
+        fi
+    fi
+
+    if [[ $cleanup_failed == true ]]; then
+        echo "Cleanup incomplete; temporary directory was preserved: $TMP" >&2
+        (( status == 0 )) && status=1
+    fi
+
+    exit "$status"
+}
+
+require_live_layout() {
+    if [[ -d /run/initramfs/memory/bundles && -d /run/initramfs/memory/changes ]]; then
+        BUNDLES=/run/initramfs/memory/bundles
+        SYSTEMCHANGES=/run/initramfs/memory/changes
+    elif [[ -d /lib/live/mount/bundles && -d /lib/live/mount/changes ]]; then
+        BUNDLES=/lib/live/mount/bundles
+        SYSTEMCHANGES=/lib/live/mount/changes
+    else
+        echo "This command requires a supported MiniOS live session." >&2
+        exit 1
+    fi
+}
+
+build_lowers() {
+    local roflag=""
+    local bundle prefix
+    local i
+    local -a bundles=()
+    local -a lowers=()
+
+    aufs_is_supported && roflag="=ro"
+    shopt -s nullglob
+    bundles=("$BUNDLES"/*)
+    shopt -u nullglob
+    (( ${#bundles[@]} > 0 )) || {
+        echo "No MiniOS bundles found in $BUNDLES." >&2
+        exit 1
+    }
+
+    for (( i=${#bundles[@]}-1; i>=0; i-- )); do
+        bundle=${bundles[$i]}
+        if [[ -n $FILTER_LEVEL ]]; then
+            prefix=${bundle##*/}
+            if [[ $prefix =~ ^([0-9]+) ]] && (( 10#${BASH_REMATCH[1]} > 10#$FILTER_LEVEL )); then
+                continue
+            fi
+        fi
+        lowers+=("$bundle$roflag")
+    done
+
+    (( ${#lowers[@]} > 0 )) || {
+        echo "No MiniOS bundles remain after applying the filter level." >&2
+        exit 1
+    }
+
+    local IFS=:
+    LOWERS=${lowers[*]}
+}
+
+if (( $# == 0 )); then
     brief_help
 fi
 
-while [ $# -gt 0 ]; do
-    case "$1" in
+while (( $# > 0 )); do
+    case $1 in
     -d | --directory)
-        DIRECTORY="$2"
+        option_requires_value "$1" "$#"
+        [[ -n $2 ]] || { echo "Option requires a non-empty argument: $1" >&2; brief_help; }
+        DIRECTORY=$2
         shift 2
         ;;
     -n | --name)
-        FILENAME="$2"
+        option_requires_value "$1" "$#"
+        [[ -n $2 ]] || { echo "Option requires a non-empty argument: $1" >&2; brief_help; }
+        FILENAME=$2
         shift 2
         ;;
     -l | --level)
-        FILTER_LEVEL=$(printf "%02d" "$2")
+        option_requires_value "$1" "$#"
+        validate_level "$2"
+        printf -v FILTER_LEVEL '%02d' "$((10#$2))"
         shift 2
         ;;
     -s | --script)
-        INSTALL_SCRIPT="$2"
+        option_requires_value "$1" "$#"
+        [[ -n $2 ]] || { echo "Option requires a non-empty argument: $1" >&2; brief_help; }
+        INSTALL_SCRIPT=$2
         shift 2
         ;;
     -c | --comp)
-        COMP_TYPE="$2"
+        option_requires_value "$1" "$#"
+        validate_comp "$2"
+        COMP_TYPE=$2
         shift 2
         ;;
     -b | --bext)
-        BEXT="$2"
+        option_requires_value "$1" "$#"
+        [[ -n $2 ]] || { echo "Option requires a non-empty argument: $1" >&2; brief_help; }
+        BEXT=$2
         shift 2
         ;;
-    --help)
-        help
+    --json) JSON_OUTPUT=true; shift ;;
+    --help) help ;;
+    --version) version ;;
+    -*)
+        echo "Unknown option: $1" >&2
+        brief_help
         ;;
-    --version)
-        version
-        ;;
-    *) # unknown option
-        if [ "$1" == -* ]; then
-            brief_help
-        fi
+    *)
+        echo "Unexpected argument: $1" >&2
+        brief_help
         ;;
     esac
 done
 
-if [ "$(id -u)" != "0" ]; then
-    echo "This script must be run as root."
+if [[ -z $INSTALL_SCRIPT ]]; then
+    echo "Error: installation script is required." >&2
     brief_help
 fi
 
-CHROOT_BIN="$(command -v chroot)"
-if [ -z "$CHROOT_BIN" ]; then
-    for candidate in /usr/sbin/chroot /sbin/chroot; do
-        if [ -x "$candidate" ]; then
-            CHROOT_BIN="$candidate"
-            break
-        fi
-    done
+if (( EUID != 0 )); then
+    echo "This script must be run as root." >&2
+    brief_help
 fi
-if [ -z "$CHROOT_BIN" ]; then
-    echo "chroot not found" >&2
+if [[ -n ${PKEXEC_UID:-} && ! $PKEXEC_UID =~ ^[0-9]+$ ]]; then
+    echo "Invalid PKEXEC_UID." >&2
     exit 1
 fi
 
-if [ ! -f "$INSTALL_SCRIPT" ]; then
-    echo "Error: there is no script at $INSTALL_SCRIPT."
-    brief_help
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+require_live_layout
+for required_command in chroot find findmnt mount python3 realpath savechanges umount; do
+    command -v "$required_command" >/dev/null 2>&1 || {
+        echo "Required command not found: $required_command" >&2
+        exit 1
+    }
+done
+CHROOT_BIN=$(command -v chroot)
+INSTALL_SCRIPT=$(realpath -m -- "$INSTALL_SCRIPT")
+if [[ -n $DIRECTORY ]]; then
+    DIRECTORY=$(realpath -m -- "$DIRECTORY")
 fi
 
-if [ "$DIRECTORY" ] && { [ ! -d "$DIRECTORY" ] || [ -d "$DIRECTORY" ] && [ ! -r "$DIRECTORY" ]; }; then
-    echo "The specified directory must exist and be readable."
-    brief_help
+machine_phase prepare
+run_convert_engine check-input file "$INSTALL_SCRIPT" "${PKEXEC_UID:-}" || {
+    echo "Installation script is not readable by the invoking user: $INSTALL_SCRIPT" >&2
+    exit 1
+}
+if [[ -n $DIRECTORY ]]; then
+    run_convert_engine check-input directory "$DIRECTORY" "${PKEXEC_UID:-}" || {
+        echo "Seed directory is not readable by the invoking user: $DIRECTORY" >&2
+        exit 1
+    }
 fi
 
-# Detect initramfs type and set paths
-if [ -d "/run/initramfs/memory/bundles" ]; then
-    # livekit initramfs
-    BUNDLES="/run/initramfs/memory/bundles"
-    SYSTEMCHANGES="/run/initramfs/memory/changes"
-elif [ -d "/lib/live/mount/bundles" ]; then
-    # dracut initramfs
-    BUNDLES="/lib/live/mount/bundles"
-    SYSTEMCHANGES="/lib/live/mount/changes"
-fi
+build_lowers
 
-# We use the changes folder to store temporary files and perform module
-# builds because it is on the physical file system, which will avoid RAM
-# leaks when building a large module.
-if [ -d "$SYSTEMCHANGES/changes" ] && [ -d "$SYSTEMCHANGES/workdir" ] && [ "$(ls -1 "$SYSTEMCHANGES" | egrep -v '^changes' | egrep -v '^workdir')" = "" ]; then
-    TMP=$(mktemp -d "$SYSTEMCHANGES"/build2sb.XXXXX)
+if [[ -d $SYSTEMCHANGES/changes && -d $SYSTEMCHANGES/workdir ]] &&
+   [[ -z $(find "$SYSTEMCHANGES" -mindepth 1 -maxdepth 1 ! -name changes ! -name workdir -print -quit) ]]; then
+    TMP=$(mktemp -d "$SYSTEMCHANGES/build2sb.XXXXX")
 else
-    mkdir -p "$SYSTEMCHANGES/tmp"
-    TMP=$(mktemp -d "$SYSTEMCHANGES/tmp"/build2sb.XXXXX)
+    mkdir -p -- "$SYSTEMCHANGES/tmp"
+    TMP=$(mktemp -d "$SYSTEMCHANGES/tmp/build2sb.XXXXX")
 fi
-CHANGES="$TMP/changes"
-UNION="$TMP/union"
+CHANGES=$TMP/changes
+UNION=$TMP/union
+[[ $JSON_OUTPUT == false ]] || SAVECHANGES_JSON=$TMP/savechanges.ndjson
+trap cleanup EXIT
 
-trap 'set +e; if [ "$RESOLVCONFLNK" = "true" ]; then rm -f "$CHANGES/etc/resolv.conf" 2>/dev/null; else safe_umount "$UNION/etc/resolv.conf"; fi; safe_umount "$UNION/sys"; safe_umount "$UNION/proc"; safe_umount "$UNION/dev/pts"; safe_umount "$UNION/dev"; rm "$CHANGES/install" 2>/dev/null; rmdir "$CHANGES"/* 2>/dev/null || true; safe_umount "$UNION"; safe_umount "$TMP"; rm -rf "$TMP"' EXIT
-
-mkdir -p "$CHANGES"
-mkdir -p "$UNION"
-
-ROFLAG=""
-if aufs_is_supported; then
-    ROFLAG="=ro"
-fi
-
-if [ -n "$FILTER_LEVEL" ]; then
-    for BUNDLE in $(ls -1dr "$BUNDLES"/*); do
-        if [[ $(basename "$BUNDLE") =~ ^[0-9]+ ]]; then
-            if [ ${BASH_REMATCH[0]} -gt $FILTER_LEVEL ]; then
-                continue
-            fi
-        fi
-        LOWERS+=$(printf '%s%s:' "$BUNDLE" "$ROFLAG")
-    done
-else
-    for BUNDLE in $(ls -1dr "$BUNDLES"/*); do
-        LOWERS+=$(printf '%s%s:' "$BUNDLE" "$ROFLAG")
-    done
-fi
-
-LOWERS=${LOWERS/%:/}
+mkdir -p -- "$CHANGES" "$UNION"
 
 if aufs_is_supported; then
     mount -t aufs -o "br=$CHANGES=rw:$LOWERS" none "$UNION"
 else
-    mkdir $TMP/work
-    mount -t overlay -o lowerdir="$LOWERS",upperdir="$CHANGES",workdir="$TMP"/work overlay "$UNION"
+    mkdir -p -- "$TMP/work"
+    mount -t overlay -o lowerdir="$LOWERS",upperdir="$CHANGES",workdir="$TMP/work" overlay "$UNION"
 fi
 
-for DIR in boot dev proc sys tmp media mnt run; do
-    mkdir -p "$UNION/$DIR"
+for dir in boot dev proc sys tmp media mnt run; do
+    mkdir -p -- "$UNION/$dir"
+done
+chmod 1777 "$UNION/tmp"
+
+for dir in dev dev/pts proc sys; do
+    mount --bind "/$dir" "$UNION/$dir"
 done
 
-chmod ugo+rwx "$UNION/tmp"
-
-for DIR in dev dev/pts proc sys; do
-    mount --bind "/$DIR" "$UNION/$DIR"
-done
-
-if [ "$DIRECTORY" ]; then
-    cd "$DIRECTORY" && cp --parents -afr * "$UNION/"
-    cd -
+if [[ -n $DIRECTORY ]]; then
+    if [[ $JSON_OUTPUT == true ]]; then
+        machine_phase seed
+        run_convert_engine copy-tree "$DIRECTORY" "$UNION" "${PKEXEC_UID:-}" || {
+            echo "Cannot copy the seed directory as the invoking user." >&2
+            exit 1
+        }
+    else
+        cp -a "$DIRECTORY"/. "$UNION/"
+    fi
 fi
 
-if [ -f "$INSTALL_SCRIPT" ]; then
-    cp "$INSTALL_SCRIPT" "$UNION/install"
-    chmod ugo+x "$UNION/install"
+if [[ -e $CHANGES/etc/resolv.conf || -L $CHANGES/etc/resolv.conf ]]; then
+    RESOLV_BACKUP=$TMP/resolv.conf.backup
+    cp -a -- "$CHANGES/etc/resolv.conf" "$RESOLV_BACKUP"
+    RESOLV_HAD_UPPER=true
 fi
-if [ -L "$UNION/etc/resolv.conf" ]; then
-    rm "$UNION/etc/resolv.conf"
-    echo "nameserver 8.8.8.8" >"$UNION/etc/resolv.conf"
-    RESOLVCONFLNK="true"
+mkdir -p -- "$UNION/etc"
+rm -f -- "$UNION/etc/resolv.conf"
+cp -L -- /etc/resolv.conf "$UNION/etc/resolv.conf"
+
+INSTALL_PATH="/tmp/.script2sb-install.$$"
+run_convert_engine copy-input \
+    "$INSTALL_SCRIPT" "$UNION$INSTALL_PATH" "${PKEXEC_UID:-}" || {
+    echo "Cannot copy the installation script as the invoking user." >&2
+    exit 1
+}
+chmod 0755 "$UNION$INSTALL_PATH"
+
+machine_phase script
+if ! run_visible "$CHROOT_BIN" "$UNION" "$INSTALL_PATH"; then
+    FAILED=true
 else
-    mount --bind "/etc/resolv.conf" "$UNION/etc/resolv.conf"
+    FAILED=false
 fi
 
-if ! "$CHROOT_BIN" "$UNION" /install; then
-    FAILED="true"
-else
-    FAILED="false"
+if ! detach_chroot_mounts; then
+    echo "Failed to unmount one or more chroot filesystems; no module was created." >&2
+    exit 1
 fi
 
-if [ "$RESOLVCONFLNK" = "true" ]; then
-    rm -f "$CHANGES/etc/resolv.conf"
-else
-    safe_umount "$UNION/etc/resolv.conf"
-fi
-safe_umount "$UNION/sys"
-safe_umount "$UNION/proc"
-safe_umount "$UNION/dev/pts"
-safe_umount "$UNION/dev"
-if [ -f "$CHANGES/install" ]; then
-    rm "$CHANGES/install"
-fi
+restore_resolv_conf
+rm -f -- "$CHANGES$INSTALL_PATH" 2>/dev/null || true
+rmdir "$CHANGES/tmp" 2>/dev/null || true
 rmdir "$CHANGES"/* 2>/dev/null || true
 
-if [ "$FAILED" != "true" ]; then
-    if [ ! "$FILENAME" ]; then
-        if [ -n "$FILTER_LEVEL" ]; then
-            PREFIX="$(printf "%02d" $((10#$FILTER_LEVEL + 1)))-"
+if [[ $FAILED != true ]]; then
+    if [[ -z $FILENAME ]]; then
+        if [[ -n $FILTER_LEVEL ]]; then
+            PREFIX="$(printf '%02d' "$((10#$FILTER_LEVEL + 1))")-"
         else
             PREFIX=""
         fi
-        if [ "$INSTALL_SCRIPT" ]; then
-            FILENAME="$PREFIX$(basename "${INSTALL_SCRIPT%.*}")".$BEXT
-        else
-            FILENAME="$PREFIX$(date +%Y%m%d-%H%M)".$BEXT
-        fi
+        FILENAME="$PREFIX$(basename "${INSTALL_SCRIPT%.*}").$BEXT"
     fi
 
-    echo "Saving changes made by installation script into a module "$FILENAME"..."
-    savechanges "$FILENAME" "$CHANGES" -c "$COMP_TYPE"
+    message "Saving changes made by installation script into a module $FILENAME..."
+    machine_phase capture
+    if [[ $JSON_OUTPUT == true ]]; then
+        if ! savechanges --json --mounted-root "$UNION" \
+                "$FILENAME" "$CHANGES" -c "$COMP_TYPE" >"$SAVECHANGES_JSON"; then
+            echo "Module capture failed; no script2sb result was published." >&2
+            exit 1
+        fi
+        if ! SCRIPT_RESULT=$(run_protocol script2sb-result "$COMP_TYPE" \
+                "$([[ -n $DIRECTORY ]] && printf 1 || printf 0)" "$SAVECHANGES_JSON"); then
+            echo "Cannot construct script2sb result from savechanges output." >&2
+            exit 1
+        fi
+        if ! safe_umount "$UNION"; then
+            echo "Cannot unmount the script2sb build union; no result was published." >&2
+            exit 1
+        fi
+        UNION=""
+        if has_mounts_under "$TMP" || ! rm -rf -- "$TMP"; then
+            echo "Cannot clean the script2sb workspace; no result was published." >&2
+            exit 1
+        fi
+        TMP=""
+        machine_phase complete
+        printf '%s\n' "$SCRIPT_RESULT"
+    else
+        savechanges --mounted-root "$UNION" "$FILENAME" "$CHANGES" -c "$COMP_TYPE"
+    fi
+else
+    echo "Installation script failed; no module was created." >&2
+    exit 1
 fi

@@ -12,38 +12,37 @@ case "${1-}" in
     ;;
 esac
 
-# Check if this is a help/version request before loading config
-if [ "$1" != "help" ] && [ "$1" != "version" ]; then
-    . /etc/live/config.conf
-fi
-
 VERSION="1.0.3"
 # Force classic mount(2) syscall to work around an overlayfs bug in util-linux >= 2.39.0
 export LIBMOUNT_FORCE_MOUNT2="always"
 export TEXTDOMAIN="minios-tools"
 
-# Detect initramfs type and set paths
+# MiniOS uses /run/initramfs/memory for both LiveKit and Dracut. Keep the
+# Debian live-boot layout as a compatibility fallback.
+LIVE=""
 if [ -d "/run/initramfs/memory/bundles" ]; then
-    # livekit initramfs
     LIVE="/run/initramfs/memory"
 elif [ -d "/lib/live/mount/bundles" ]; then
-    # dracut initramfs
     LIVE="/lib/live/mount"
 fi
 
-BUNDLES="$LIVE/bundles"
-CHANGES="$LIVE/changes"
-RAMSTORE="$LIVE/modules"
+BUNDLES="${LIVE:+$LIVE/bundles}"
+CHANGES="${LIVE:+$LIVE/changes}"
+RAMSTORE="${LIVE:+$LIVE/modules}"
 
 help() {
-    echo "$(gettext "Usage"): $(basename $0) [COMMAND]... [FILE|DIRECTORY]..."
+    echo "$(gettext "Usage"): $(basename "$0") [COMMAND]... [FILE|DIRECTORY]..."
     echo "$(gettext "Manage MiniOS bundles.")"
     echo "$(gettext "To run some of the commands in this script, your Linux kernel must support AUFS.")"
     echo ""
     echo "$(gettext "Commands"):"
     echo "  activate BUNDLE       $(gettext "Activate a MiniOS bundle")"
     echo "  deactivate BUNDLE     $(gettext "Deactivate an active MiniOS bundle")"
-    echo "  list                  $(gettext "List active MiniOS bundles")"
+    echo "  list [--json]         $(gettext "List active MiniOS bundles")"
+    echo "  next-boot [--json]    $(gettext "List modules selected for the next boot")"
+    echo "  next-boot add FILE    $(gettext "Add a module to the next boot")"
+    echo "  next-boot remove NAME $(gettext "Remove a user module from the next boot")"
+    echo "  inspect FILE [--json] $(gettext "Inspect a SquashFS module without extracting it")"
     echo "  savechanges           $(gettext "Save changes made at runtime to the bundle")"
     echo ""
     echo "  rm DIR                $(gettext "Refuse unsafe removal of an unpacked bundle directory")"
@@ -65,14 +64,14 @@ help() {
 }
 
 brief_help() {
-    echo "$(gettext "Usage"): $(basename $0) [COMMAND]... [FILE|DIRECTORY]..."
+    echo "$(gettext "Usage"): $(basename "$0") [COMMAND]... [FILE|DIRECTORY]..."
     echo "$(gettext "To run some of the commands in this script, your Linux kernel must support AUFS.")"
-    echo "$(gettext "Try") '$(basename $0) help' $(gettext "for more information.")"
+    echo "$(gettext "Try") '$(basename "$0") help' $(gettext "for more information.")"
     exit 1
 }
 
 version() {
-    echo "$(basename $0) $VERSION"
+    echo "$(basename "$0") $VERSION"
     exit 0
 }
 
@@ -84,76 +83,502 @@ die() {
     exit 1
 }
 
-# Print the loop-mount details of a single bundle mountpoint.
-# $1 = bundle mountpoint (e.g. $BUNDLES/00-core-amd64.sb)
-# Output: "<mountpoint>\t<backing file>" (nothing if not a squashfs mount)
-#
-print_branch_entry() {
-    local TGT="$1" LOOP
+helper_path() {
+    local NAME="$1" SCRIPT_PATH SCRIPT_DIR CANDIDATE
+    SCRIPT_PATH=$(readlink -f -- "${BASH_SOURCE[0]}" 2>/dev/null || true)
+    SCRIPT_DIR=${SCRIPT_PATH%/*}
+    for CANDIDATE in \
+        "$SCRIPT_DIR/../lib/$NAME" \
+        "$SCRIPT_DIR/../lib/minios-tools/$NAME" \
+        "/usr/lib/minios-tools/$NAME"; do
+        [ -f "$CANDIDATE" ] || continue
+        readlink -f -- "$CANDIDATE"
+        return 0
+    done
+    return 1
+}
 
-    if mountpoint -q "$TGT" 2>/dev/null; then
-        LOOP="$(fgrep " $TGT squashfs" /proc/mounts | cut -d ' ' -f 1)"
-        [ -n "$LOOP" ] || return
-        echo -n "$TGT"
-        echo -ne "\t"
-        losetup "$LOOP" | sed -r "s:.*[(]|[)].*::g"
+protocol_helper_path() {
+    helper_path minios_protocol.py
+}
+
+converter_engine_path() {
+    helper_path minios_convert_engine.py
+}
+
+run_protocol() {
+    local HELPER PYTHON
+    HELPER=$(protocol_helper_path) || die "MiniOS Tools protocol helper is unavailable."
+    PYTHON=$(command -v python3) || die "Required command not found: python3"
+    "$PYTHON" -I "$HELPER" "$@"
+}
+
+run_convert_engine() {
+    local ENGINE PYTHON
+    ENGINE=$(converter_engine_path) || die "MiniOS Tools filesystem engine is unavailable."
+    PYTHON=$(command -v python3) || die "Required command not found: python3"
+    "$PYTHON" -I "$ENGINE" "$@"
+}
+
+require_bundle_layout() {
+    if [ -z "$LIVE" ] || [ ! -d "$BUNDLES" ]; then
+        die "This command requires a supported MiniOS live session."
     fi
 }
 
-# List active MiniOS bundles as "<mountpoint>\t<backing file>" lines, ordered
-# from the lowest-priority branch to the highest. Works with both AUFS unions
-# (branches are read from /sys/fs/aufs) and OverlayFS unions (branches are read
-# from the root overlay's lowerdir list).
-#
+require_live_layout() {
+    require_bundle_layout
+    [ -d "$CHANGES" ] || die "This command requires a supported MiniOS live session."
+}
+
+root_union_type() {
+    local FSTYPE
+    FSTYPE=$(findmnt -rn --mountpoint / -o FSTYPE 2>/dev/null | head -n 1)
+    case "$FSTYPE" in
+    aufs) printf '%s\n' aufs ;;
+    overlay | overlayfs) printf '%s\n' overlayfs ;;
+    *) printf '%s\n' unknown ;;
+    esac
+}
+
+backing_file_for_loop() {
+    local LOOP="$1" LOOPFILE LOOPNAME SYSFS
+    LOOPFILE=$(losetup --list --noheadings --raw --output BACK-FILE -- "$LOOP" 2>/dev/null | head -n 1)
+    if [ -n "$LOOPFILE" ]; then
+        printf '%s\n' "$LOOPFILE"
+        return 0
+    fi
+    LOOPNAME=${LOOP##*/}
+    SYSFS="/sys/class/block/$LOOPNAME/loop/backing_file"
+    if [ -r "$SYSFS" ]; then
+        IFS= read -r LOOPFILE <"$SYSFS" || true
+        [ -n "$LOOPFILE" ] && printf '%s\n' "$LOOPFILE"
+    fi
+}
+
+print_branch_entry() {
+    local TGT="$1" FORMAT="${2:-text}" LOOP LOOPFILE
+    LOOP=$(findmnt -rn --mountpoint "$TGT" -t squashfs -o SOURCE 2>/dev/null || true)
+    [ -n "$LOOP" ] || return 1
+    LOOPFILE=$(backing_file_for_loop "$LOOP" || true)
+    if [ "$FORMAT" = "nul" ]; then
+        printf '%s\0%s\0' "$TGT" "$LOOPFILE"
+    else
+        printf '%s\t%s\n' "$TGT" "$LOOPFILE"
+    fi
+}
+
 print_branches() {
-    local SI BUNDLE LOOP CWD OPTS LOWER BAS
+    local FORMAT="${1:-text}" ROOT SI OPTS LOWER BUNDLE BAS RECORD BRANCH_PATH TARGET
+    local -a AUFS_BUNDLES=()
+    local INDEX BRANCH_COUNT=0
 
-    # AUFS union: enumerate branches through /sys/fs/aufs.
-    if [ -d /sys/fs/aufs ] && grep -q 'aufs / aufs' /proc/mounts; then
-        SI="/sys/fs/aufs/$(cat /proc/mounts | grep 'aufs / aufs' | egrep -o 'si=([^,) ]+)' | tr = _)"
-        if [ -d "$SI" ]; then
-            CWD="$(pwd)"
-            cd "$SI"
-            ls -v1 | grep -v xi_path | egrep 'br[0-9]+' | xargs cat | grep memory/bundles | rev | cut -b 4- | rev | while read BUNDLE; do
-                if mountpoint -q "$BUNDLE"; then
-                    LOOP=$(cat /proc/mounts | fgrep " $BUNDLE squashfs" | cut -d " " -f 1)
-                    echo -n "$BUNDLE"
-                    echo -ne "\t"
-                    losetup $LOOP | sed -r "s:.*[(]|[)].*::g"
-                fi
-            done | tac
-            cd "$CWD"
-            return
-        fi
+    ROOT=$(root_union_type)
+    case "$ROOT" in
+    aufs)
+        OPTS=$(findmnt -rn --mountpoint / -o OPTIONS 2>/dev/null || true)
+        SI=$(printf '%s\n' "$OPTS" | tr ',' '\n' | sed -n 's/^si=//p' | head -n 1)
+        [ -n "$SI" ] || { echo "Cannot determine the active AUFS session." >&2; return 1; }
+        SI="/sys/fs/aufs/si_$SI"
+        [ -d "$SI" ] || { echo "Active AUFS branch information is unavailable." >&2; return 1; }
+        while IFS= read -r BUNDLE; do
+            [ -r "$BUNDLE" ] || continue
+            BRANCH_COUNT=$((BRANCH_COUNT + 1))
+            IFS= read -r RECORD <"$BUNDLE" || return 1
+            BRANCH_PATH=${RECORD%=*}
+            BAS=${BRANCH_PATH##*/}
+            # Bundle branches are identified by their actual SquashFS mount,
+            # not by a hard-coded filename extension (bext= is configurable).
+            if findmnt -rn --mountpoint "$BUNDLES/$BAS" -t squashfs -o SOURCE \
+                    >/dev/null 2>&1; then
+                AUFS_BUNDLES+=("$BRANCH_PATH")
+            fi
+        done < <(printf '%s\n' "$SI"/br[0-9]* | sort -V)
+        [ "$BRANCH_COUNT" -gt 0 ] || {
+            echo "Active AUFS branch information is unavailable." >&2
+            return 1
+        }
+        for (( INDEX=${#AUFS_BUNDLES[@]}-1; INDEX>=0; INDEX-- )); do
+            BUNDLE=${AUFS_BUNDLES[$INDEX]}
+            BAS=${BUNDLE##*/}
+            TARGET=$BUNDLE
+            mountpoint -q "$TARGET" 2>/dev/null || TARGET="$BUNDLES/$BAS"
+            print_branch_entry "$TARGET" "$FORMAT" || {
+                echo "Cannot inspect active bundle: $BAS" >&2
+                return 1
+            }
+        done
+        ;;
+    overlayfs)
+        OPTS=$(awk '$2 == "/" && $3 == "overlay" { print $4; exit }' /proc/mounts)
+        LOWER=$(printf '%s\n' "$OPTS" | tr ',' '\n' | sed -n 's/^lowerdir=//p' | head -n 1)
+        [ -n "$LOWER" ] || { echo "Active OverlayFS lower directories are unavailable." >&2; return 1; }
+        while IFS= read -r BUNDLE; do
+            [ -n "$BUNDLE" ] || continue
+            BAS=${BUNDLE##*/}
+            print_branch_entry "$BUNDLES/$BAS" "$FORMAT" || {
+                echo "Cannot inspect active bundle: $BAS" >&2
+                return 1
+            }
+        done < <(printf '%s\n' "$LOWER" | tr ':' '\n' | tac)
+        ;;
+    *)
+        echo "Unsupported MiniOS root union." >&2
+        return 1
+        ;;
+    esac
+}
+
+print_branches_json() {
+    local ROOT OUTPUT
+    ROOT=$(root_union_type)
+    case "$ROOT" in aufs | overlayfs) ;; *) die "Unsupported MiniOS root union." ;; esac
+    OUTPUT=$(mktemp "${TMPDIR:-/tmp}/sb-list-json.XXXXXX") || die "Cannot create temporary output file."
+    if ( set -o pipefail; print_branches nul | run_protocol sb-list "$ROOT" >"$OUTPUT" ); then
+        cat "$OUTPUT"
+        rm -f -- "$OUTPUT"
+        return 0
     fi
+    rm -f -- "$OUTPUT"
+    return 1
+}
 
-    # OverlayFS union: enumerate branches from the root overlay's lowerdir list.
-    OPTS="$(awk '$2 == "/" && $3 == "overlay" { print $4; exit }' /proc/mounts)"
-    if [ -n "$OPTS" ]; then
-        # The lowerdir value has no embedded commas (its dirs are ':'-separated),
-        # so splitting the options on commas isolates it cleanly.
-        LOWER="$(echo "$OPTS" | tr ',' '\n' | grep '^lowerdir=' | head -n 1 | cut -d '=' -f 2-)"
-        if [ -n "$LOWER" ]; then
-            # OverlayFS lists lowerdirs from highest to lowest priority; reverse
-            # them so the output order matches the AUFS branch listing.
-            echo "$LOWER" | tr ':' '\n' | tac | while read BUNDLE; do
-                [ -n "$BUNDLE" ] || continue
-                # The recorded lowerdir path may point at a pre-pivot location
-                # (e.g. /memory/...) that no longer exists, so resolve the bundle
-                # by name under the current $BUNDLES mountpoint directory.
-                BAS="$(basename "$BUNDLE")"
-                print_branch_entry "$BUNDLES/$BAS"
-            done
-            return
-        fi
-    fi
+boot_arg_value() {
+    local KEY="$1" TOKEN
+    for TOKEN in $(cat /proc/cmdline 2>/dev/null); do
+        case "$TOKEN" in
+        "$KEY="*) printf '%s\n' "${TOKEN#*=}"; return 0 ;;
+        esac
+    done
+    return 1
+}
 
-    # Fallback: enumerate squashfs bundles mounted directly under $BUNDLES.
-    if [ -n "$BUNDLES" ]; then
-        grep ' squashfs ' /proc/mounts | cut -d ' ' -f 2 | grep -F "$BUNDLES/" | sort | while read BUNDLE; do
-            print_branch_entry "$BUNDLE"
+bundle_extension() {
+    local EXT
+    EXT=$(boot_arg_value bext 2>/dev/null || true)
+    [ -n "$EXT" ] || EXT=sb
+    printf '%s\n' "$EXT"
+}
+
+sortmod_paths() {
+    sed -r 's,(.*/(.*)),\2:\1,' | sort -n | cut -d : -f 2-
+}
+
+normalize_boot_filter() {
+    local FILTER="$1" START END NUM
+    FILTER=${FILTER//,/|}
+    if [ -n "$FILTER" ] && printf '%s\n' "$FILTER" | grep -qE '^[0-9]+-[0-9]+$'; then
+        START=${FILTER%-*}
+        END=${FILTER#*-}
+        FILTER=""
+        while [ "$START" -le "$END" ]; do
+            NUM=$(printf '%02d' "$START")
+            FILTER="${FILTER:+$FILTER|}$NUM"
+            START=$((START + 1))
         done
     fi
+    printf '%s\n' "$FILTER"
+}
+
+module_selected() {
+    local ITEM="$1" LOAD_FILTER="$2" NOLOAD_FILTER="$3"
+    if [ -n "$LOAD_FILTER" ] && ! printf '%s\n' "$ITEM" | grep -Eq "$LOAD_FILTER"; then
+        return 1
+    fi
+    if [ -n "$NOLOAD_FILTER" ] && printf '%s\n' "$ITEM" | grep -Eq "$NOLOAD_FILTER"; then
+        return 1
+    fi
+    return 0
+}
+
+module_name_matches() {
+    printf '%s\n' "$1" | grep -q '[.]'"$2"'$'
+}
+
+valid_minios_data_root() {
+    local ROOT="$1" EXT="$2" ITEM
+    [ -d "$ROOT" ] || return 1
+    [ -f "$ROOT/config.conf" ] || [ -d "$ROOT/boot" ] || return 1
+    while IFS= read -r ITEM; do
+        module_name_matches "$ITEM" "$EXT" && return 0
+    done < <(
+        find "$ROOT" -mindepth 1 -maxdepth 1 -type f -printf '%f\n' 2>/dev/null
+        [ ! -d "$ROOT/modules" ] || find "$ROOT/modules" -type f -printf '%P\n' 2>/dev/null
+    )
+    return 1
+}
+
+discover_data_root() {
+    local EXT FROM CANDIDATE TARGET
+    EXT=$(bundle_extension)
+
+    if [ "$LIVE" = "/run/initramfs/memory" ]; then
+        if valid_minios_data_root "$LIVE/toram" "$EXT"; then
+            printf '%s\n' "$LIVE/toram"
+            return 0
+        fi
+        if [ -r /run/initramfs/var/log/from.log ]; then
+            FROM=$(tail -n 1 /run/initramfs/var/log/from.log 2>/dev/null || true)
+            if [ -n "$FROM" ]; then
+                CANDIDATE=$(readlink -m -- "$LIVE/data/$FROM" 2>/dev/null || true)
+                case "$CANDIDATE" in
+                "$LIVE"/*)
+                    if valid_minios_data_root "$CANDIDATE" "$EXT"; then
+                        printf '%s\n' "$CANDIDATE"
+                        return 0
+                    fi
+                    ;;
+                esac
+            fi
+        fi
+        for CANDIDATE in "$LIVE/data/minios" "$LIVE/iso/minios"; do
+            if valid_minios_data_root "$CANDIDATE" "$EXT"; then
+                printf '%s\n' "$CANDIDATE"
+                return 0
+            fi
+        done
+    elif [ "$LIVE" = "/lib/live/mount" ]; then
+        CANDIDATE="$LIVE/medium/minios"
+        if valid_minios_data_root "$CANDIDATE" "$EXT"; then
+            printf '%s\n' "$CANDIDATE"
+            return 0
+        fi
+    fi
+
+    while IFS= read -r TARGET; do
+        [ -n "$TARGET" ] || continue
+        CANDIDATE="$TARGET/minios"
+        if valid_minios_data_root "$CANDIDATE" "$EXT"; then
+            printf '%s\n' "$CANDIDATE"
+            return 0
+        fi
+    done < <(findmnt -rn --raw -o TARGET 2>/dev/null)
+    return 1
+}
+
+extra_modules_root() {
+    local DATA="$1" ROOT="$1/changes/minios/modules"
+    [ -d "$ROOT" ] || return 1
+    findmnt -rn --mountpoint "$DATA/changes" >/dev/null 2>&1 || return 1
+    printf '%s\n' "$ROOT"
+}
+
+storage_path_is_durable() {
+    local PATH_TO_CHECK="$1" DEPTH="${2:-0}" FSTYPE SOURCE BACKING
+    [ "$DEPTH" -lt 8 ] || return 1
+    FSTYPE=$(findmnt -rn --target "$PATH_TO_CHECK" -o FSTYPE 2>/dev/null | head -n 1)
+    case "$FSTYPE" in
+    ext2 | ext3 | ext4 | btrfs | xfs | f2fs | reiserfs | vfat | fat | msdos | exfat | ntfs | ntfs3 | ntfs-3g | fuseblk) ;;
+    *) return 1 ;;
+    esac
+    SOURCE=$(findmnt -rn --target "$PATH_TO_CHECK" -o SOURCE 2>/dev/null | head -n 1)
+    case "$SOURCE" in
+    /dev/loop*)
+        BACKING=$(backing_file_for_loop "$SOURCE" || true)
+        [ -n "$BACKING" ] || return 1
+        storage_path_is_durable "$BACKING" $((DEPTH + 1))
+        ;;
+    /dev/zram* | /dev/ram* | /dev/nbd*) return 1 ;;
+    /dev/*) return 0 ;;
+    *) return 1 ;;
+    esac
+}
+
+storage_path_is_durable_writable() {
+    local PATH_TO_CHECK="$1" OPTIONS
+    OPTIONS=$(findmnt -rn --target "$PATH_TO_CHECK" -o OPTIONS 2>/dev/null | head -n 1)
+    case ",$OPTIONS," in *,rw,*) ;; *) return 1 ;; esac
+    storage_path_is_durable "$PATH_TO_CHECK"
+}
+
+next_boot_add_target() {
+    local DATA="$1"
+    if findmnt -rn --mountpoint "$DATA/changes" >/dev/null 2>&1 &&
+            storage_path_is_durable_writable "$DATA/changes"; then
+        printf '%s\n' "$DATA/changes/minios/modules"
+        return 0
+    fi
+    if storage_path_is_durable_writable "$DATA"; then
+        printf '%s\n' "$DATA/modules"
+        return 0
+    fi
+    return 1
+}
+
+next_boot_candidates() {
+    local DATA="$1" EXT="$2" LOAD_FILTER NOLOAD_FILTER NAME REL SOURCE EXTRA
+    local DATA_REMOVABLE=0 EXTRA_REMOVABLE=0
+    LOAD_FILTER=$(normalize_boot_filter "$(boot_arg_value load 2>/dev/null || true)")
+    NOLOAD_FILTER=$(normalize_boot_filter "$(boot_arg_value noload 2>/dev/null || true)")
+    storage_path_is_durable_writable "$DATA" && DATA_REMOVABLE=1
+    if findmnt -rn --mountpoint "$DATA/changes" >/dev/null 2>&1 &&
+            storage_path_is_durable_writable "$DATA/changes"; then
+        EXTRA_REMOVABLE=1
+    fi
+
+    while IFS= read -r NAME; do
+        SOURCE="$DATA/$NAME"
+        [ -f "$SOURCE" ] || continue
+        module_name_matches "$NAME" "$EXT" || continue
+        module_selected "$NAME" "$LOAD_FILTER" "$NOLOAD_FILTER" || continue
+        printf '%s\0%s\0%s\0' "$SOURCE" base 0
+    done < <(LC_ALL=C ls -1 "$DATA" 2>/dev/null | sort -n)
+
+    if [ -d "$DATA/modules" ]; then
+        while IFS= read -r REL; do
+            SOURCE="$DATA/$REL"
+            [ -f "$SOURCE" ] || continue
+            module_name_matches "$REL" "$EXT" || continue
+            module_selected "$REL" "$LOAD_FILTER" "$NOLOAD_FILTER" || continue
+            printf '%s\0%s\0%s\0' "$SOURCE" modules "$DATA_REMOVABLE"
+        done < <(cd "$DATA" && find modules/ 2>/dev/null | sortmod_paths)
+    fi
+
+    EXTRA=$(extra_modules_root "$DATA" 2>/dev/null || true)
+    if [ -n "$EXTRA" ]; then
+        while IFS= read -r SOURCE; do
+            [ -f "$SOURCE" ] || continue
+            module_name_matches "$SOURCE" "$EXT" || continue
+            module_selected "$SOURCE" "$LOAD_FILTER" "$NOLOAD_FILTER" || continue
+            printf '%s\0%s\0%s\0' "$SOURCE" persistence "$EXTRA_REMOVABLE"
+        done < <(find "$EXTRA" 2>/dev/null | sortmod_paths)
+    fi
+}
+
+print_next_boot() {
+    local MODE="${1:-text}" DATA EXT OUTPUT ADD_AVAILABLE=0
+    DATA=$(discover_data_root) || die "Cannot locate the MiniOS data used for boot."
+    EXT=$(bundle_extension)
+    next_boot_add_target "$DATA" >/dev/null 2>&1 && ADD_AVAILABLE=1
+    OUTPUT=$(mktemp "${TMPDIR:-/tmp}/sb-next-boot.XXXXXX") || die "Cannot create temporary output file."
+    if ( set -o pipefail; next_boot_candidates "$DATA" "$EXT" |
+            run_protocol sb-next-boot "$MODE" "$DATA" "$EXT" "$ADD_AVAILABLE" >"$OUTPUT" ); then
+        cat "$OUTPUT"
+        rm -f -- "$OUTPUT"
+        return 0
+    fi
+    rm -f -- "$OUTPUT"
+    return 1
+}
+
+
+ensure_relative_directory() {
+    run_convert_engine ensure-directory "$1" "$2"
+}
+
+secure_remove_module() {
+    run_convert_engine remove-file "$1"
+}
+
+publish_module_copy() {
+    local UNSQUASHFS
+    UNSQUASHFS=$(command -v unsquashfs) || die "Required command not found: unsquashfs"
+    run_convert_engine copy-module "$1" "$2" "$3" "$UNSQUASHFS" "${PKEXEC_UID:-}"
+}
+
+emit_next_boot_mutation_json() {
+    run_protocol sb-mutation "$1" "$2" "$3"
+}
+
+next_boot_add() {
+    local MODE="$1" INPUT="$2" DATA EXT SOURCE NAME TARGET_DIR TARGET
+    local LOAD_FILTER NOLOAD_FILTER
+    case "$INPUT" in *$'\n'* | *$'\r'*) die "Module path must not contain line breaks." ;; esac
+    DATA=$(discover_data_root) || die "Cannot locate the MiniOS data used for boot."
+    EXT=$(bundle_extension)
+    SOURCE=$(readlink -f -- "$INPUT" 2>/dev/null || true)
+    [ -n "$SOURCE" ] || die "Cannot resolve module path: $INPUT"
+    NAME=${SOURCE##*/}
+    case "$NAME" in *$'\n'* | *$'\r'*) die "Module filename must not contain line breaks." ;; esac
+    module_name_matches "$NAME" "$EXT" || die "Module filename must end with .$EXT"
+    LOAD_FILTER=$(normalize_boot_filter "$(boot_arg_value load 2>/dev/null || true)")
+    NOLOAD_FILTER=$(normalize_boot_filter "$(boot_arg_value noload 2>/dev/null || true)")
+    module_selected "$NAME" "$LOAD_FILTER" "$NOLOAD_FILTER" ||
+        die "Module is excluded by the current load/noload boot filters."
+    TARGET_DIR=$(next_boot_add_target "$DATA") ||
+        die "No durable writable MiniOS module store is available."
+    if [ "$TARGET_DIR" = "$DATA/modules" ]; then
+        ensure_relative_directory "$DATA" modules ||
+            die "Cannot create the MiniOS modules directory safely."
+    elif [ "$TARGET_DIR" = "$DATA/changes/minios/modules" ]; then
+        ensure_relative_directory "$DATA/changes" minios/modules ||
+            die "Cannot create the persistence modules directory safely."
+    else
+        die "Invalid next-boot module target."
+    fi
+    TARGET="$TARGET_DIR/$NAME"
+    publish_module_copy "$SOURCE" "$TARGET_DIR" "$NAME" || die "Cannot publish module to the next-boot store."
+    if [ "$MODE" = json ]; then
+        emit_next_boot_mutation_json next-boot-add "$NAME" "$TARGET"
+    else
+        printf 'Added to next boot: %s\n' "$TARGET"
+    fi
+}
+
+next_boot_remove() {
+    local MODE="$1" NAME="$2" DATA EXT SOURCE ORIGIN REMOVABLE
+    local CANDIDATE_SOURCE CANDIDATE_ORIGIN CANDIDATE_REMOVABLE
+    case "$NAME" in '' | */* | *$'\n'* | *$'\r'*) die "Invalid module name: $NAME" ;; esac
+    DATA=$(discover_data_root) || die "Cannot locate the MiniOS data used for boot."
+    EXT=$(bundle_extension)
+    module_name_matches "$NAME" "$EXT" || die "Module filename must end with .$EXT"
+    SOURCE=""
+    ORIGIN=""
+    REMOVABLE=0
+    while IFS= read -r -d '' CANDIDATE_SOURCE &&
+            IFS= read -r -d '' CANDIDATE_ORIGIN &&
+            IFS= read -r -d '' CANDIDATE_REMOVABLE; do
+        [ "${CANDIDATE_SOURCE##*/}" = "$NAME" ] || continue
+        SOURCE="$CANDIDATE_SOURCE"
+        ORIGIN="$CANDIDATE_ORIGIN"
+        REMOVABLE="$CANDIDATE_REMOVABLE"
+    done < <(next_boot_candidates "$DATA" "$EXT")
+    [ -n "$SOURCE" ] || die "Module is not selected for the next boot: $NAME"
+    [ "$ORIGIN" != base ] && [ "$REMOVABLE" = 1 ] ||
+        die "This module is read-only in the next-boot composition: $NAME"
+    [ -f "$SOURCE" ] || [ -L "$SOURCE" ] || die "Module source disappeared: $SOURCE"
+    secure_remove_module "$SOURCE" ||
+        die "Cannot remove module from the next-boot store: $NAME"
+    if [ "$MODE" = json ]; then
+        emit_next_boot_mutation_json next-boot-remove "$NAME" "$SOURCE"
+    else
+        printf 'Removed from next boot: %s\n' "$NAME"
+    fi
+}
+
+inspect_bundle() {
+    local MODE="$1" INPUT="$2" FILE PREFIX LISTING ERRORS OUTPUT SIZE
+    case "$INPUT" in
+    /*) FILE="$INPUT" ;;
+    *) FILE="$PWD/$INPUT" ;;
+    esac
+    [ -f "$FILE" ] && [ -r "$FILE" ] || die "Cannot read module: $INPUT"
+    PREFIX="__MINIOS_INSPECT__"
+    LISTING=$(mktemp "${TMPDIR:-/tmp}/sb-inspect-list.XXXXXX") || die "Cannot create temporary listing file."
+    ERRORS=$(mktemp "${TMPDIR:-/tmp}/sb-inspect-errors.XXXXXX") || {
+        rm -f -- "$LISTING"
+        die "Cannot create temporary error file."
+    }
+    OUTPUT=$(mktemp "${TMPDIR:-/tmp}/sb-inspect-output.XXXXXX") || {
+        rm -f -- "$LISTING" "$ERRORS"
+        die "Cannot create temporary output file."
+    }
+    if ! unsquashfs -l -d "$PREFIX" "$FILE" >"$LISTING" 2>"$ERRORS"; then
+        cat "$ERRORS" >&2
+        rm -f -- "$LISTING" "$ERRORS" "$OUTPUT"
+        return 1
+    fi
+    SIZE=$(stat -Lc '%s' -- "$FILE") || {
+        rm -f -- "$LISTING" "$ERRORS" "$OUTPUT"
+        die "Cannot stat module: $FILE"
+    }
+    if run_protocol sb-inspect "$MODE" "$FILE" "$SIZE" "$PREFIX" "$LISTING" >"$OUTPUT"; then
+        cat "$OUTPUT"
+        rm -f -- "$LISTING" "$ERRORS" "$OUTPUT"
+        return 0
+    fi
+    rm -f -- "$LISTING" "$ERRORS" "$OUTPUT"
+    return 1
 }
 
 # Activate MiniOS Bundle
@@ -162,8 +587,9 @@ print_branches() {
 activate() {
     local SB TGT BAS
 
-    SB="$(readlink -f "$1")"
-    BAS="$(basename "$SB")"
+    SB="$(readlink -f -- "$1" 2>/dev/null || true)"
+    [ -n "$SB" ] || die "file not found $1"
+    BAS="$(basename -- "$SB")"
 
     # check if file exists
     if [ ! -r "$SB" ]; then
@@ -172,17 +598,17 @@ activate() {
     fi
 
     # check if the file is part of aufs union, if yes we need to copy it outside
-    if df "$SB" | cut -d " " -f 1 | grep -q aufs; then
+    if df -- "$SB" | cut -d " " -f 1 | grep -q aufs; then
         TGT="$RAMSTORE"
         mkdir -p "$TGT"
-        if [ -r $TGT/$BAS ]; then die "File exists: $TGT/$BAS"; fi
+        if [ -r "$TGT/$BAS" ]; then die "File exists: $TGT/$BAS"; fi
         cp -n "$SB" "$TGT/$BAS"
         if [ $? -ne 0 ]; then die "Error copying file to $TGT/$BAS. Not enough free RAM or disk space?"; fi
         SB="$TGT/$BAS"
     fi
 
     # check if this particular file is already activated
-    if print_branches | cut -f 2 | fgrep -q "$SB"; then
+    if print_branches | cut -f 2 | grep -Fxq -- "$SB"; then
         exit
     fi
 
@@ -210,57 +636,62 @@ activate() {
 # $1 = path to bundle file, or its name
 #
 deactivate() {
-    local BUNDLES SB MATCH LOOP LOOPFILE
+    local SB MATCH LOOP LOOPFILE candidate backing mountpoint suffix prefix EXT
 
-    BUNDLES=$LIVE/bundles
-    MODULES=$LIVE/modules
-    SB="$(basename "$1")"
+    SB="$(basename -- "$1")"
+    EXT=$(bundle_extension)
 
-    rmdir "$BUNDLES/$SB" 2>/dev/null    # this fails unless the dir is
-    rmdir "$BUNDLES/$SB.sb" 2>/dev/null # forgotten there empty. It's safe this way
+    rmdir "$BUNDLES/$SB" 2>/dev/null || true
+    rmdir "$BUNDLES/$SB.$EXT" 2>/dev/null || true
 
     if [ ! -d "$BUNDLES/$SB" ]; then
-        # we don't have real filename match, lets try to add .sb extension
-        if [ ! -d "$BUNDLES/$SB.sb" ]; then
-            # no, still no match. Lets use some guesswork
-            SB=$(print_branches | cut -f 2 | egrep -o "/[0-9]+-$SB.sb\$" | tail -n 1 | xargs -r basename)
+        if [ -d "$BUNDLES/$SB.$EXT" ]; then
+            SB="$SB.$EXT"
         else
-            SB="$SB.sb"
+            MATCH=""
+            suffix="-$SB.$EXT"
+            while IFS=$'\t' read -r mountpoint backing; do
+                candidate=${backing##*/}
+                if [[ $candidate == *"$suffix" ]]; then
+                    prefix=${candidate:0:${#candidate}-${#suffix}}
+                    [[ $prefix =~ ^[0-9]+$ ]] && MATCH=$candidate
+                fi
+            done < <(print_branches)
+            SB=$MATCH
         fi
     fi
 
-    if [ "$SB" = "" -o ! -d "$BUNDLES/$SB" ]; then
+    if [ -z "$SB" ] || [ ! -d "$BUNDLES/$SB" ]; then
         die "Can't find active MiniOS bundle $1"
     fi
 
     echo "Attempting to deactivate MiniOS bundle $SB..."
-    mount -t aufs -o "remount,verbose,del:$BUNDLES/$SB" aufs / 2>/dev/null
-    if [ $? -ne 0 ]; then
+    if ! mount -t aufs -o "remount,verbose,del:$BUNDLES/$SB" aufs / 2>/dev/null; then
         die "Unable to deactivate MiniOS Bundle - still in use. See dmesg for more."
     fi
 
-    # remember what loop device was the bundle mounted to, it may be needed later
-    LOOP="$(cat /proc/mounts | fgrep " $BUNDLES/$SB " | cut -d " " -f 1)"
-    LOOPFILE="$(losetup "$LOOP" | cut -d " " -f 3 | sed -r 's:^.|.$::g')"
+    LOOP=$(findmnt -rn --mountpoint "$BUNDLES/$SB" -o SOURCE 2>/dev/null || true)
+    [ -n "$LOOP" ] || die "Unable to determine loop device for $BUNDLES/$SB"
+    LOOPFILE=$(backing_file_for_loop "$LOOP")
 
-    umount "$BUNDLES/$SB" 2>/dev/null
-    if [ $? -ne 0 ]; then
+    if ! umount "$BUNDLES/$SB" 2>/dev/null; then
         die "Unable to umount MiniOS bundle loop-mount $BUNDLES/$SB"
     fi
     rmdir "$BUNDLES/$SB"
 
-    # free the loop device manually since umount fails to do that if the bundle was activated on boot
-    losetup -d "$LOOP" 2>/dev/null
-
-    if echo "$LOOPFILE" | grep -q $RAMSTORE; then
-        rm -f $LOOPFILE
+    if ! losetup -d "$LOOP" 2>/dev/null && losetup "$LOOP" >/dev/null 2>&1; then
+        die "Unable to detach loop device $LOOP; backing file was preserved."
     fi
+
+    case "$LOOPFILE" in
+    "$RAMSTORE"/*) rm -f -- "$LOOPFILE" ;;
+    esac
 
     echo "MiniOS bundle deactivated: $SB"
 }
 
 fix_system() {
-    if [ "$MODULE_MODE" = "merged" ]; then
+    if [ "${MODULE_MODE:-}" = "merged" ]; then
         if [ -x "/usr/sbin/minios-update-users" ]; then
             # fix users
             /usr/sbin/minios-update-users "$BUNDLES" "$CHANGES" 2>/dev/null
@@ -277,13 +708,10 @@ fix_system() {
 }
 
 aufs_support() {
-    if cat /proc/filesystems | grep aufs >/dev/null; then
-        AUFS="true"
-    else
-        AUFS="false"
-    fi
-    if [ $AUFS = "false" ]; then
-        echo "AUFS is not supported by the $(uname -r) kernel."
+    local ROOT
+    ROOT=$(root_union_type)
+    if [ "$ROOT" != "aufs" ]; then
+        echo "Runtime module changes require an AUFS root; current root union is $ROOT." >&2
         brief_help
     fi
 }
@@ -292,38 +720,124 @@ if [[ $# -eq 0 ]]; then
     brief_help
 fi
 
-if [[ "$(id -u)" != "0" ]]; then
-    echo "This script must be run as root."
+case "$1" in
+help) help ;;
+version) version ;;
+esac
+
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+
+if [ "$1" = "list" ]; then
+    [ $# -le 2 ] || brief_help
+    [ $# -eq 1 ] || [ "$2" = "--json" ] || brief_help
+    require_bundle_layout
+    for required_command in findmnt losetup mountpoint; do
+        command -v "$required_command" >/dev/null 2>&1 || die "Required command not found: $required_command"
+    done
+    if [ "${2:-}" = "--json" ]; then
+        print_branches_json
+    else
+        print_branches
+    fi
+    exit $?
+fi
+
+if [ "$1" = "next-boot" ]; then
+    require_bundle_layout
+    for required_command in find findmnt losetup python3 readlink sort; do
+        command -v "$required_command" >/dev/null 2>&1 || die "Required command not found: $required_command"
+    done
+    if [ $# -eq 1 ]; then
+        print_next_boot text
+        exit $?
+    fi
+    if [ $# -eq 2 ] && [ "$2" = "--json" ]; then
+        print_next_boot json
+        exit $?
+    fi
+    case "${2:-}" in
+    add | remove)
+        if [[ $EUID -ne 0 ]]; then
+            echo "This command must be run as root." >&2
+            exit 1
+        fi
+        if [ -n "${PKEXEC_UID:-}" ] && [[ ! $PKEXEC_UID =~ ^[0-9]+$ ]]; then
+            die "Invalid PKEXEC_UID."
+        fi
+        if [ $# -eq 3 ]; then
+            MUTATION_MODE=text
+        elif [ $# -eq 4 ] && [ "$4" = "--json" ]; then
+            MUTATION_MODE=json
+        else
+            brief_help
+        fi
+        for required_command in unsquashfs; do
+            command -v "$required_command" >/dev/null 2>&1 || die "Required command not found: $required_command"
+        done
+        if [ "$2" = add ]; then
+            next_boot_add "$MUTATION_MODE" "$3"
+        else
+            next_boot_remove "$MUTATION_MODE" "$3"
+        fi
+        exit $?
+        ;;
+    *) brief_help ;;
+    esac
+fi
+
+if [ "$1" = "inspect" ]; then
+    if [ $# -eq 2 ]; then
+        :
+    elif [ $# -eq 3 ] && [ "$3" = "--json" ]; then
+        :
+    else
+        brief_help
+    fi
+    for required_command in mktemp python3 stat unsquashfs; do
+        command -v "$required_command" >/dev/null 2>&1 || die "Required command not found: $required_command"
+    done
+    if [ "${3:-}" = "--json" ]; then
+        inspect_bundle json "$2"
+    else
+        inspect_bundle text "$2"
+    fi
+    exit $?
+fi
+
+if [[ $EUID -ne 0 ]]; then
+    echo "This script must be run as root." >&2
     brief_help
+fi
+
+require_live_layout
+for required_command in findmnt losetup mount mountpoint umount; do
+    command -v "$required_command" >/dev/null 2>&1 || die "Required command not found: $required_command"
+done
+
+if [ -r /etc/live/config.conf ]; then
+    . /etc/live/config.conf
 fi
 
 case "$1" in
 "activate" | "deactivate")
+    [ $# -ge 2 ] || brief_help
     aufs_support
     ${1} "$2"
     fix_system
-    # reload XFCE menu
     if pgrep xfce4-panel >/dev/null; then
         killall -HUP xfce4-panel
     fi
-    ;;
-"list")
-    print_branches
     ;;
 "savechanges")
     shift
     savechanges "$@"
     ;;
-"help")
-    help
-    ;;
-"version")
-    version
-    ;;
 "conv")
     shift
+    [ $# -ge 1 ] || brief_help
     if [ ! -r "$1" ]; then
-        echo File not found "$1"
+        echo "File not found $1" >&2
         exit 1
     fi
 
@@ -334,7 +848,7 @@ case "$1" in
     fi
     ;;
 *)
-    echo "Invalid command"
+    echo "Invalid command" >&2
     brief_help
     ;;
 esac

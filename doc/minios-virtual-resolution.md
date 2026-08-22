@@ -23,11 +23,12 @@ The script detects if the system is running in a virtual machine and applies a s
 
 The script performs the following checks:
 
-1. Verifies it hasn't already run in the current session
+1. Verifies its persistent marker does not already exist
 2. Checks for the `novirtres` kernel parameter
 3. Detects if running in a virtual environment
 4. Checks if guest utilities are active
-5. If in VM without guest utilities, applies the specified resolution using `xrandr`
+5. If in a VM without guest utilities, asks `xrandr` to apply the specified mode
+   to the first connected output
 
 ## VIRTUAL ENVIRONMENTS
 
@@ -56,6 +57,9 @@ If any of these are detected and running, the script assumes guest utilities are
 
 * `~/.config/minios/virtual-resolution-configured` - Marker file to prevent multiple runs
 
+The marker is created even when `xrandr` cannot apply the mode. Remove it to
+retry. With a persistent home, it survives later logins and boots.
+
 ## EXAMPLES
 
 Set resolution to 1920x1080 via kernel parameter:
@@ -75,10 +79,11 @@ Default resolution (if no parameter specified):
 
 ## USAGE NOTES
 
-1. The script runs once per user session at desktop startup
+1. The script runs once until its marker file is removed
 2. Resolution changes only apply in virtual machines without active guest utilities
 3. It's recommended to install proper guest utilities for better integration
-4. The script requires `xrandr` to be available
+4. The script requires `xrandr`, and the first connected output must already
+   advertise the requested mode; the script does not create display modes
 
 ## SEE ALSO
 **xrandr(1)**
