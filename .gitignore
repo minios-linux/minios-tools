@@ -3,7 +3,18 @@ debian/.debhelper/
 debian/debhelper-build-stamp
 debian/files
 debian/*.substvars
+debian/*.debhelper
+debian/*.log
 debian/minios-tools/
+debian/tmp/
+
+# Top-level Debian package artifacts
+/*.build
+/*.buildinfo
+/*.changes
+/*.deb
+/*.dsc
+/*.tar.*
 
 # Man pages (generated)
 man/
@@ -13,4 +24,5 @@ po/*.mo
 
 # Python caches
 __pycache__/
+*.py[cod]
 .pytest_cache/

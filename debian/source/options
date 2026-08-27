@@ -5,3 +5,20 @@ tar-ignore=__pycache__
 tar-ignore=*.pyc
 tar-ignore=*.pyo
 tar-ignore=*.mo
+tar-ignore=man
+
+# Exclude Debian build state and package artifacts.
+tar-ignore=debian/.debhelper
+tar-ignore=debian/debhelper-build-stamp
+tar-ignore=debian/files
+tar-ignore=debian/*.substvars
+tar-ignore=debian/*.debhelper
+tar-ignore=debian/*.log
+tar-ignore=debian/minios-tools
+tar-ignore=debian/tmp
+tar-ignore=*.build
+tar-ignore=*.buildinfo
+tar-ignore=*.changes
+tar-ignore=*.deb
+tar-ignore=*.dsc
+tar-ignore=*.tar.*
