@@ -1,3 +1,9 @@
+minios-tools (1.6.1) unstable; urgency=medium
+
+  * Exclude VCS metadata and generated build/test artifacts
+
+ -- crims0n <crims0n@minios.dev>  Thu, 27 Aug 2026 12:47:50 +0300
+
 minios-tools (1.6.0) unstable; urgency=medium
 
   * Bind converter inputs to retained descriptors so path replacement cannot
