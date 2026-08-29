@@ -589,6 +589,93 @@ assert_output_contains() {
     [ "$status" -eq 0 ]
 }
 
+@test "aufs-ng branch inventory replaces unavailable AUFS sysfs" {
+    manifest="$TEST_ROOT/aufs-ng-branches"
+    printf '%s=rw\n%s=rr+wh\n%s=rr+wh\n' \
+        "$CHANGES" /lower/01-kernel.sb /lower/00-core.sb >"$manifest"
+    chmod 0600 "$manifest"
+    printf '24 1 0:1 / / rw - aufs aufs rw,si=ng\n' >"$TEST_MOUNTINFO"
+    printf '%s\n' 'BOOT_IMAGE=/minios/boot/vmlinuz union=aufs' >"$TEST_CMDLINE"
+
+    run env \
+        PATH="$STUBS:$SYSTEM_PATH" \
+        TMPDIR="$TMP_ROOT" \
+        MINIOS_TOOLS_TEST_ALLOW_NON_ROOT=1 \
+        MINIOS_TOOLS_TEST_ROOT="$TEST_ROOT" \
+        MINIOS_TOOLS_TEST_MOUNTINFO="$TEST_MOUNTINFO" \
+        MINIOS_TOOLS_TEST_CMDLINE="$TEST_CMDLINE" \
+        MINIOS_TOOLS_TEST_BOOT_ID="$TEST_BOOT_ID" \
+        MINIOS_TOOLS_TEST_AUFS_SYSFS="$TEST_AUFS_SYSFS" \
+        NO_COLOR=1 \
+        "$SAVECHANGES" --aufs-branches "$manifest" \
+        --inventory-json "$OUTPUT_DIR/aufs-ng.json" "$CHANGES"
+    [ "$status" -eq 0 ]
+    run python3 -I -c 'import json,sys; value=json.load(open(sys.argv[1])); assert value["union_backend"] == "aufs"' \
+        "$OUTPUT_DIR/aufs-ng.json"
+    [ "$status" -eq 0 ]
+}
+
+@test "AUFS branch inventory is revalidated by the capture engine" {
+    manifest="$TEST_ROOT/insecure-aufs-ng-branches"
+    printf '%s=rw\n%s=rr+wh\n' "$CHANGES" /lower/00-core.sb >"$manifest"
+    chmod 0666 "$manifest"
+    printf '24 1 0:1 / / rw - aufs aufs rw,si=ng\n' >"$TEST_MOUNTINFO"
+
+    run env \
+        PATH="$STUBS:$SYSTEM_PATH" \
+        TMPDIR="$TMP_ROOT" \
+        MINIOS_TOOLS_TEST_ALLOW_NON_ROOT=1 \
+        MINIOS_TOOLS_TEST_ROOT="$TEST_ROOT" \
+        MINIOS_TOOLS_TEST_MOUNTINFO="$TEST_MOUNTINFO" \
+        MINIOS_TOOLS_TEST_CMDLINE="$TEST_CMDLINE" \
+        MINIOS_TOOLS_TEST_BOOT_ID="$TEST_BOOT_ID" \
+        MINIOS_TOOLS_TEST_AUFS_SYSFS="$TEST_AUFS_SYSFS" \
+        NO_COLOR=1 \
+        "$SAVECHANGES" --aufs-branches "$manifest" \
+        --inventory-json "$OUTPUT_DIR/insecure-aufs-ng.json" "$CHANGES"
+
+    [ "$status" -ne 0 ]
+    [[ $output == *"insecure AUFS branch inventory"* ]]
+    [ ! -e "$OUTPUT_DIR/insecure-aufs-ng.json" ]
+}
+
+@test "AUFS branch inventory is opened after acquiring the shared lock" {
+    manifest="$TEST_ROOT/locked-aufs-ng-branches"
+    lock="$TEST_ROOT/aufs-branches.lock"
+    result="$OUTPUT_DIR/locked-aufs-ng.json"
+    log="$TEST_ROOT/locked-aufs-ng.log"
+    printf '%s=rw\n%s=rr+wh\n' /stale/changes /lower/00-core.sb >"$manifest"
+    chmod 0600 "$manifest"
+    printf '24 1 0:1 / / rw - aufs aufs rw,si=ng\n' >"$TEST_MOUNTINFO"
+    exec 9>"$lock"
+    flock -x 9
+
+    env \
+        PATH="$STUBS:$SYSTEM_PATH" \
+        TMPDIR="$TMP_ROOT" \
+        MINIOS_TOOLS_TEST_ALLOW_NON_ROOT=1 \
+        MINIOS_TOOLS_TEST_ROOT="$TEST_ROOT" \
+        MINIOS_TOOLS_TEST_MOUNTINFO="$TEST_MOUNTINFO" \
+        MINIOS_TOOLS_TEST_CMDLINE="$TEST_CMDLINE" \
+        MINIOS_TOOLS_TEST_BOOT_ID="$TEST_BOOT_ID" \
+        MINIOS_TOOLS_TEST_AUFS_SYSFS="$TEST_AUFS_SYSFS" \
+        NO_COLOR=1 \
+        "$SAVECHANGES" --aufs-branches "$manifest" --inventory-json "$result" "$CHANGES" \
+        >"$log" 2>&1 &
+    capture_pid=$!
+    sleep 0.2
+    printf '%s=rw\n%s=rr+wh\n' "$CHANGES" /lower/00-core.sb >"$manifest.new"
+    chmod 0600 "$manifest.new"
+    mv -f "$manifest.new" "$manifest"
+    flock -u 9
+    exec 9>&-
+
+    wait "$capture_pid"
+    run python3 -I -c 'import json,sys; value=json.load(open(sys.argv[1])); assert value["union_backend"] == "aufs"' \
+        "$result"
+    [ "$status" -eq 0 ]
+}
+
 @test "explicit mounted root binds a wrapper upperdir without accepting the system root" {
     mounted_root="$TEST_ROOT/wrapper union"
     mkdir -p "$mounted_root"
@@ -693,6 +780,22 @@ for current, directories, files in os.walk(root):
     opaque += "user.overlay.opaque" in names
 assert opaque == 8, opaque
 ' "$clean_state/tree"
+    [ "$status" -eq 0 ]
+}
+
+@test "aufs-ng copy-up origin xattr is discarded for exact capture" {
+    [ "$EUID" -eq 0 ] || skip 'trusted aufs-ng xattrs require root'
+    source_file="$CHANGES/etc/default/copied-up"
+    write_file "$source_file" changed
+    python3 -I -c 'import os,sys; os.setxattr(sys.argv[1], b"trusted.aufs_ng.origin", b"origin")' \
+        "$source_file" || skip 'trusted aufs-ng xattrs are unavailable'
+    state="$TEST_ROOT/aufs-ng xattr state"
+
+    SAVECHANGES_TEST_UNION=aufs run_module "$OUTPUT_DIR/aufs-ng-xattr.sb" "$state" --profile exact
+
+    [ "$status" -eq 0 ]
+    run python3 -I -c 'import os,sys; assert "trusted.aufs_ng.origin" not in os.listxattr(sys.argv[1])' \
+        "$state/tree/etc/default/copied-up"
     [ "$status" -eq 0 ]
 }
 
@@ -1301,18 +1404,18 @@ assert json.load(open(metadata_path, encoding="utf-8"))["base_module_fingerprint
     [ -s "$OUTPUT_DIR/session-snapshots.sb" ]
 }
 
-@test "base fingerprint matches post-switch-root mounted branch aliases" {
+@test "base fingerprint matches branch aliases and custom extensions" {
     write_file "$CHANGES/etc/value" value
     running_source="$TEST_ROOT/running source/minios"
-    write_file "$running_source/00-core.sb" running-core
-    mounted_backing="$TEST_ROOT/mounted backing/00-core.sb"
+    write_file "$running_source/00-core.mymod" running-core
+    mounted_backing="$TEST_ROOT/mounted backing/00-core.mymod"
     write_file "$mounted_backing" mounted-core
     metadata="$OUTPUT_DIR/aliased-binding.json"
     escaped_changes=${CHANGES// /\\040}
     escaped_backing=${mounted_backing// /\\040}
-    printf '24 1 0:1 / / rw - overlay overlay rw,lowerdir=/memory/bundles/00-core.sb,upperdir=%s,workdir=/work\n' \
+    printf '24 1 0:1 / / rw - overlay overlay rw,lowerdir=/memory/bundles/00-core.mymod,upperdir=%s,workdir=/work\n' \
         "$escaped_changes" >"$TEST_MOUNTINFO"
-    printf '25 24 0:2 / /run/initramfs/memory/bundles/00-core.sb ro - squashfs %s ro\n' \
+    printf '25 24 0:2 / /run/initramfs/memory/bundles/00-core.mymod ro - squashfs %s ro\n' \
         "$escaped_backing" >>"$TEST_MOUNTINFO"
 
     state="$TEST_ROOT/aliased binding state"
@@ -1336,7 +1439,7 @@ assert json.load(open(metadata_path, encoding="utf-8"))["base_module_fingerprint
     run python3 -c '
 import hashlib, json, os, sys
 metadata_path, module_path = sys.argv[1:]
-name = b"00-core.sb"
+name = b"00-core.mymod"
 payload = open(module_path, "rb").read()
 digest = hashlib.sha256()
 digest.update(b"minios-base-modules-v2\0")

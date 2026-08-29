@@ -369,7 +369,47 @@ def read_aufs_branches(sysfs_path, session_id):
     return upperdir, lowerdirs
 
 
-def read_root_mount(mountinfo_path, aufs_sysfs_path, mounted_root):
+def read_aufs_branch_inventory(path):
+    inherited_fd = os.environ.get("MINIOS_AUFS_BRANCH_FD")
+    try:
+        if inherited_fd is not None:
+            descriptor = os.dup(int(inherited_fd))
+        else:
+            descriptor = os.open(os.fsencode(path), os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+    except (OSError, ValueError):
+        fail("cannot open AUFS branch inventory")
+    try:
+        metadata = os.fstat(descriptor)
+        if not stat.S_ISREG(metadata.st_mode) or metadata.st_size > 1024 * 1024:
+            fail("invalid AUFS branch inventory")
+        expected_uid = os.geteuid() if TEST_MODE else 0
+        if metadata.st_uid != expected_uid or metadata.st_mode & (stat.S_IWGRP | stat.S_IWOTH):
+            fail("insecure AUFS branch inventory")
+        data = os.read(descriptor, 1024 * 1024 + 1)
+    finally:
+        os.close(descriptor)
+    if len(data) > 1024 * 1024 or not data.endswith(b"\n"):
+        fail("invalid AUFS branch inventory")
+    upperdir = None
+    lowerdirs = []
+    for line in data.splitlines():
+        if not line or b"=" not in line:
+            fail("invalid AUFS branch inventory record")
+        branch_path, branch_mode = line.rsplit(b"=", 1)
+        if not branch_path.startswith(b"/") or not branch_mode:
+            fail("invalid AUFS branch inventory record")
+        if branch_mode.startswith(b"rw"):
+            if upperdir is not None or lowerdirs:
+                fail("invalid AUFS writable branch order")
+            upperdir = branch_path
+        else:
+            lowerdirs.append(branch_path)
+    if upperdir is None or not lowerdirs:
+        fail("AUFS branch inventory is incomplete")
+    return upperdir, lowerdirs
+
+
+def read_root_mount(mountinfo_path, aufs_sysfs_path, mounted_root, aufs_branches_path):
     mounted_root = os.path.normpath(os.fsencode(mounted_root))
     try:
         with open(mountinfo_path, "rb") as stream:
@@ -410,7 +450,13 @@ def read_root_mount(mountinfo_path, aufs_sysfs_path, mounted_root):
             elif fstype == b"aufs" and option.startswith(b"si="):
                 aufs_session_id = option.split(b"=", 1)[1]
         if fstype == b"aufs" and upperdir is None and aufs_session_id:
-            upperdir, lowerdirs = read_aufs_branches(aufs_sysfs_path, aufs_session_id)
+            session_path = os.path.join(os.fsencode(aufs_sysfs_path), b"si_" + aufs_session_id)
+            if os.path.isdir(session_path):
+                upperdir, lowerdirs = read_aufs_branches(aufs_sysfs_path, aufs_session_id)
+            elif aufs_branches_path:
+                upperdir, lowerdirs = read_aufs_branch_inventory(aufs_branches_path)
+            else:
+                fail("mounted AUFS branch information is unavailable")
         return fstype, upperdir, lowerdirs
     fail("mounted capture root is absent from mountinfo")
 
@@ -432,8 +478,10 @@ def read_union_intent(cmdline_path):
     return None
 
 
-def detect_union(mountinfo_path, cmdline_path, aufs_sysfs_path, mounted_root):
-    fstype, upperdir, lowerdirs = read_root_mount(mountinfo_path, aufs_sysfs_path, mounted_root)
+def detect_union(mountinfo_path, cmdline_path, aufs_sysfs_path, mounted_root,
+                 aufs_branches_path):
+    fstype, upperdir, lowerdirs = read_root_mount(
+        mountinfo_path, aufs_sysfs_path, mounted_root, aufs_branches_path)
     intent = read_union_intent(cmdline_path)
     if fstype == b"overlay":
         backend = "overlayfs"
@@ -696,8 +744,6 @@ def running_base_fingerprint(lowerdirs, backend, mountinfo_path, test_mode,
     mounted_names = []
     for path in lowerdirs:
         name = os.path.basename(path)
-        if not name.endswith(b".sb"):
-            continue
         if name in mounted_branches:
             fail("mounted base modules have duplicate basenames")
         mounted_branches[name] = path
@@ -802,6 +848,8 @@ OVERLAY_DEPENDENCY_XATTRS = {
     "user.overlay.redirect", "user.overlay.metacopy", "user.overlay.index",
 }
 
+AUFS_NG_CONTEXT_XATTRS = {"trusted.aufs_ng.origin"}
+
 
 def list_xattrs(path, follow_symlinks=True):
     if TEST_MODE and os.environ.get("SAVECHANGES_TEST_XATTR_EPERM") == "1":
@@ -836,6 +884,9 @@ def unsafe_union_xattr(parent_fd, name):
              xattr_name.startswith("user.overlay.")) and
                 xattr_name not in OVERLAY_CONTEXT_XATTRS and
                 xattr_name not in ("trusted.overlay.opaque", "user.overlay.opaque")):
+            return "unknown"
+        if (xattr_name.startswith("trusted.aufs_ng.") and
+                xattr_name not in AUFS_NG_CONTEXT_XATTRS):
             return "unknown"
     return None
 
@@ -1289,9 +1340,14 @@ def copy_allowed_xattrs(source, destination, profile, backend, opaque, preserve_
         if name in OVERLAY_CONTEXT_XATTRS:
             STRIPPED_XATTRS += 1
             continue
+        if name in AUFS_NG_CONTEXT_XATTRS:
+            STRIPPED_XATTRS += 1
+            continue
         if name in OVERLAY_DEPENDENCY_XATTRS:
             fail("dependency-bearing union xattr cannot be replayed safely: {}".format(name))
         if name.startswith("trusted.overlay.") or name.startswith("user.overlay."):
+            fail("unknown union xattr cannot be represented safely: {}".format(name))
+        if name.startswith("trusted.aufs_ng."):
             fail("unknown union xattr cannot be represented safely: {}".format(name))
         allowed = profile in ("legacy", "exact", "selected") and (
             name.startswith("user.") or name == "security.capability" or
@@ -2064,12 +2120,13 @@ def module_size_bound(footprint):
 
 def execute(arguments):
     global JSON_MODE, TEST_MODE
-    if len(arguments) != 20:
+    if len(arguments) != 21:
         fail("invalid privileged engine invocation")
     (mode, profile, compression, output_path, changes_path, selection_path,
       metadata_path, temp_parent, owner_text, test_text, mksquashfs_path,
       unsquashfs_path, mountinfo_path, cmdline_path, boot_id_path,
-       running_source_path, cancel_path, json_text, aufs_sysfs_path, mounted_root) = arguments
+       running_source_path, cancel_path, json_text, aufs_sysfs_path, mounted_root,
+       aufs_branches_path) = arguments
     JSON_MODE = json_text == "1"
     test_mode = test_text == "1"
     TEST_MODE = test_mode
@@ -2109,7 +2166,7 @@ def execute(arguments):
     if changes_canonical == b"/":
         fail("refusing filesystem root as changes directory")
     backend, upperdir, lowerdirs = detect_union(
-        mountinfo_path, cmdline_path, aufs_sysfs_path, mounted_root)
+        mountinfo_path, cmdline_path, aufs_sysfs_path, mounted_root, aufs_branches_path)
     root_fd = unwrap_changes(root_fd, backend, upperdir)
     capture_root_path = os.path.realpath(os.readlink(
         os.fsencode("/proc/self/fd/{}".format(root_fd))))

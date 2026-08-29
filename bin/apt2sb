@@ -299,6 +299,15 @@ build_lowers() {
     LOWERS=${lowers[*]}
 }
 
+write_aufs_branch_inventory() {
+    local output=$1 upper=$2 lowers=$3
+    umask 077
+    {
+        printf '%s=rw\n' "$upper"
+        printf '%s\n' "$lowers" | tr ':' '\n'
+    } >"$output"
+}
+
 prepare_local_packages() {
     local package path destination
     local index=0
@@ -464,7 +473,11 @@ mkdir -p -- "$CHANGES" "$UNION"
 
 if aufs_is_supported; then
     mount -t aufs -o "br=$CHANGES=rw:$LOWERS" none "$UNION"
+    AUFS_BRANCHES=$TMP/aufs-branches
+    write_aufs_branch_inventory "$AUFS_BRANCHES" "$CHANGES" "$LOWERS"
+    AUFS_BRANCH_ARGS=(--aufs-branches "$AUFS_BRANCHES")
 else
+    AUFS_BRANCH_ARGS=()
     mkdir -p -- "$TMP/work"
     mount -t overlay overlay -o lowerdir="$LOWERS",upperdir="$CHANGES",workdir="$TMP/work" "$UNION"
 fi
@@ -543,7 +556,7 @@ if [[ $FAILED == false ]]; then
     message "Saving changes made by installing packages into a module $FILENAME..."
     machine_phase capture
     if [[ $JSON_OUTPUT == true ]]; then
-        if ! savechanges --json --mounted-root "$UNION" \
+        if ! savechanges --json --mounted-root "$UNION" "${AUFS_BRANCH_ARGS[@]}" \
                 "$FILENAME" "$CHANGES" -c "$COMP_TYPE" >"$SAVECHANGES_JSON"; then
             echo "Module capture failed; no apt2sb result was published." >&2
             exit 1
@@ -566,7 +579,8 @@ if [[ $FAILED == false ]]; then
         machine_phase complete
         printf '%s\n' "$APT_RESULT"
     else
-        savechanges --mounted-root "$UNION" "$FILENAME" "$CHANGES" -c "$COMP_TYPE"
+        savechanges --mounted-root "$UNION" "${AUFS_BRANCH_ARGS[@]}" \
+            "$FILENAME" "$CHANGES" -c "$COMP_TYPE"
     fi
 else
     echo "Package operation failed; no module was created." >&2

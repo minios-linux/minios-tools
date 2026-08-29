@@ -74,6 +74,99 @@ load_sb_functions() {
     [[ $output == *"Runtime module changes require an AUFS root"* ]]
 }
 
+@test "aufs-ng branch manifest replaces unavailable AUFS sysfs" {
+    load_sb_functions
+    BUNDLES="$TEST_ROOT/bundles"
+    mkdir -p "$BUNDLES/00-core.sb" "$BUNDLES/02-apps.sb"
+    AUFS_BRANCH_MANIFEST="$TEST_ROOT/aufs-branches"
+    printf '%s=rw\n%s=rr+wh\n%s=rr+wh\n' \
+        "$TEST_ROOT/changes" "$BUNDLES/02-apps.sb" "$BUNDLES/00-core.sb" \
+        >"$AUFS_BRANCH_MANIFEST"
+    root_union_type() { printf '%s\n' aufs; }
+    findmnt() {
+        case "$*" in
+        *'-o OPTIONS'*) printf '%s\n' rw,si=ng ;;
+        *) return 0 ;;
+        esac
+    }
+    print_branch_entry() { printf '%s\n' "$1"; }
+
+    run print_branches
+    [ "$status" -eq 0 ]
+    [ "${lines[0]}" = "$BUNDLES/00-core.sb" ]
+    [ "${lines[1]}" = "$BUNDLES/02-apps.sb" ]
+}
+
+@test "aufs-ng branch manifest tracks dynamic add and remove" {
+    load_sb_functions
+    AUFS_BRANCH_MANIFEST="$TEST_ROOT/aufs-branches"
+    printf '%s\n%s\n' "$TEST_ROOT/changes=rw" "$TEST_ROOT/00-core.sb=rr+wh" \
+        >"$AUFS_BRANCH_MANIFEST"
+
+    aufs_manifest_add "$TEST_ROOT/05-extra.sb"
+    [ "$(sed -n '2p' "$AUFS_BRANCH_MANIFEST")" = "$TEST_ROOT/05-extra.sb=rr+wh" ]
+    aufs_manifest_remove "$TEST_ROOT/05-extra.sb"
+    ! grep -Fq 05-extra "$AUFS_BRANCH_MANIFEST"
+}
+
+@test "aufs-ng manifest matches boot-time branch aliases" {
+    load_sb_functions
+    AUFS_BRANCH_MANIFEST="$TEST_ROOT/aufs-branches"
+    printf '%s\n%s\n' '/memory/changes=rw' '/memory/bundles/05-extra.sb=rr+wh' \
+        >"$AUFS_BRANCH_MANIFEST"
+
+    aufs_manifest_remove '/run/initramfs/memory/bundles/05-extra.sb'
+
+    [ "$(wc -l <"$AUFS_BRANCH_MANIFEST")" -eq 1 ]
+    ! grep -Fq 05-extra "$AUFS_BRANCH_MANIFEST"
+}
+
+@test "aufs-ng branch manifest serializes concurrent additions" {
+    load_sb_functions
+    source_file="$TEST_ROOT/sb-functions"
+    manifest="$TEST_ROOT/concurrent-aufs-branches"
+    printf '%s\n%s\n' "$TEST_ROOT/changes=rw" "$TEST_ROOT/00-core.sb=rr+wh" >"$manifest"
+
+    pids=()
+    for index in $(seq 1 12); do
+        MINIOS_AUFS_BRANCH_MANIFEST="$manifest" bash -c \
+            '. "$1"; aufs_manifest_add "$2"' _ "$source_file" "$TEST_ROOT/$index-extra.sb" &
+        pids+=("$!")
+    done
+    for pid in "${pids[@]}"; do
+        wait "$pid"
+    done
+
+    [ "$(wc -l <"$manifest")" -eq 14 ]
+    for index in $(seq 1 12); do
+        grep -Fqx "$TEST_ROOT/$index-extra.sb=rr+wh" "$manifest"
+    done
+}
+
+@test "failed aufs-ng inventory update rolls back activation" {
+    load_sb_functions
+    LIVE="$TEST_ROOT/live"
+    BUNDLES="$LIVE/bundles"
+    RAMSTORE="$LIVE/modules"
+    AUFS_BRANCH_MANIFEST="$TEST_ROOT/missing-aufs-branches"
+    module="$TEST_ROOT/05-extra.sb"
+    log="$TEST_ROOT/mount.log"
+    mkdir -p "$BUNDLES"
+    : >"$module"
+    df() { printf '%s\n' '/dev/test 1 1 1 1% /'; }
+    print_branches() { return 0; }
+    mount() { printf '%s\n' "$*" >>"$log"; return 0; }
+    umount() { return 0; }
+    aufs_sysfs_available() { return 1; }
+
+    run activate "$module"
+
+    [ "$status" -ne 0 ]
+    [[ $output == *"Cannot update AUFS branch inventory"* ]]
+    grep -Fq "remount,del:$BUNDLES/05-extra.sb" "$log"
+    [ ! -d "$BUNDLES/05-extra.sb" ]
+}
+
 @test "bundle matching follows bext instead of assuming sb" {
     load_sb_functions
 

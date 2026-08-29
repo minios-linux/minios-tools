@@ -230,6 +230,15 @@ build_lowers() {
     LOWERS=${lowers[*]}
 }
 
+write_aufs_branch_inventory() {
+    local output=$1 upper=$2 lowers=$3
+    umask 077
+    {
+        printf '%s=rw\n' "$upper"
+        printf '%s\n' "$lowers" | tr ':' '\n'
+    } >"$output"
+}
+
 helper_path() {
     local NAME="$1" SCRIPT_PATH SCRIPT_DIR CANDIDATE
     SCRIPT_PATH=$(realpath -m -- "${BASH_SOURCE[0]}" 2>/dev/null || true)
@@ -594,6 +603,7 @@ prepare_lifecycle_session() {
     mkdir -p -- "$CHANGES" "$UNION"
     if aufs_is_supported; then
         mount -t aufs -o "br=$CHANGES=rw:$LOWERS" none "$UNION"
+        write_aufs_branch_inventory "$TMP/aufs-branches" "$CHANGES" "$LOWERS"
     else
         mkdir -p -- "$TMP/work"
         mount -t overlay -o "lowerdir=$LOWERS,upperdir=$CHANGES,workdir=$TMP/work" overlay "$UNION"
@@ -687,7 +697,9 @@ finish_lifecycle_session() {
         else
             rm -f -- "$SAVE_JSON"
             [[ $JSON == false ]] || run_protocol phase capture
-            if ! savechanges --json --mounted-root "$UNION" \
+            AUFS_BRANCH_ARGS=()
+            [[ ! -f $TMP/aufs-branches ]] || AUFS_BRANCH_ARGS=(--aufs-branches "$TMP/aufs-branches")
+            if ! savechanges --json --mounted-root "$UNION" "${AUFS_BRANCH_ARGS[@]}" \
                     "$FILENAME" "$CHANGES" -c "$COMP_TYPE" >"$SAVE_JSON"; then
                 echo "Module capture failed; chroot session was preserved." >&2
                 return 1
@@ -856,7 +868,10 @@ mkdir -p -- "$CHANGES" "$UNION"
 
 if aufs_is_supported; then
     mount -t aufs -o "br=$CHANGES=rw:$LOWERS" none "$UNION"
+    write_aufs_branch_inventory "$TMP/aufs-branches" "$CHANGES" "$LOWERS"
+    AUFS_BRANCH_ARGS=(--aufs-branches "$TMP/aufs-branches")
 else
+    AUFS_BRANCH_ARGS=()
     mkdir -p -- "$TMP/work"
     mount -t overlay -o "lowerdir=$LOWERS,upperdir=$CHANGES,workdir=$TMP/work" overlay "$UNION"
 fi
@@ -911,7 +926,8 @@ if [[ $FAILED != true ]]; then
     fi
 
     echo "Saving changes made in the chroot into a module $FILENAME..."
-    savechanges --mounted-root "$UNION" "$FILENAME" "$CHANGES" -c "$COMP_TYPE"
+    savechanges --mounted-root "$UNION" "${AUFS_BRANCH_ARGS[@]}" \
+        "$FILENAME" "$CHANGES" -c "$COMP_TYPE"
 else
     echo "Chroot command failed; no module was created." >&2
     exit 1

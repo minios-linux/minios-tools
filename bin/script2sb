@@ -281,6 +281,15 @@ build_lowers() {
     LOWERS=${lowers[*]}
 }
 
+write_aufs_branch_inventory() {
+    local output=$1 upper=$2 lowers=$3
+    umask 077
+    {
+        printf '%s=rw\n' "$upper"
+        printf '%s\n' "$lowers" | tr ':' '\n'
+    } >"$output"
+}
+
 if (( $# == 0 )); then
     brief_help
 fi
@@ -396,7 +405,11 @@ mkdir -p -- "$CHANGES" "$UNION"
 
 if aufs_is_supported; then
     mount -t aufs -o "br=$CHANGES=rw:$LOWERS" none "$UNION"
+    AUFS_BRANCHES=$TMP/aufs-branches
+    write_aufs_branch_inventory "$AUFS_BRANCHES" "$CHANGES" "$LOWERS"
+    AUFS_BRANCH_ARGS=(--aufs-branches "$AUFS_BRANCHES")
 else
+    AUFS_BRANCH_ARGS=()
     mkdir -p -- "$TMP/work"
     mount -t overlay -o lowerdir="$LOWERS",upperdir="$CHANGES",workdir="$TMP/work" overlay "$UNION"
 fi
@@ -469,7 +482,7 @@ if [[ $FAILED != true ]]; then
     message "Saving changes made by installation script into a module $FILENAME..."
     machine_phase capture
     if [[ $JSON_OUTPUT == true ]]; then
-        if ! savechanges --json --mounted-root "$UNION" \
+        if ! savechanges --json --mounted-root "$UNION" "${AUFS_BRANCH_ARGS[@]}" \
                 "$FILENAME" "$CHANGES" -c "$COMP_TYPE" >"$SAVECHANGES_JSON"; then
             echo "Module capture failed; no script2sb result was published." >&2
             exit 1
@@ -492,7 +505,8 @@ if [[ $FAILED != true ]]; then
         machine_phase complete
         printf '%s\n' "$SCRIPT_RESULT"
     else
-        savechanges --mounted-root "$UNION" "$FILENAME" "$CHANGES" -c "$COMP_TYPE"
+        savechanges --mounted-root "$UNION" "${AUFS_BRANCH_ARGS[@]}" \
+            "$FILENAME" "$CHANGES" -c "$COMP_TYPE"
     fi
 else
     echo "Installation script failed; no module was created." >&2

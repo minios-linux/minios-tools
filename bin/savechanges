@@ -28,6 +28,8 @@ WORK_PARENT_INPUT=""
 WORK_PARENT_SET=false
 MOUNTED_ROOT_INPUT="/"
 MOUNTED_ROOT_SET=false
+AUFS_BRANCHES_INPUT=""
+AUFS_BRANCHES_SET=false
 CHILD_PID=""
 TEST_MODE=false
 MOUNTINFO_PATH=/proc/self/mountinfo
@@ -54,6 +56,7 @@ help() {
     printf '                            %s\n' "$(gettext "Write a metadata inventory instead of a module")"
     printf '      --metadata-json FILE %s\n' "$(gettext "Write capture metadata beside a module")"
     printf '      --work-parent DIR    %s\n' "$(gettext "Use a validated directory for private capture staging")"
+    printf '      --aufs-branches FILE %s\n' "$(gettext "Use an explicit AUFS branch inventory when sysfs is unavailable")"
     printf '      --json               %s\n' "$(gettext "Emit pure NDJSON phase and result events")"
     printf '      --cancel-file FILE   %s\n' "$(gettext "Cancel when FILE is created in its secure parent directory")"
     printf '      --no-color           %s\n' "$(gettext "Disable colored output")"
@@ -209,6 +212,13 @@ while (( $# > 0 )); do
         shift 2
         ;;
     --mounted-root=*) MOUNTED_ROOT_SET=true; MOUNTED_ROOT_INPUT=${1#*=}; shift ;;
+    --aufs-branches)
+        require_value "$1" "$#"
+        AUFS_BRANCHES_SET=true
+        AUFS_BRANCHES_INPUT=$2
+        shift 2
+        ;;
+    --aufs-branches=*) AUFS_BRANCHES_SET=true; AUFS_BRANCHES_INPUT=${1#*=}; shift ;;
     --cancel-file)
         require_value "$1" "$#"
         CANCEL_SET=true
@@ -272,6 +282,7 @@ fi
 validate_no_line_break "$(gettext "Output path")" "$OUTPUT_INPUT"
 validate_no_line_break "$(gettext "Changes directory")" "$CHANGES_INPUT"
 validate_no_line_break "$(gettext "Mounted root")" "$MOUNTED_ROOT_INPUT"
+validate_no_line_break "$(gettext "AUFS branch inventory")" "$AUFS_BRANCHES_INPUT"
 if [[ $SELECTION_SET == true ]]; then
     validate_no_line_break "$(gettext "Selection path")" "$SELECTION_INPUT"
 fi
@@ -334,6 +345,42 @@ MOUNTED_ROOT_CANONICAL=$(/usr/bin/realpath -e -- "$MOUNTED_ROOT_PATH") ||
 [[ -d $MOUNTED_ROOT_CANONICAL && $MOUNTED_ROOT_CANONICAL == "$MOUNTED_ROOT_PATH" ]] ||
     die 1 "$(gettext "Mounted root must be a real directory without symbolic-link traversal")"
 MOUNTED_ROOT_PATH=$MOUNTED_ROOT_CANONICAL
+AUFS_BRANCHES_PATH=""
+AUFS_BRANCHES_FD=""
+if [[ $AUFS_BRANCHES_SET != true && -f /run/initramfs/minios-aufs-branches ]]; then
+    AUFS_BRANCHES_INPUT=/run/initramfs/minios-aufs-branches
+    AUFS_BRANCHES_SET=true
+fi
+if [[ $AUFS_BRANCHES_SET == true ]]; then
+    AUFS_BRANCHES_PATH=$(absolute_path "$AUFS_BRANCHES_INPUT")
+    AUFS_BRANCHES_CANONICAL=$(/usr/bin/realpath -e -- "$AUFS_BRANCHES_PATH") ||
+        die 1 "$(gettext "Invalid AUFS branch inventory")"
+    [[ -f $AUFS_BRANCHES_CANONICAL && ! -L $AUFS_BRANCHES_PATH &&
+       $AUFS_BRANCHES_CANONICAL == "$AUFS_BRANCHES_PATH" ]] ||
+        die 1 "$(gettext "AUFS branch inventory must be a regular file")"
+    if [[ $TEST_MODE == true ]]; then
+        AUFS_BRANCHES_LOCK="$MINIOS_TOOLS_TEST_ROOT/aufs-branches.lock"
+    else
+        AUFS_BRANCHES_LOCK=/run/lock/minios-aufs-branches.lock
+    fi
+    exec 8>"$AUFS_BRANCHES_LOCK" || die 1 "$(gettext "Cannot open AUFS branch inventory lock")"
+    /usr/bin/flock -s 8 || die 1 "$(gettext "Cannot lock AUFS branch inventory")"
+    AUFS_BRANCHES_CANONICAL=$(/usr/bin/realpath -e -- "$AUFS_BRANCHES_PATH") ||
+        die 1 "$(gettext "Invalid AUFS branch inventory")"
+    [[ -f $AUFS_BRANCHES_CANONICAL && ! -L $AUFS_BRANCHES_PATH &&
+       $AUFS_BRANCHES_CANONICAL == "$AUFS_BRANCHES_PATH" ]] ||
+        die 1 "$(gettext "AUFS branch inventory must be a regular file")"
+    exec 7<"$AUFS_BRANCHES_CANONICAL" || die 1 "$(gettext "Cannot open AUFS branch inventory")"
+    AUFS_BRANCHES_FD=7
+    if [[ $TEST_MODE != true ]]; then
+        read -r AUFS_BRANCHES_OWNER AUFS_BRANCHES_MODE < <(/usr/bin/stat -Lc '%u %a' -- "/proc/$$/fd/$AUFS_BRANCHES_FD") ||
+            die 1 "$(gettext "Cannot inspect AUFS branch inventory")"
+        [[ $AUFS_BRANCHES_OWNER == 0 ]] || die 1 "$(gettext "AUFS branch inventory must be root-owned")"
+        (( (8#$AUFS_BRANCHES_MODE & 0022) == 0 )) ||
+            die 1 "$(gettext "AUFS branch inventory must not be group- or world-writable")"
+    fi
+    AUFS_BRANCHES_PATH=$AUFS_BRANCHES_CANONICAL
+fi
 SELECTION_PATH=""
 METADATA_PATH=""
 CANCEL_PATH=""
@@ -466,6 +513,7 @@ declare -a ENGINE_ENV=(
     LC_ALL=C.UTF-8
     LANG=C.UTF-8
 )
+[[ -z $AUFS_BRANCHES_FD ]] || ENGINE_ENV+=("MINIOS_AUFS_BRANCH_FD=$AUFS_BRANCHES_FD")
 if [[ $TEST_MODE == true ]]; then
     for test_name in MKSQUASHFS_STATE MKSQUASHFS_FAIL MKSQUASHFS_RACE_TARGET \
         MKSQUASHFS_SLEEP MKSQUASHFS_SLEEP_MARKER MKSQUASHFS_STUBBORN \
@@ -483,4 +531,4 @@ exec "$ENV_BIN" -i "${ENGINE_ENV[@]}" "$PYTHON_BIN" -I "$SAVECHANGES_ENGINE" \
     "$([[ $TEST_MODE == true ]] && printf 1 || printf 0)" "$MKSQUASHFS_BIN" \
     "$UNSQUASHFS_BIN" "$MOUNTINFO_PATH" "$CMDLINE_PATH" "$BOOT_ID_PATH" \
     "$RUNNING_SOURCE_PATH" "$CANCEL_PATH" "$([[ $JSON_MODE == true ]] && printf 1 || printf 0)" \
-    "$AUFS_SYSFS_PATH" "$MOUNTED_ROOT_PATH"
+    "$AUFS_SYSFS_PATH" "$MOUNTED_ROOT_PATH" "$AUFS_BRANCHES_PATH"

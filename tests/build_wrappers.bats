@@ -303,3 +303,10 @@ setup() {
         "$BIN/savechanges"
     [ "$status" -eq 0 ]
 }
+
+@test "AUFS build wrappers pass explicit branch inventories to savechanges" {
+    for tool in apt2sb script2sb chroot2sb; do
+        grep -Fq -- '--aufs-branches' "$BIN/$tool"
+        grep -Fq 'write_aufs_branch_inventory' "$BIN/$tool"
+    done
+}

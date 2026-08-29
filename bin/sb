@@ -141,6 +141,90 @@ root_union_type() {
     esac
 }
 
+AUFS_BRANCH_MANIFEST=${MINIOS_AUFS_BRANCH_MANIFEST:-/run/initramfs/minios-aufs-branches}
+AUFS_MANIFEST_LOCKED=false
+
+aufs_sysfs_available() {
+    local session
+    for session in /sys/fs/aufs/si_*; do
+        [ -d "$session" ] && return 0
+    done
+    return 1
+}
+
+aufs_manifest_lock() {
+    local mode=$1 lock=/run/lock/minios-aufs-branches.lock
+    [ "$AUFS_MANIFEST_LOCKED" = false ] || return 0
+    exec 9>"$lock" || return 1
+    flock "$mode" 9 || {
+        exec 9>&-
+        return 1
+    }
+    AUFS_MANIFEST_LOCKED=true
+}
+
+aufs_branch_runtime_path() {
+    case "$1" in
+    /memory/*) printf '/run/initramfs%s\n' "$1" ;;
+    *) printf '%s\n' "$1" ;;
+    esac
+}
+
+aufs_branch_matches() {
+    [ "$(aufs_branch_runtime_path "$1")" = "$(aufs_branch_runtime_path "$2")" ]
+}
+
+aufs_manifest_add() {
+    local branch=$1 record path temporary
+    aufs_manifest_lock -x || return 1
+    if [ ! -r "$AUFS_BRANCH_MANIFEST" ]; then
+        aufs_sysfs_available
+        return
+    fi
+    temporary="${AUFS_BRANCH_MANIFEST}.tmp.$$"
+    umask 077
+    {
+        IFS= read -r record || return 1
+        printf '%s\n' "$record"
+        printf '%s=rr+wh\n' "$branch"
+        while IFS= read -r record; do
+            path=${record%=*}
+            aufs_branch_matches "$path" "$branch" || printf '%s\n' "$record"
+        done
+    } <"$AUFS_BRANCH_MANIFEST" >"$temporary" || {
+        rm -f "$temporary"
+        return 1
+    }
+    mv -f "$temporary" "$AUFS_BRANCH_MANIFEST"
+}
+
+aufs_manifest_remove() {
+    local branch=$1 record path temporary found=false
+    aufs_manifest_lock -x || return 1
+    if [ ! -r "$AUFS_BRANCH_MANIFEST" ]; then
+        aufs_sysfs_available
+        return
+    fi
+    temporary="${AUFS_BRANCH_MANIFEST}.tmp.$$"
+    umask 077
+    while IFS= read -r record; do
+        path=${record%=*}
+        if aufs_branch_matches "$path" "$branch"; then
+            found=true
+            continue
+        fi
+        printf '%s\n' "$record"
+    done <"$AUFS_BRANCH_MANIFEST" >"$temporary" || {
+        rm -f "$temporary"
+        return 1
+    }
+    [ "$found" = true ] || {
+        rm -f "$temporary"
+        return 1
+    }
+    mv -f "$temporary" "$AUFS_BRANCH_MANIFEST"
+}
+
 backing_file_for_loop() {
     local LOOP="$1" LOOPFILE LOOPNAME SYSFS
     LOOPFILE=$(losetup --list --noheadings --raw --output BACK-FILE -- "$LOOP" 2>/dev/null | head -n 1)
@@ -180,20 +264,36 @@ print_branches() {
         SI=$(printf '%s\n' "$OPTS" | tr ',' '\n' | sed -n 's/^si=//p' | head -n 1)
         [ -n "$SI" ] || { echo "Cannot determine the active AUFS session." >&2; return 1; }
         SI="/sys/fs/aufs/si_$SI"
-        [ -d "$SI" ] || { echo "Active AUFS branch information is unavailable." >&2; return 1; }
-        while IFS= read -r BUNDLE; do
-            [ -r "$BUNDLE" ] || continue
-            BRANCH_COUNT=$((BRANCH_COUNT + 1))
-            IFS= read -r RECORD <"$BUNDLE" || return 1
-            BRANCH_PATH=${RECORD%=*}
-            BAS=${BRANCH_PATH##*/}
-            # Bundle branches are identified by their actual SquashFS mount,
-            # not by a hard-coded filename extension (bext= is configurable).
-            if findmnt -rn --mountpoint "$BUNDLES/$BAS" -t squashfs -o SOURCE \
-                    >/dev/null 2>&1; then
-                AUFS_BUNDLES+=("$BRANCH_PATH")
-            fi
-        done < <(printf '%s\n' "$SI"/br[0-9]* | sort -V)
+        if [ -d "$SI" ]; then
+            while IFS= read -r BUNDLE; do
+                [ -r "$BUNDLE" ] || continue
+                BRANCH_COUNT=$((BRANCH_COUNT + 1))
+                IFS= read -r RECORD <"$BUNDLE" || return 1
+                BRANCH_PATH=${RECORD%=*}
+                BAS=${BRANCH_PATH##*/}
+                if findmnt -rn --mountpoint "$BUNDLES/$BAS" -t squashfs -o SOURCE \
+                        >/dev/null 2>&1; then
+                    AUFS_BUNDLES+=("$BRANCH_PATH")
+                fi
+            done < <(printf '%s\n' "$SI"/br[0-9]* | sort -V)
+        elif [ -r "$AUFS_BRANCH_MANIFEST" ]; then
+            aufs_manifest_lock -s || {
+                echo "Cannot lock AUFS branch inventory." >&2
+                return 1
+            }
+            while IFS= read -r RECORD; do
+                BRANCH_COUNT=$((BRANCH_COUNT + 1))
+                BRANCH_PATH=${RECORD%=*}
+                BAS=${BRANCH_PATH##*/}
+                if findmnt -rn --mountpoint "$BUNDLES/$BAS" -t squashfs -o SOURCE \
+                        >/dev/null 2>&1; then
+                    AUFS_BUNDLES+=("$BRANCH_PATH")
+                fi
+            done <"$AUFS_BRANCH_MANIFEST"
+        else
+            echo "Active AUFS branch information is unavailable." >&2
+            return 1
+        fi
         [ "$BRANCH_COUNT" -gt 0 ] || {
             echo "Active AUFS branch information is unavailable." >&2
             return 1
@@ -585,7 +685,7 @@ inspect_bundle() {
 # $1 = file to activate
 #
 activate() {
-    local SB TGT BAS
+    local SB TGT BAS COPIED=""
 
     SB="$(readlink -f -- "$1" 2>/dev/null || true)"
     [ -n "$SB" ] || die "file not found $1"
@@ -605,7 +705,10 @@ activate() {
         cp -n "$SB" "$TGT/$BAS"
         if [ $? -ne 0 ]; then die "Error copying file to $TGT/$BAS. Not enough free RAM or disk space?"; fi
         SB="$TGT/$BAS"
+        COPIED="$SB"
     fi
+
+    aufs_manifest_lock -x || die "Cannot lock AUFS branch inventory"
 
     # check if this particular file is already activated
     if print_branches | cut -f 2 | grep -Fxq -- "$SB"; then
@@ -628,6 +731,14 @@ activate() {
         rmdir "$TGT"
         die "Error attaching bundle filesystem to MiniOS"
     fi
+    if ! aufs_manifest_add "$TGT"; then
+        mount -t aufs -o "remount,del:$TGT" aufs / 2>/dev/null ||
+            die "Cannot update AUFS branch inventory or roll back bundle activation"
+        umount "$TGT" 2>/dev/null || true
+        rmdir "$TGT" 2>/dev/null || true
+        [ -z "$COPIED" ] || rm -f -- "$COPIED"
+        die "Cannot update AUFS branch inventory"
+    fi
 
     echo "MiniOS bundle activated: $BAS"
 }
@@ -637,9 +748,11 @@ activate() {
 #
 deactivate() {
     local SB MATCH LOOP LOOPFILE candidate backing mountpoint suffix prefix EXT
+    local MANIFEST_BACKUP=""
 
     SB="$(basename -- "$1")"
     EXT=$(bundle_extension)
+    aufs_manifest_lock -x || die "Cannot lock AUFS branch inventory"
 
     rmdir "$BUNDLES/$SB" 2>/dev/null || true
     rmdir "$BUNDLES/$SB.$EXT" 2>/dev/null || true
@@ -666,9 +779,23 @@ deactivate() {
     fi
 
     echo "Attempting to deactivate MiniOS bundle $SB..."
+    if [ -r "$AUFS_BRANCH_MANIFEST" ]; then
+        MANIFEST_BACKUP="${AUFS_BRANCH_MANIFEST}.rollback.$$"
+        cp -a -- "$AUFS_BRANCH_MANIFEST" "$MANIFEST_BACKUP" ||
+            die "Cannot preserve AUFS branch inventory"
+    fi
+    aufs_manifest_remove "$BUNDLES/$SB" || {
+        rm -f -- "$MANIFEST_BACKUP"
+        die "Cannot update AUFS branch inventory"
+    }
     if ! mount -t aufs -o "remount,verbose,del:$BUNDLES/$SB" aufs / 2>/dev/null; then
+        if [ -n "$MANIFEST_BACKUP" ]; then
+            mv -f -- "$MANIFEST_BACKUP" "$AUFS_BRANCH_MANIFEST" ||
+                die "Unable to deactivate bundle or restore AUFS branch inventory"
+        fi
         die "Unable to deactivate MiniOS Bundle - still in use. See dmesg for more."
     fi
+    rm -f -- "$MANIFEST_BACKUP"
 
     LOOP=$(findmnt -rn --mountpoint "$BUNDLES/$SB" -o SOURCE 2>/dev/null || true)
     [ -n "$LOOP" ] || die "Unable to determine loop device for $BUNDLES/$SB"
