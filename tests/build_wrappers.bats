@@ -47,6 +47,25 @@ setup() {
     done
 }
 
+@test "chroot wrappers make temporary resolver settings readable" {
+    local tool expected actual
+    for tool in apt2sb script2sb chroot2sb; do
+        expected=1
+        [[ $tool != chroot2sb ]] || expected=2
+        actual=$(grep -Fc 'chmod 0644 "$UNION/etc/resolv.conf"' "$BIN/$tool")
+        [ "$actual" -eq "$expected" ]
+    done
+}
+
+@test "AUFS inventory permissions do not change the wrapper umask" {
+    local tool
+    for tool in apt2sb script2sb chroot2sb; do
+        run grep -A 2 -F 'write_aufs_branch_inventory() {' "$BIN/$tool"
+        [ "$status" -eq 0 ]
+        [[ $output == *$'\n    ('* ]]
+    done
+}
+
 @test "savechanges selects the inner standard OverlayFS changes directory" {
     run grep -F '[[ -d $candidate/changes && -d $candidate/workdir ]]' "$BIN/savechanges"
     [ "$status" -eq 0 ]

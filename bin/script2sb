@@ -283,11 +283,13 @@ build_lowers() {
 
 write_aufs_branch_inventory() {
     local output=$1 upper=$2 lowers=$3
-    umask 077
-    {
-        printf '%s=rw\n' "$upper"
-        printf '%s\n' "$lowers" | tr ':' '\n'
-    } >"$output"
+    (
+        umask 077
+        {
+            printf '%s=rw\n' "$upper"
+            printf '%s\n' "$lowers" | tr ':' '\n'
+        } >"$output"
+    )
 }
 
 if (( $# == 0 )); then
@@ -443,6 +445,7 @@ fi
 mkdir -p -- "$UNION/etc"
 rm -f -- "$UNION/etc/resolv.conf"
 cp -L -- /etc/resolv.conf "$UNION/etc/resolv.conf"
+chmod 0644 "$UNION/etc/resolv.conf"
 
 INSTALL_PATH="/tmp/.script2sb-install.$$"
 run_convert_engine copy-input \

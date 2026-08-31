@@ -232,11 +232,13 @@ build_lowers() {
 
 write_aufs_branch_inventory() {
     local output=$1 upper=$2 lowers=$3
-    umask 077
-    {
-        printf '%s=rw\n' "$upper"
-        printf '%s\n' "$lowers" | tr ':' '\n'
-    } >"$output"
+    (
+        umask 077
+        {
+            printf '%s=rw\n' "$upper"
+            printf '%s\n' "$lowers" | tr ':' '\n'
+        } >"$output"
+    )
 }
 
 helper_path() {
@@ -631,6 +633,7 @@ prepare_lifecycle_session() {
     mkdir -p -- "$UNION/etc"
     rm -f -- "$UNION/etc/resolv.conf"
     cp -L -- /etc/resolv.conf "$UNION/etc/resolv.conf"
+    chmod 0644 "$UNION/etc/resolv.conf"
 
     ensure_session_root
     umask 077
@@ -897,6 +900,7 @@ fi
 mkdir -p -- "$UNION/etc"
 rm -f -- "$UNION/etc/resolv.conf"
 cp -L -- /etc/resolv.conf "$UNION/etc/resolv.conf"
+chmod 0644 "$UNION/etc/resolv.conf"
 
 echo "Entering chroot environment..."
 echo "When finished, enter 'exit' in chroot to create the module."

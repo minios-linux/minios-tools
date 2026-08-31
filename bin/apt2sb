@@ -301,11 +301,13 @@ build_lowers() {
 
 write_aufs_branch_inventory() {
     local output=$1 upper=$2 lowers=$3
-    umask 077
-    {
-        printf '%s=rw\n' "$upper"
-        printf '%s\n' "$lowers" | tr ':' '\n'
-    } >"$output"
+    (
+        umask 077
+        {
+            printf '%s=rw\n' "$upper"
+            printf '%s\n' "$lowers" | tr ':' '\n'
+        } >"$output"
+    )
 }
 
 prepare_local_packages() {
@@ -499,6 +501,7 @@ fi
 mkdir -p -- "$UNION/etc"
 rm -f -- "$UNION/etc/resolv.conf"
 cp -L -- /etc/resolv.conf "$UNION/etc/resolv.conf"
+chmod 0644 "$UNION/etc/resolv.conf"
 
 if (( ${#LOCAL_PACKAGE_SOURCES[@]} > 0 )); then
     mkdir -p -- "$UNION/tmp/apt2sb-packages"
