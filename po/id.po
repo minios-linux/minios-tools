@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.6.0\n"
 "Report-Msgid-Bugs-To: support@minios.dev\n"
-"POT-Creation-Date: 2026-08-19 00:04+0300\n"
-"PO-Revision-Date: 2026-08-12 17:17+0000\n"
+"POT-Creation-Date: 2026-09-01 01:24+0300\n"
+"PO-Revision-Date: 2026-08-31 21:18+0000\n"
 "Last-Translator: crims0n <crims0n@minios.dev>\n"
 "Language-Team: none\n"
 "Language: id\n"
@@ -17,8 +17,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: bin/apt2sb:33 bin/apt2sb:68 bin/apt2sb:71 bin/chroot2sb:38 bin/chroot2sb:66
-#: bin/chroot2sb:69 bin/dir2sb:36 bin/dir2sb:52 bin/savechanges:45
-#: bin/savechanges:67 bin/sb:34 bin/sb:67 bin/sb2dir:36 bin/sb2dir:51
+#: bin/chroot2sb:69 bin/dir2sb:36 bin/dir2sb:52 bin/savechanges:47
+#: bin/savechanges:70 bin/sb:34 bin/sb:67 bin/sb2dir:36 bin/sb2dir:51
 #: bin/script2sb:30 bin/script2sb:54 bin/script2sb:57
 msgid "Usage"
 msgstr "Penggunaan"
@@ -39,7 +39,7 @@ msgstr "Instal paket"
 msgid "Upgrade installed packages"
 msgstr "Tingkatkan paket yang terinstal"
 
-#: bin/apt2sb:40 bin/chroot2sb:47 bin/dir2sb:38 bin/savechanges:48
+#: bin/apt2sb:40 bin/chroot2sb:47 bin/dir2sb:38 bin/savechanges:50
 #: bin/sb2dir:38 bin/script2sb:33
 msgid "Options"
 msgstr "Pilihan"
@@ -64,12 +64,12 @@ msgstr "Ekstensi bundel. Default: sb"
 msgid "Emit machine-readable phase events and result"
 msgstr "Keluarkan peristiwa fase dan hasil yang dapat dibaca mesin"
 
-#: bin/apt2sb:46 bin/chroot2sb:53 bin/dir2sb:45 bin/savechanges:60 bin/sb:52
+#: bin/apt2sb:46 bin/chroot2sb:53 bin/dir2sb:45 bin/savechanges:63 bin/sb:52
 #: bin/sb2dir:44 bin/script2sb:41
 msgid "Display this help and exit"
 msgstr "Tampilkan bantuan ini dan keluar"
 
-#: bin/apt2sb:47 bin/chroot2sb:54 bin/dir2sb:46 bin/savechanges:61 bin/sb:53
+#: bin/apt2sb:47 bin/chroot2sb:54 bin/dir2sb:46 bin/savechanges:64 bin/sb:53
 #: bin/sb2dir:45 bin/script2sb:42
 msgid "Display version information and exit"
 msgstr "Tampilkan informasi versi dan keluar"
@@ -111,12 +111,12 @@ msgid "Examples"
 msgstr "Contoh"
 
 #: bin/apt2sb:69 bin/apt2sb:72 bin/chroot2sb:67 bin/chroot2sb:70 bin/dir2sb:53
-#: bin/savechanges:68 bin/sb:69 bin/sb2dir:52 bin/script2sb:55 bin/script2sb:58
+#: bin/savechanges:71 bin/sb:69 bin/sb2dir:52 bin/script2sb:55 bin/script2sb:58
 msgid "Try"
 msgstr "Coba"
 
 #: bin/apt2sb:69 bin/apt2sb:72 bin/chroot2sb:67 bin/chroot2sb:70 bin/dir2sb:53
-#: bin/savechanges:68 bin/sb:69 bin/sb2dir:52 bin/script2sb:55 bin/script2sb:58
+#: bin/savechanges:71 bin/sb:69 bin/sb2dir:52 bin/script2sb:55 bin/script2sb:58
 msgid "for more information."
 msgstr "untuk informasi lebih lanjut."
 
@@ -160,7 +160,7 @@ msgstr "Konversi pohon direktori menjadi modul .sb terkompresi."
 msgid "Compression: zstd, gzip, lzo, lz4, or xz (default: zstd)"
 msgstr "Kompresi: zstd, gzip, lzo, lz4, atau xz (default: zstd)"
 
-#: bin/dir2sb:40 bin/savechanges:50 bin/sb2dir:39
+#: bin/dir2sb:40 bin/savechanges:52 bin/sb2dir:39
 msgid "Bundle extension used in help text (default: sb)"
 msgstr "Ekstensi bundle yang digunakan pada teks bantuan (default: sb)"
 
@@ -176,7 +176,7 @@ msgstr "Izinkan device node, socket, dan FIFO (memerlukan hak akses khusus)"
 msgid "Emit phase events and a machine-readable result"
 msgstr "Keluarkan event fase dan hasil yang dapat dibaca mesin"
 
-#: bin/dir2sb:44 bin/savechanges:59 bin/sb2dir:43
+#: bin/dir2sb:44 bin/savechanges:62 bin/sb2dir:43
 msgid "Disable colored output"
 msgstr "Nonaktifkan output berwarna"
 
@@ -188,19 +188,19 @@ msgstr "Isi dari SOURCE_DIRECTORY akan menjadi root modul. Baik sumber"
 msgid "nor an existing TARGET is modified; the module is published atomically."
 msgstr "maupun TARGET yang sudah ada tidak diubah; modul dipublikasikan secara atomik."
 
-#: bin/dir2sb:86 bin/savechanges:102 bin/sb2dir:85
+#: bin/dir2sb:86 bin/savechanges:105 bin/sb2dir:85
 msgid "Option requires an argument:"
 msgstr "Opsi ini memerlukan argumen:"
 
-#: bin/dir2sb:90 bin/savechanges:110 bin/sb2dir:89
+#: bin/dir2sb:90 bin/savechanges:113 bin/sb2dir:89
 msgid "must not contain newline characters"
 msgstr "tidak boleh mengandung karakter newline"
 
-#: bin/dir2sb:195 bin/savechanges:228 bin/sb2dir:188
+#: bin/dir2sb:195 bin/savechanges:238 bin/sb2dir:188
 msgid "Unknown option:"
 msgstr "Opsi tidak dikenal:"
 
-#: bin/dir2sb:204 bin/savechanges:250
+#: bin/dir2sb:204 bin/savechanges:260
 msgid "Invalid compression type:"
 msgstr "Tipe kompresi tidak valid:"
 
@@ -292,251 +292,291 @@ msgstr "Gagal mempublikasikan modul"
 msgid "Created"
 msgstr "Berhasil dibuat"
 
-#: bin/savechanges:47
+#: bin/savechanges:49
 msgid "Capture the writable layer of a running MiniOS session."
 msgstr "Tangkap layer yang dapat ditulis dari sesi MiniOS yang sedang berjalan."
 
-#: bin/savechanges:49
+#: bin/savechanges:51
 msgid "Compression: zstd, gzip, lzo, or xz (default: zstd)"
 msgstr "Kompresi: zstd, gzip, lzo, atau xz (default: zstd)"
 
-#: bin/savechanges:51
+#: bin/savechanges:53
 msgid "Capture profile: exact, clean, or selected"
 msgstr "Profil penangkapan: exact, clean, atau selected"
 
-#: bin/savechanges:52
+#: bin/savechanges:54
 msgid "Strict JSON selection for the selected profile"
 msgstr "Seleksi JSON ketat untuk profil yang dipilih"
 
-#: bin/savechanges:54
+#: bin/savechanges:56
 msgid "Write a metadata inventory instead of a module"
 msgstr "Tulis inventaris metadata sebagai pengganti modul"
 
-#: bin/savechanges:55
+#: bin/savechanges:57
 msgid "Write capture metadata beside a module"
 msgstr "Tulis metadata penangkapan di samping modul"
 
-#: bin/savechanges:56
+#: bin/savechanges:58
 msgid "Use a validated directory for private capture staging"
 msgstr "Gunakan direktori yang telah divalidasi untuk staging penangkapan privat"
 
-#: bin/savechanges:57
+#: bin/savechanges:59
+msgid "Use an explicit AUFS branch inventory when sysfs is unavailable"
+msgstr "Gunakan inventaris cabang AUFS secara eksplisit ketika sysfs tidak tersedia"
+
+#: bin/savechanges:60
 msgid "Emit pure NDJSON phase and result events"
 msgstr "Keluarkan event fase dan hasil NDJSON murni"
 
-#: bin/savechanges:58
+#: bin/savechanges:61
 msgid "Cancel when FILE is created in its secure parent directory"
 msgstr "Batalkan jika FILE dibuat di direktori induk yang aman"
 
-#: bin/savechanges:62
+#: bin/savechanges:65
 msgid "Without --profile, the historical exclusion policy is used."
 msgstr "Tanpa --profile, kebijakan pengecualian historis akan digunakan."
 
-#: bin/savechanges:63
+#: bin/savechanges:66
 msgid "New profiles and inventories are published mode 0600."
 msgstr "Profil dan inventaris baru akan dipublikasikan dengan mode 0600."
 
-#: bin/savechanges:152
+#: bin/savechanges:155
 msgid "--json cannot be combined with --help or --version"
 msgstr "--json tidak dapat digabungkan dengan --help atau --version"
 
-#: bin/savechanges:240 bin/savechanges:243
+#: bin/savechanges:250 bin/savechanges:253
 msgid "Invalid capture profile:"
 msgstr "Profil penangkapan tidak valid:"
 
-#: bin/savechanges:245
+#: bin/savechanges:255
 msgid "The selected profile requires --selection"
 msgstr "Profil yang dipilih memerlukan --selection"
 
-#: bin/savechanges:247
+#: bin/savechanges:257
 msgid "--selection is only valid with --profile selected"
 msgstr "--selection hanya valid dengan --profile selected"
 
-#: bin/savechanges:253
+#: bin/savechanges:263
 msgid "Invalid bundle extension:"
 msgstr "Ekstensi bundle tidak valid:"
 
-#: bin/savechanges:256
+#: bin/savechanges:266
 msgid "Inventory mode accepts at most one changes directory"
 msgstr "Mode inventaris hanya menerima maksimal satu direktori changes"
 
-#: bin/savechanges:257
+#: bin/savechanges:267
 msgid "--metadata-json is not valid in inventory mode"
 msgstr "--metadata-json tidak valid pada mode inventaris"
 
-#: bin/savechanges:271
+#: bin/savechanges:281
 msgid "Invalid output filename"
 msgstr "Nama file output tidak valid"
 
-#: bin/savechanges:272
+#: bin/savechanges:282
 msgid "Output path"
 msgstr "Path output"
 
-#: bin/savechanges:273
+#: bin/savechanges:283
 msgid "Changes directory"
 msgstr "Direktori changes"
 
-#: bin/savechanges:274
+#: bin/savechanges:284
 msgid "Mounted root"
 msgstr "Root yang di-mount"
 
-#: bin/savechanges:276
+#: bin/savechanges:285
+msgid "AUFS branch inventory"
+msgstr "inventaris cabang AUFS"
+
+#: bin/savechanges:287
 msgid "Selection path"
 msgstr "Path selection"
 
-#: bin/savechanges:279
+#: bin/savechanges:290
 msgid "Invalid metadata output filename"
 msgstr "Nama file output metadata tidak valid"
 
-#: bin/savechanges:280
+#: bin/savechanges:291
 msgid "Metadata output path"
 msgstr "Path output metadata"
 
-#: bin/savechanges:283
+#: bin/savechanges:294
 msgid "Invalid cancel marker filename"
 msgstr "Nama file penanda pembatalan tidak valid"
 
-#: bin/savechanges:284
+#: bin/savechanges:295
 msgid "Cancel marker path"
 msgstr "Path penanda pembatalan"
 
-#: bin/savechanges:287
+#: bin/savechanges:298
 msgid "Invalid work parent"
 msgstr "Parent kerja tidak valid"
 
-#: bin/savechanges:288
+#: bin/savechanges:299
 msgid "Work parent"
 msgstr "Parent kerja"
 
-#: bin/savechanges:309
+#: bin/savechanges:320
 msgid "Cannot resolve script path"
 msgstr "Tidak dapat menemukan path skrip"
 
-#: bin/savechanges:317
+#: bin/savechanges:328
 msgid "This script must be run as root."
 msgstr "Skrip ini harus dijalankan sebagai root."
 
-#: bin/savechanges:319
+#: bin/savechanges:330
 msgid "Cannot detect the live writable changes directory"
 msgstr "Tidak dapat mendeteksi direktori changes yang dapat ditulis secara live"
 
-#: bin/savechanges:333
+#: bin/savechanges:344
 msgid "Invalid mounted root"
 msgstr "Root yang di-mount tidak valid"
 
-#: bin/savechanges:335
+#: bin/savechanges:346
 msgid "Mounted root must be a real directory without symbolic-link traversal"
 msgstr "Root yang di-mount harus berupa direktori nyata tanpa menelusuri tautan simbolis"
 
-#: bin/savechanges:358
+#: bin/savechanges:357 bin/savechanges:369
+msgid "Invalid AUFS branch inventory"
+msgstr "Inventaris cabang AUFS tidak valid"
+
+#: bin/savechanges:360 bin/savechanges:372
+msgid "AUFS branch inventory must be a regular file"
+msgstr "Inventaris cabang AUFS harus berupa file reguler"
+
+#: bin/savechanges:366
+msgid "Cannot open AUFS branch inventory lock"
+msgstr "Tidak dapat membuka kunci inventaris cabang AUFS"
+
+#: bin/savechanges:367
+msgid "Cannot lock AUFS branch inventory"
+msgstr "Tidak dapat mengunci inventaris cabang AUFS"
+
+#: bin/savechanges:373
+msgid "Cannot open AUFS branch inventory"
+msgstr "Tidak dapat membuka inventaris cabang AUFS"
+
+#: bin/savechanges:377
+msgid "Cannot inspect AUFS branch inventory"
+msgstr "Tidak dapat memeriksa inventaris cabang AUFS"
+
+#: bin/savechanges:378
+msgid "AUFS branch inventory must be root-owned"
+msgstr "Inventaris cabang AUFS harus dimiliki oleh root"
+
+#: bin/savechanges:380
+msgid "AUFS branch inventory must not be group- or world-writable"
+msgstr "Inventaris cabang AUFS tidak boleh dapat ditulis oleh grup atau publik"
+
+#: bin/savechanges:405
 msgid "Trusted /usr/bin/python3 is unavailable"
 msgstr "Trusted /usr/bin/python3 tidak tersedia"
 
-#: bin/savechanges:359
+#: bin/savechanges:406
 msgid "Trusted /usr/bin/env is unavailable"
 msgstr "Trusted /usr/bin/env tidak tersedia"
 
-#: bin/savechanges:362
+#: bin/savechanges:409
 msgid "Invalid test root"
 msgstr "Test root tidak valid"
 
-#: bin/savechanges:367
+#: bin/savechanges:414
 msgid "Invalid test changes directory"
 msgstr "Direktori test changes tidak valid"
 
-#: bin/savechanges:368
+#: bin/savechanges:415
 msgid "Invalid test mounted root"
 msgstr "Root uji yang di-mount tidak valid"
 
-#: bin/savechanges:371
+#: bin/savechanges:418
 msgid "Invalid test output parent"
 msgstr "Induk output test tidak valid"
 
-#: bin/savechanges:374
+#: bin/savechanges:421
 msgid "Non-root test capture is confined to MINIOS_TOOLS_TEST_ROOT"
 msgstr "Penangkapan test non-root dibatasi pada MINIOS_TOOLS_TEST_ROOT"
 
-#: bin/savechanges:377
+#: bin/savechanges:424
 msgid "Invalid test selection"
 msgstr "Seleksi test tidak valid"
 
-#: bin/savechanges:378
+#: bin/savechanges:425
 msgid "Test selection is outside the test root"
 msgstr "Seleksi test berada di luar test root"
 
-#: bin/savechanges:383
+#: bin/savechanges:430
 msgid "Invalid test metadata parent"
 msgstr "Induk metadata pengujian tidak valid"
 
-#: bin/savechanges:384
+#: bin/savechanges:431
 msgid "Test metadata output is outside the test root"
 msgstr "Output metadata pengujian berada di luar root pengujian"
 
-#: bin/savechanges:390
+#: bin/savechanges:437
 msgid "Invalid test cancel marker parent"
 msgstr "Induk penanda batal pengujian tidak valid"
 
-#: bin/savechanges:392
+#: bin/savechanges:439
 msgid "Test cancel marker is outside the test root"
 msgstr "Penanda batal pengujian berada di luar root pengujian"
 
-#: bin/savechanges:396
+#: bin/savechanges:443
 msgid "Invalid test work parent"
 msgstr "Parent kerja pengujian tidak valid"
 
-#: bin/savechanges:398
+#: bin/savechanges:445
 msgid "Test work parent is outside the test root"
 msgstr "Parent kerja pengujian berada di luar root pengujian"
 
-#: bin/savechanges:406
+#: bin/savechanges:453
 msgid "Test capture tools were not provided"
 msgstr "Alat capture pengujian tidak disediakan"
 
-#: bin/savechanges:407
+#: bin/savechanges:454
 msgid "Invalid test mksquashfs"
 msgstr "Test mksquashfs tidak valid"
 
-#: bin/savechanges:408
+#: bin/savechanges:455
 msgid "Invalid test unsquashfs"
 msgstr "Test unsquashfs tidak valid"
 
-#: bin/savechanges:410
+#: bin/savechanges:457
 msgid "Test tools are outside the test root"
 msgstr "Alat pengujian berada di luar root pengujian"
 
-#: bin/savechanges:420
+#: bin/savechanges:467
 msgid "Invalid source-test fixture"
 msgstr "Source-test fixture tidak valid"
 
-#: bin/savechanges:422
+#: bin/savechanges:469
 msgid "Cannot canonicalize source-test fixture"
 msgstr "Tidak dapat melakukan kanonisasi pada source-test fixture"
 
-#: bin/savechanges:423
+#: bin/savechanges:470
 msgid "Source-test fixture is outside the test root"
 msgstr "Source-test fixture berada di luar root pengujian"
 
-#: bin/savechanges:427
+#: bin/savechanges:474
 msgid "Invalid source-test AUFS sysfs fixture"
 msgstr "Fixture sysfs AUFS uji tidak valid"
 
-#: bin/savechanges:429
+#: bin/savechanges:476
 msgid "Source-test AUFS sysfs fixture is outside the test root"
 msgstr "Fixture sysfs AUFS uji berada di luar root uji"
 
-#: bin/savechanges:437
+#: bin/savechanges:484
 msgid "Invalid source-test running source"
 msgstr "Source-test running source tidak valid"
 
-#: bin/savechanges:439
+#: bin/savechanges:486
 msgid "Source-test running source is outside the test root"
 msgstr "Source-test running source berada di luar root pengujian"
 
-#: bin/savechanges:450
+#: bin/savechanges:497
 msgid "Invalid PKEXEC_UID"
 msgstr "PKEXEC_UID tidak valid"
 
-#: bin/savechanges:462
+#: bin/savechanges:509
 msgid "savechanges engine helper not found"
 msgstr "savechanges engine helper tidak ditemukan"
 

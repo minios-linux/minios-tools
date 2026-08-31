@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: minios-tools 1.6.0\n"
 "Report-Msgid-Bugs-To: support@minios.dev\n"
-"POT-Creation-Date: 2026-08-19 00:04+0300\n"
-"PO-Revision-Date: 2026-08-12 17:17+0000\n"
+"POT-Creation-Date: 2026-09-01 01:24+0300\n"
+"PO-Revision-Date: 2026-08-31 21:18+0000\n"
 "Last-Translator: crims0n <crims0n@minios.dev>\n"
 "Language-Team: none\n"
 "Language: it\n"
@@ -18,8 +18,8 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: bin/apt2sb:33 bin/apt2sb:68 bin/apt2sb:71 bin/chroot2sb:38 bin/chroot2sb:66
-#: bin/chroot2sb:69 bin/dir2sb:36 bin/dir2sb:52 bin/savechanges:45
-#: bin/savechanges:67 bin/sb:34 bin/sb:67 bin/sb2dir:36 bin/sb2dir:51
+#: bin/chroot2sb:69 bin/dir2sb:36 bin/dir2sb:52 bin/savechanges:47
+#: bin/savechanges:70 bin/sb:34 bin/sb:67 bin/sb2dir:36 bin/sb2dir:51
 #: bin/script2sb:30 bin/script2sb:54 bin/script2sb:57
 msgid "Usage"
 msgstr "Utilizzo"
@@ -40,7 +40,7 @@ msgstr "Installa pacchetto(i)"
 msgid "Upgrade installed packages"
 msgstr "Aggiorna pacchetti installati"
 
-#: bin/apt2sb:40 bin/chroot2sb:47 bin/dir2sb:38 bin/savechanges:48
+#: bin/apt2sb:40 bin/chroot2sb:47 bin/dir2sb:38 bin/savechanges:50
 #: bin/sb2dir:38 bin/script2sb:33
 msgid "Options"
 msgstr "Opzioni"
@@ -65,12 +65,12 @@ msgstr "Estensione del bundle. Predefinito: sb"
 msgid "Emit machine-readable phase events and result"
 msgstr "Emetti eventi di fase e risultato leggibili dalla macchina"
 
-#: bin/apt2sb:46 bin/chroot2sb:53 bin/dir2sb:45 bin/savechanges:60 bin/sb:52
+#: bin/apt2sb:46 bin/chroot2sb:53 bin/dir2sb:45 bin/savechanges:63 bin/sb:52
 #: bin/sb2dir:44 bin/script2sb:41
 msgid "Display this help and exit"
 msgstr "Mostra questa guida ed esci"
 
-#: bin/apt2sb:47 bin/chroot2sb:54 bin/dir2sb:46 bin/savechanges:61 bin/sb:53
+#: bin/apt2sb:47 bin/chroot2sb:54 bin/dir2sb:46 bin/savechanges:64 bin/sb:53
 #: bin/sb2dir:45 bin/script2sb:42
 msgid "Display version information and exit"
 msgstr "Mostra informazioni sulla versione ed esci"
@@ -112,12 +112,12 @@ msgid "Examples"
 msgstr "Esempi"
 
 #: bin/apt2sb:69 bin/apt2sb:72 bin/chroot2sb:67 bin/chroot2sb:70 bin/dir2sb:53
-#: bin/savechanges:68 bin/sb:69 bin/sb2dir:52 bin/script2sb:55 bin/script2sb:58
+#: bin/savechanges:71 bin/sb:69 bin/sb2dir:52 bin/script2sb:55 bin/script2sb:58
 msgid "Try"
 msgstr "Prova"
 
 #: bin/apt2sb:69 bin/apt2sb:72 bin/chroot2sb:67 bin/chroot2sb:70 bin/dir2sb:53
-#: bin/savechanges:68 bin/sb:69 bin/sb2dir:52 bin/script2sb:55 bin/script2sb:58
+#: bin/savechanges:71 bin/sb:69 bin/sb2dir:52 bin/script2sb:55 bin/script2sb:58
 msgid "for more information."
 msgstr "per maggiori informazioni."
 
@@ -161,7 +161,7 @@ msgstr "Converte una struttura di directory in un modulo compresso .sb."
 msgid "Compression: zstd, gzip, lzo, lz4, or xz (default: zstd)"
 msgstr "Compressione: zstd, gzip, lzo, lz4 o xz (predefinito: zstd)"
 
-#: bin/dir2sb:40 bin/savechanges:50 bin/sb2dir:39
+#: bin/dir2sb:40 bin/savechanges:52 bin/sb2dir:39
 msgid "Bundle extension used in help text (default: sb)"
 msgstr "Estensione bundle usata nel testo di aiuto (predefinito: sb)"
 
@@ -177,7 +177,7 @@ msgstr "Permetti nodi di dispositivo, socket e FIFO (richiede privilegi)"
 msgid "Emit phase events and a machine-readable result"
 msgstr "Emetti eventi di fase e un risultato leggibile dalla macchina"
 
-#: bin/dir2sb:44 bin/savechanges:59 bin/sb2dir:43
+#: bin/dir2sb:44 bin/savechanges:62 bin/sb2dir:43
 msgid "Disable colored output"
 msgstr "Disabilita output colorato"
 
@@ -189,19 +189,19 @@ msgstr "Il contenuto di SOURCE_DIRECTORY diventa la radice del modulo. Né la so
 msgid "nor an existing TARGET is modified; the module is published atomically."
 msgstr "né un TARGET esistente viene modificato; il modulo viene pubblicato in modo atomico."
 
-#: bin/dir2sb:86 bin/savechanges:102 bin/sb2dir:85
+#: bin/dir2sb:86 bin/savechanges:105 bin/sb2dir:85
 msgid "Option requires an argument:"
 msgstr "L'opzione richiede un argomento:"
 
-#: bin/dir2sb:90 bin/savechanges:110 bin/sb2dir:89
+#: bin/dir2sb:90 bin/savechanges:113 bin/sb2dir:89
 msgid "must not contain newline characters"
 msgstr "non deve contenere caratteri di nuova riga"
 
-#: bin/dir2sb:195 bin/savechanges:228 bin/sb2dir:188
+#: bin/dir2sb:195 bin/savechanges:238 bin/sb2dir:188
 msgid "Unknown option:"
 msgstr "Opzione sconosciuta:"
 
-#: bin/dir2sb:204 bin/savechanges:250
+#: bin/dir2sb:204 bin/savechanges:260
 msgid "Invalid compression type:"
 msgstr "Tipo di compressione non valido:"
 
@@ -293,251 +293,291 @@ msgstr "Pubblicazione del modulo non riuscita"
 msgid "Created"
 msgstr "Creato"
 
-#: bin/savechanges:47
+#: bin/savechanges:49
 msgid "Capture the writable layer of a running MiniOS session."
 msgstr "Acquisisci il layer scrivibile di una sessione MiniOS in esecuzione."
 
-#: bin/savechanges:49
+#: bin/savechanges:51
 msgid "Compression: zstd, gzip, lzo, or xz (default: zstd)"
 msgstr "Compressione: zstd, gzip, lzo o xz (predefinito: zstd)"
 
-#: bin/savechanges:51
+#: bin/savechanges:53
 msgid "Capture profile: exact, clean, or selected"
 msgstr "Profilo di acquisizione: exact, clean o selected"
 
-#: bin/savechanges:52
+#: bin/savechanges:54
 msgid "Strict JSON selection for the selected profile"
 msgstr "Selezione JSON rigorosa per il profilo selezionato"
 
-#: bin/savechanges:54
+#: bin/savechanges:56
 msgid "Write a metadata inventory instead of a module"
 msgstr "Scrivi un inventario dei metadati invece di un modulo"
 
-#: bin/savechanges:55
+#: bin/savechanges:57
 msgid "Write capture metadata beside a module"
 msgstr "Scrivi i metadati di acquisizione accanto a un modulo"
 
-#: bin/savechanges:56
+#: bin/savechanges:58
 msgid "Use a validated directory for private capture staging"
 msgstr "Utilizza una directory validata per la preparazione privata della cattura"
 
-#: bin/savechanges:57
+#: bin/savechanges:59
+msgid "Use an explicit AUFS branch inventory when sysfs is unavailable"
+msgstr "Utilizza un inventario dei branch AUFS esplicito quando sysfs non è disponibile"
+
+#: bin/savechanges:60
 msgid "Emit pure NDJSON phase and result events"
 msgstr "Emetti eventi di fase e risultato in puro NDJSON"
 
-#: bin/savechanges:58
+#: bin/savechanges:61
 msgid "Cancel when FILE is created in its secure parent directory"
 msgstr "Annulla quando FILE viene creato nella sua directory padre sicura"
 
-#: bin/savechanges:62
+#: bin/savechanges:65
 msgid "Without --profile, the historical exclusion policy is used."
 msgstr "Senza --profile, viene utilizzata la policy di esclusione storica."
 
-#: bin/savechanges:63
+#: bin/savechanges:66
 msgid "New profiles and inventories are published mode 0600."
 msgstr "I nuovi profili e inventari sono pubblicati con modalità 0600."
 
-#: bin/savechanges:152
+#: bin/savechanges:155
 msgid "--json cannot be combined with --help or --version"
 msgstr "--json non può essere combinato con --help o --version"
 
-#: bin/savechanges:240 bin/savechanges:243
+#: bin/savechanges:250 bin/savechanges:253
 msgid "Invalid capture profile:"
 msgstr "Profilo di acquisizione non valido:"
 
-#: bin/savechanges:245
+#: bin/savechanges:255
 msgid "The selected profile requires --selection"
 msgstr "Il profilo selezionato richiede --selection"
 
-#: bin/savechanges:247
+#: bin/savechanges:257
 msgid "--selection is only valid with --profile selected"
 msgstr "--selection è valido solo con --profile selected"
 
-#: bin/savechanges:253
+#: bin/savechanges:263
 msgid "Invalid bundle extension:"
 msgstr "Estensione bundle non valida:"
 
-#: bin/savechanges:256
+#: bin/savechanges:266
 msgid "Inventory mode accepts at most one changes directory"
 msgstr "La modalità inventario accetta al massimo una directory delle modifiche"
 
-#: bin/savechanges:257
+#: bin/savechanges:267
 msgid "--metadata-json is not valid in inventory mode"
 msgstr "--metadata-json non è valido in modalità inventario"
 
-#: bin/savechanges:271
+#: bin/savechanges:281
 msgid "Invalid output filename"
 msgstr "Nome file di output non valido"
 
-#: bin/savechanges:272
+#: bin/savechanges:282
 msgid "Output path"
 msgstr "Percorso di output"
 
-#: bin/savechanges:273
+#: bin/savechanges:283
 msgid "Changes directory"
 msgstr "Directory delle modifiche"
 
-#: bin/savechanges:274
+#: bin/savechanges:284
 msgid "Mounted root"
 msgstr "Root montata"
 
-#: bin/savechanges:276
+#: bin/savechanges:285
+msgid "AUFS branch inventory"
+msgstr "inventario dei branch AUFS"
+
+#: bin/savechanges:287
 msgid "Selection path"
 msgstr "Percorso di selezione"
 
-#: bin/savechanges:279
+#: bin/savechanges:290
 msgid "Invalid metadata output filename"
 msgstr "Nome file di output dei metadati non valido"
 
-#: bin/savechanges:280
+#: bin/savechanges:291
 msgid "Metadata output path"
 msgstr "Percorso di output dei metadati"
 
-#: bin/savechanges:283
+#: bin/savechanges:294
 msgid "Invalid cancel marker filename"
 msgstr "Nome file del marker di annullamento non valido"
 
-#: bin/savechanges:284
+#: bin/savechanges:295
 msgid "Cancel marker path"
 msgstr "Percorso del marker di annullamento"
 
-#: bin/savechanges:287
+#: bin/savechanges:298
 msgid "Invalid work parent"
 msgstr "Parent di lavoro non valido"
 
-#: bin/savechanges:288
+#: bin/savechanges:299
 msgid "Work parent"
 msgstr "Parent di lavoro"
 
-#: bin/savechanges:309
+#: bin/savechanges:320
 msgid "Cannot resolve script path"
 msgstr "Impossibile risolvere il percorso dello script"
 
-#: bin/savechanges:317
+#: bin/savechanges:328
 msgid "This script must be run as root."
 msgstr "Questo script deve essere eseguito come root."
 
-#: bin/savechanges:319
+#: bin/savechanges:330
 msgid "Cannot detect the live writable changes directory"
 msgstr "Impossibile rilevare la directory delle modifiche scrivibile live"
 
-#: bin/savechanges:333
+#: bin/savechanges:344
 msgid "Invalid mounted root"
 msgstr "Root montata non valida"
 
-#: bin/savechanges:335
+#: bin/savechanges:346
 msgid "Mounted root must be a real directory without symbolic-link traversal"
 msgstr "La root montata deve essere una directory reale senza attraversare collegamenti simbolici"
 
-#: bin/savechanges:358
+#: bin/savechanges:357 bin/savechanges:369
+msgid "Invalid AUFS branch inventory"
+msgstr "Inventario dei branch AUFS non valido"
+
+#: bin/savechanges:360 bin/savechanges:372
+msgid "AUFS branch inventory must be a regular file"
+msgstr "L'inventario dei branch AUFS deve essere un file regolare"
+
+#: bin/savechanges:366
+msgid "Cannot open AUFS branch inventory lock"
+msgstr "Impossibile aprire il lock dell'inventario dei branch AUFS"
+
+#: bin/savechanges:367
+msgid "Cannot lock AUFS branch inventory"
+msgstr "Impossibile bloccare l'inventario dei branch AUFS"
+
+#: bin/savechanges:373
+msgid "Cannot open AUFS branch inventory"
+msgstr "Impossibile aprire l'inventario dei branch AUFS"
+
+#: bin/savechanges:377
+msgid "Cannot inspect AUFS branch inventory"
+msgstr "Impossibile ispezionare l'inventario dei branch AUFS"
+
+#: bin/savechanges:378
+msgid "AUFS branch inventory must be root-owned"
+msgstr "L'inventario dei branch AUFS deve essere di proprietà di root"
+
+#: bin/savechanges:380
+msgid "AUFS branch inventory must not be group- or world-writable"
+msgstr "L'inventario dei branch AUFS non deve essere scrivibile da gruppo o da altri"
+
+#: bin/savechanges:405
 msgid "Trusted /usr/bin/python3 is unavailable"
 msgstr "Il trusted /usr/bin/python3 non è disponibile"
 
-#: bin/savechanges:359
+#: bin/savechanges:406
 msgid "Trusted /usr/bin/env is unavailable"
 msgstr "Il trusted /usr/bin/env non è disponibile"
 
-#: bin/savechanges:362
+#: bin/savechanges:409
 msgid "Invalid test root"
 msgstr "Test root non valido"
 
-#: bin/savechanges:367
+#: bin/savechanges:414
 msgid "Invalid test changes directory"
 msgstr "Directory delle modifiche di test non valida"
 
-#: bin/savechanges:368
+#: bin/savechanges:415
 msgid "Invalid test mounted root"
 msgstr "Root di test montata non valida"
 
-#: bin/savechanges:371
+#: bin/savechanges:418
 msgid "Invalid test output parent"
 msgstr "Directory padre di output di test non valida"
 
-#: bin/savechanges:374
+#: bin/savechanges:421
 msgid "Non-root test capture is confined to MINIOS_TOOLS_TEST_ROOT"
 msgstr "L'acquisizione di test senza root è confinata a MINIOS_TOOLS_TEST_ROOT"
 
-#: bin/savechanges:377
+#: bin/savechanges:424
 msgid "Invalid test selection"
 msgstr "Selezione di test non valida"
 
-#: bin/savechanges:378
+#: bin/savechanges:425
 msgid "Test selection is outside the test root"
 msgstr "La selezione di test è fuori dalla test root"
 
-#: bin/savechanges:383
+#: bin/savechanges:430
 msgid "Invalid test metadata parent"
 msgstr "Parent dei metadati di test non valido"
 
-#: bin/savechanges:384
+#: bin/savechanges:431
 msgid "Test metadata output is outside the test root"
 msgstr "L'output dei metadati di test è fuori dalla root del test"
 
-#: bin/savechanges:390
+#: bin/savechanges:437
 msgid "Invalid test cancel marker parent"
 msgstr "Parent del marker di annullamento test non valido"
 
-#: bin/savechanges:392
+#: bin/savechanges:439
 msgid "Test cancel marker is outside the test root"
 msgstr "Il marker di annullamento test è fuori dalla root del test"
 
-#: bin/savechanges:396
+#: bin/savechanges:443
 msgid "Invalid test work parent"
 msgstr "Parent di lavoro di test non valido"
 
-#: bin/savechanges:398
+#: bin/savechanges:445
 msgid "Test work parent is outside the test root"
 msgstr "Il parent di lavoro di test è fuori dalla root di test"
 
-#: bin/savechanges:406
+#: bin/savechanges:453
 msgid "Test capture tools were not provided"
 msgstr "Strumenti di acquisizione test non forniti"
 
-#: bin/savechanges:407
+#: bin/savechanges:454
 msgid "Invalid test mksquashfs"
 msgstr "mksquashfs di test non valido"
 
-#: bin/savechanges:408
+#: bin/savechanges:455
 msgid "Invalid test unsquashfs"
 msgstr "unsquashfs di test non valido"
 
-#: bin/savechanges:410
+#: bin/savechanges:457
 msgid "Test tools are outside the test root"
 msgstr "Gli strumenti di test sono fuori dalla root del test"
 
-#: bin/savechanges:420
+#: bin/savechanges:467
 msgid "Invalid source-test fixture"
 msgstr "Fixture source-test non valida"
 
-#: bin/savechanges:422
+#: bin/savechanges:469
 msgid "Cannot canonicalize source-test fixture"
 msgstr "Impossibile canonizzare la fixture source-test"
 
-#: bin/savechanges:423
+#: bin/savechanges:470
 msgid "Source-test fixture is outside the test root"
 msgstr "La fixture source-test è fuori dalla root del test"
 
-#: bin/savechanges:427
+#: bin/savechanges:474
 msgid "Invalid source-test AUFS sysfs fixture"
 msgstr "Fixture sysfs AUFS di test non valida"
 
-#: bin/savechanges:429
+#: bin/savechanges:476
 msgid "Source-test AUFS sysfs fixture is outside the test root"
 msgstr "La fixture sysfs AUFS di test è fuori dalla root di test"
 
-#: bin/savechanges:437
+#: bin/savechanges:484
 msgid "Invalid source-test running source"
 msgstr "Sorgente in esecuzione source-test non valida"
 
-#: bin/savechanges:439
+#: bin/savechanges:486
 msgid "Source-test running source is outside the test root"
 msgstr "La sorgente in esecuzione source-test è fuori dalla root del test"
 
-#: bin/savechanges:450
+#: bin/savechanges:497
 msgid "Invalid PKEXEC_UID"
 msgstr "PKEXEC_UID non valido"
 
-#: bin/savechanges:462
+#: bin/savechanges:509
 msgid "savechanges engine helper not found"
 msgstr "helper motore savechanges non trovato"
 

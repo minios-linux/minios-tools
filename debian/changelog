@@ -1,3 +1,9 @@
+minios-tools (1.6.5) unstable; urgency=medium
+
+  * Refresh translations
+
+ -- crims0n <crims0n@minios.dev>  Tue, 01 Sep 2026 02:11:33 +0300
+
 minios-tools (1.6.4) unstable; urgency=medium
 
   * Keep AUFS inventory permissions from changing the wrapper umask
