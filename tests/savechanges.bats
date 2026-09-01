@@ -4,7 +4,7 @@ setup() {
     SAVECHANGES="$BATS_TEST_DIRNAME/../bin/savechanges"
     STUBS="$BATS_TEST_DIRNAME/stubs"
     SYSTEM_PATH=$PATH
-    TEST_ROOT="${BATS_TEST_TMPDIR:-${BATS_TMPDIR:-${TMPDIR:-/tmp}}}/savechanges job $BATS_TEST_NUMBER"
+    TEST_ROOT="${MINIOS_TOOLS_TEST_TMPDIR:-${BATS_TEST_TMPDIR:-${BATS_TMPDIR:-${TMPDIR:-/tmp}}}}/savechanges job $BATS_TEST_NUMBER"
     CHANGES="$TEST_ROOT/writable changes"
     OUTPUT_DIR="$TEST_ROOT/output dir"
     TMP_ROOT="$TEST_ROOT/private tmp"

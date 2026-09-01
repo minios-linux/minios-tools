@@ -4,7 +4,7 @@ setup() {
     RMSBDIR="$BATS_TEST_DIRNAME/../bin/rmsbdir"
     SB="$BATS_TEST_DIRNAME/../bin/sb"
     SYSTEM_PATH=$PATH
-    TEST_ROOT="${BATS_TEST_TMPDIR:-${BATS_TMPDIR:-${TMPDIR:-/tmp}}}/rmsbdir job $BATS_TEST_NUMBER"
+    TEST_ROOT="${MINIOS_TOOLS_TEST_TMPDIR:-${BATS_TEST_TMPDIR:-${BATS_TMPDIR:-${TMPDIR:-/tmp}}}}/rmsbdir job $BATS_TEST_NUMBER"
     TARGET="$TEST_ROOT/unpacked module.sb"
     TOOLS="$TEST_ROOT/tools"
     DESTRUCTIVE_MARKER="$TEST_ROOT/destructive-command-ran"

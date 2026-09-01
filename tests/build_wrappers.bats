@@ -2,7 +2,7 @@
 
 setup() {
     BIN="$BATS_TEST_DIRNAME/../bin"
-    BATS_TEST_TMPDIR="${BATS_TEST_TMPDIR:-${BATS_TMPDIR:-${TMPDIR:-/tmp}}/build-wrappers-$BATS_TEST_NUMBER}"
+    BATS_TEST_TMPDIR="${MINIOS_TOOLS_TEST_TMPDIR:-${BATS_TEST_TMPDIR:-${BATS_TMPDIR:-${TMPDIR:-/tmp}}}}/build-wrappers-$BATS_TEST_NUMBER"
     mkdir -p "$BATS_TEST_TMPDIR"
 }
 

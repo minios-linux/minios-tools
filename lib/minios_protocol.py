@@ -118,26 +118,77 @@ def command_sb_inspect(arguments):
         size = int(size_text)
     except ValueError:
         raise ProtocolError("invalid module size")
+
     prefix_raw = os.fsencode(prefix)
     marker = prefix_raw + b"/"
     entries = []
+    details = []
     root_seen = False
+    line_re = re.compile(
+        br"^(?P<mode>.{10})\s+\S+\s+(?P<size>.+?)\s+"
+        br"\d{4}-\d{2}-\d{2} \d{2}:\d{2} (?P<path>.*)$")
+    kind_map = {
+        b"-": "file", b"d": "directory", b"l": "symlink",
+        b"b": "device", b"c": "device", b"p": "fifo", b"s": "socket",
+    }
+
     with open(listing_path, "rb") as stream:
         for line in stream.read().splitlines():
-            if not root_seen:
+            if not line:
+                continue
+            match = line_re.match(line)
+            if match is None:
+                if (re.match(br"^Parallel unsquashfs: Using [0-9]+ processors$", line) or
+                        re.match(br"^[0-9]+ inodes? \([0-9]+ blocks?\) to write$", line)):
+                    continue
                 if line == prefix_raw:
                     root_seen = True
                     continue
-                if (not line or re.match(br"^Parallel unsquashfs: Using [0-9]+ processors$", line) or
-                        re.match(br"^[0-9]+ inodes? \([0-9]+ blocks?\) to write$", line)):
+                if root_seen and line.startswith(marker):
+                    relative = os.fsdecode(line[len(marker):])
+                    if not relative:
+                        raise ProtocolError("empty module entry")
+                    entries.append(relative)
+                    details.append({"path": relative, "kind": "unknown"})
                     continue
                 raise ProtocolError("ambiguous unsquashfs listing")
-            if not line.startswith(marker):
+
+            raw_path = match.group("path")
+            raw_mode = match.group("mode")
+            target = None
+            if raw_mode.startswith(b"l"):
+                raw_path, separator, raw_target = raw_path.rpartition(b" -> ")
+                if not separator:
+                    raise ProtocolError("ambiguous symlink listing")
+                target = os.fsdecode(raw_target)
+
+            if raw_path == prefix_raw:
+                root_seen = True
+                continue
+            if not raw_path.startswith(marker):
                 raise ProtocolError("ambiguous unsquashfs listing")
-            relative = os.fsdecode(line[len(marker):])
+            root_seen = True
+            relative = os.fsdecode(raw_path[len(marker):])
             if not relative:
                 raise ProtocolError("empty module entry")
+
+            kind = kind_map.get(raw_mode[:1], "unknown")
+            size_value = None
+            raw_size = match.group("size").strip()
+            if kind not in ("device",) and raw_size.isdigit():
+                size_value = int(raw_size)
+            detail = {
+                "path": relative,
+                "kind": kind,
+                "mode": os.fsdecode(raw_mode),
+            }
+            if size_value is not None:
+                detail["size"] = size_value
+            if target is not None:
+                detail["target"] = target
             entries.append(relative)
+            details.append(detail)
+
     if not root_seen:
         raise ProtocolError("module root missing from unsquashfs listing")
     if mode == "text":
@@ -145,7 +196,7 @@ def command_sb_inspect(arguments):
             print(entry)
         return
     result("sb", "inspect", path=module_path, size=size,
-           entry_count=len(entries), entries=entries)
+           entry_count=len(entries), entries=entries, entry_details=details)
 
 
 def read_capture_result(ndjson_path):

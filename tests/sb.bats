@@ -2,8 +2,10 @@
 
 setup() {
     SB="$BATS_TEST_DIRNAME/../bin/sb"
-    TEST_ROOT="${BATS_TEST_TMPDIR:-${BATS_TMPDIR:-${TMPDIR:-/tmp}}}/sb job $BATS_TEST_NUMBER"
+    TEST_ROOT="${MINIOS_TOOLS_TEST_TMPDIR:-${BATS_TEST_TMPDIR:-${BATS_TMPDIR:-${TMPDIR:-/tmp}}}}/sb job $BATS_TEST_NUMBER"
     mkdir -p "$TEST_ROOT"
+    export MINIOS_AUFS_BRANCH_LOCK="$TEST_ROOT/aufs-branches.lock"
+    : >"$MINIOS_AUFS_BRANCH_LOCK"
 }
 
 load_sb_functions() {
@@ -97,6 +99,17 @@ load_sb_functions() {
     [ "${lines[1]}" = "$BUNDLES/02-apps.sb" ]
 }
 
+@test "rootless AUFS readers open the runtime lock read-only" {
+    load_sb_functions
+    AUFS_BRANCH_LOCK="$TEST_ROOT/aufs-branches.lock"
+    : >"$AUFS_BRANCH_LOCK"
+    chmod 0444 "$AUFS_BRANCH_LOCK"
+
+    aufs_manifest_lock -s
+
+    [ "$AUFS_MANIFEST_LOCKED" = true ]
+}
+
 @test "aufs-ng branch manifest tracks dynamic add and remove" {
     load_sb_functions
     AUFS_BRANCH_MANIFEST="$TEST_ROOT/aufs-branches"
@@ -104,8 +117,10 @@ load_sb_functions() {
         >"$AUFS_BRANCH_MANIFEST"
 
     aufs_manifest_add "$TEST_ROOT/05-extra.sb"
+    [ "$(stat -c %a "$AUFS_BRANCH_MANIFEST")" = 644 ]
     [ "$(sed -n '2p' "$AUFS_BRANCH_MANIFEST")" = "$TEST_ROOT/05-extra.sb=rr+wh" ]
     aufs_manifest_remove "$TEST_ROOT/05-extra.sb"
+    [ "$(stat -c %a "$AUFS_BRANCH_MANIFEST")" = 644 ]
     ! grep -Fq 05-extra "$AUFS_BRANCH_MANIFEST"
 }
 

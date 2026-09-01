@@ -1,3 +1,10 @@
+minios-tools (1.6.6) unstable; urgency=medium
+
+  * Provide structured file metadata for rootless module inspection
+  * Keep the AUFS branch inventory and lock readable by rootless clients
+
+ -- crims0n <crims0n@minios.dev>  Wed, 02 Sep 2026 00:56:51 +0300
+
 minios-tools (1.6.5) unstable; urgency=medium
 
   * Refresh translations

@@ -142,6 +142,7 @@ root_union_type() {
 }
 
 AUFS_BRANCH_MANIFEST=${MINIOS_AUFS_BRANCH_MANIFEST:-/run/initramfs/minios-aufs-branches}
+AUFS_BRANCH_LOCK=${MINIOS_AUFS_BRANCH_LOCK:-/run/initramfs/minios-aufs-branches.lock}
 AUFS_MANIFEST_LOCKED=false
 
 aufs_sysfs_available() {
@@ -153,9 +154,13 @@ aufs_sysfs_available() {
 }
 
 aufs_manifest_lock() {
-    local mode=$1 lock=/run/lock/minios-aufs-branches.lock
+    local mode=$1
     [ "$AUFS_MANIFEST_LOCKED" = false ] || return 0
-    exec 9>"$lock" || return 1
+    case $mode in
+    -s) exec 9<"$AUFS_BRANCH_LOCK" || return 1 ;;
+    -x) exec 9>"$AUFS_BRANCH_LOCK" || return 1 ;;
+    *) return 1 ;;
+    esac
     flock "$mode" 9 || {
         exec 9>&-
         return 1
@@ -195,6 +200,10 @@ aufs_manifest_add() {
         rm -f "$temporary"
         return 1
     }
+    chmod 0644 "$temporary" || {
+        rm -f "$temporary"
+        return 1
+    }
     mv -f "$temporary" "$AUFS_BRANCH_MANIFEST"
 }
 
@@ -219,6 +228,10 @@ aufs_manifest_remove() {
         return 1
     }
     [ "$found" = true ] || {
+        rm -f "$temporary"
+        return 1
+    }
+    chmod 0644 "$temporary" || {
         rm -f "$temporary"
         return 1
     }
@@ -663,7 +676,7 @@ inspect_bundle() {
         rm -f -- "$LISTING" "$ERRORS"
         die "Cannot create temporary output file."
     }
-    if ! unsquashfs -l -d "$PREFIX" "$FILE" >"$LISTING" 2>"$ERRORS"; then
+    if ! unsquashfs -ll -d "$PREFIX" "$FILE" >"$LISTING" 2>"$ERRORS"; then
         cat "$ERRORS" >&2
         rm -f -- "$LISTING" "$ERRORS" "$OUTPUT"
         return 1

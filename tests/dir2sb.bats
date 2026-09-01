@@ -5,7 +5,7 @@ setup() {
     SB2DIR="$BATS_TEST_DIRNAME/../bin/sb2dir"
     STUBS="$BATS_TEST_DIRNAME/stubs"
     SYSTEM_PATH=$PATH
-    TEST_ROOT="${BATS_TEST_TMPDIR:-${BATS_TMPDIR:-${TMPDIR:-/tmp}}}/dir2sb job $BATS_TEST_NUMBER"
+    TEST_ROOT="${MINIOS_TOOLS_TEST_TMPDIR:-${BATS_TEST_TMPDIR:-${BATS_TMPDIR:-${TMPDIR:-/tmp}}}}/dir2sb job $BATS_TEST_NUMBER"
     SRC="$TEST_ROOT/source tree"
     OUT="$TEST_ROOT/output dir"
     STATE="$TEST_ROOT/state"

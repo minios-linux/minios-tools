@@ -29,7 +29,9 @@ build: locale
 .PHONY: build test man locale clean install
 
 test:
-	bats tests/*.bats
+	@bats_tmp=$$(mktemp -d "$${TMPDIR:-/tmp}/minios-tools-tests.XXXXXX"); \
+	trap 'rm -rf "$$bats_tmp"' EXIT HUP INT TERM; \
+	MINIOS_TOOLS_TEST_TMPDIR="$$bats_tmp" bats tests/*.bats
 
 # Compilation rules
 man: $(MAN_FILES)

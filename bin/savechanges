@@ -361,7 +361,7 @@ if [[ $AUFS_BRANCHES_SET == true ]]; then
     if [[ $TEST_MODE == true ]]; then
         AUFS_BRANCHES_LOCK="$MINIOS_TOOLS_TEST_ROOT/aufs-branches.lock"
     else
-        AUFS_BRANCHES_LOCK=/run/lock/minios-aufs-branches.lock
+        AUFS_BRANCHES_LOCK=/run/initramfs/minios-aufs-branches.lock
     fi
     exec 8>"$AUFS_BRANCHES_LOCK" || die 1 "$(gettext "Cannot open AUFS branch inventory lock")"
     /usr/bin/flock -s 8 || die 1 "$(gettext "Cannot lock AUFS branch inventory")"
