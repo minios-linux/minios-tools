@@ -527,3 +527,132 @@ load_sb_functions() {
     [ "$status" -eq 0 ]
     [ "$output" = '{"event":"phase","phase":"prepare"}' ]
 }
+
+@test "runtime panel restart uses the same stop and restore flow as deactivation" {
+    load_sb_functions
+    log="$TEST_ROOT/restart-panel.log"
+
+    capture_xfce_panel_context() {
+        printf '%s\n' capture >>"$log"
+        XFCE_PANEL_RESTART=true
+    }
+    stop_xfce_panel() { printf '%s\n' stop >>"$log"; }
+    restore_xfce_panel() {
+        printf '%s\n' restore >>"$log"
+        XFCE_PANEL_RESTART=false
+    }
+
+    restart_xfce_panel
+
+    [ "$(cat "$log")" = $'capture\nstop\nrestore' ]
+}
+
+@test "deactivate validates the active module before touching the desktop panel" {
+    load_sb_functions
+    BUNDLES="$TEST_ROOT/bundles"
+    mkdir -p "$BUNDLES"
+    log="$TEST_ROOT/panel.log"
+
+    aufs_manifest_lock() { return 0; }
+    print_branches() { return 0; }
+    capture_xfce_panel_context() { printf '%s\n' capture >>"$log"; }
+    stop_xfce_panel() { printf '%s\n' stop >>"$log"; }
+
+    run deactivate missing.sb
+
+    [ "$status" -ne 0 ]
+    [[ $output == *"Can't find active MiniOS bundle missing.sb"* ]]
+    [ ! -e "$log" ]
+}
+
+@test "deactivate keeps the panel stopped until post-removal refresh completes" {
+    load_sb_functions
+    BUNDLES="$TEST_ROOT/bundles"
+    RAMSTORE="$TEST_ROOT/ramstore"
+    AUFS_BRANCH_MANIFEST="$TEST_ROOT/no-manifest"
+    mkdir -p "$BUNDLES/test.sb" "$RAMSTORE"
+    log="$TEST_ROOT/deactivate.log"
+    rmdir_calls=0
+
+    aufs_manifest_lock() { return 0; }
+    aufs_manifest_remove() { printf '%s\n' manifest-remove >>"$log"; return 0; }
+    capture_xfce_panel_context() { printf '%s\n' capture >>"$log"; XFCE_PANEL_RESTART=true; }
+    stop_xfce_panel() { printf '%s\n' stop >>"$log"; }
+    restore_xfce_panel() { printf '%s\n' restore >>"$log"; XFCE_PANEL_RESTART=false; }
+    rmdir() {
+        ((rmdir_calls+=1))
+        (( rmdir_calls <= 2 )) && return 1
+        command rmdir "$1"
+    }
+    mount() { printf '%s\n' mount-del >>"$log"; return 0; }
+    findmnt() { printf '%s\n' /dev/loop9; }
+    backing_file_for_loop() { printf '%s\n' "$TEST_ROOT/source.sb"; }
+    umount() { printf '%s\n' umount >>"$log"; return 0; }
+    losetup() { return 0; }
+
+    deactivate test.sb
+
+    [ "$XFCE_PANEL_RESTART" = true ]
+    [ "$(cat "$log")" = $'capture\nstop\nmanifest-remove\nmount-del\numount' ]
+    printf '%s\n' fix-system >>"$log"
+    restore_xfce_panel
+    trap - EXIT
+    [ "$(cat "$log")" = $'capture\nstop\nmanifest-remove\nmount-del\numount\nfix-system\nrestore' ]
+}
+
+@test "restored Xfce panel does not inherit the AUFS inventory lock fd" {
+    load_sb_functions
+    result="$TEST_ROOT/panel-fds"
+    fake_setpriv="$TEST_ROOT/setpriv"
+    fake_panel="$TEST_ROOT/xfce4-panel"
+    cat >"$fake_setpriv" <<'SH'
+#!/bin/bash
+while [[ $1 == --* ]]; do shift; done
+exec "$@"
+SH
+    cat >"$fake_panel" <<SH
+#!/bin/bash
+if [ -e /proc/\$\$/fd/9 ]; then printf '%s\n' open; else printf '%s\n' closed; fi >"$result"
+printf '%s\n' "\$*" >>"$result"
+SH
+    chmod +x "$fake_setpriv" "$fake_panel"
+
+    XFCE_PANEL_RESTART=true
+    XFCE_PANEL_UID=$(id -u)
+    XFCE_PANEL_GID=$(id -g)
+    XFCE_PANEL_EXE="$fake_panel"
+    XFCE_PANEL_SETPRIV="$fake_setpriv"
+    XFCE_PANEL_ENV_BIN=$(command -v env)
+    XFCE_PANEL_ENV=("HOME=$TEST_ROOT")
+    XFCE_PANEL_ARGS=(--display :42 --sm-client-id test-client)
+    exec 9>"$TEST_ROOT/lock"
+
+    restore_xfce_panel
+    for _ in $(seq 1 50); do [ -s "$result" ] && break; sleep 0.02; done
+
+    [ "$(sed -n '1p' "$result")" = closed ]
+    [ "$(sed -n '2p' "$result")" = '--display :42 --sm-client-id test-client' ]
+    exec 9>&-
+}
+
+@test "deactivate restores the Xfce panel when AUFS rejects branch removal" {
+    load_sb_functions
+    BUNDLES="$TEST_ROOT/bundles"
+    AUFS_BRANCH_MANIFEST="$TEST_ROOT/no-manifest"
+    mkdir -p "$BUNDLES/test.sb"
+    log="$TEST_ROOT/deactivate-failure.log"
+
+    aufs_manifest_lock() { return 0; }
+    aufs_manifest_remove() { printf '%s\n' manifest-remove >>"$log"; return 0; }
+    capture_xfce_panel_context() { printf '%s\n' capture >>"$log"; XFCE_PANEL_RESTART=true; }
+    stop_xfce_panel() { printf '%s\n' stop >>"$log"; }
+    restore_xfce_panel() { printf '%s\n' restore >>"$log"; XFCE_PANEL_RESTART=false; }
+    rmdir() { return 1; }
+    mount() { printf '%s\n' mount-rejected >>"$log"; return 1; }
+
+    run deactivate test.sb
+
+    [ "$status" -ne 0 ]
+    [[ $output == *"still in use"* ]]
+    [ "$(cat "$log")" = $'capture\nstop\nmanifest-remove\nmount-rejected\nrestore' ]
+}

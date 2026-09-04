@@ -13,10 +13,17 @@ session-capture tools.
 ## COMMANDS
 
 * `activate BUNDLE`
-  Mounts a readable bundle and adds it to the AUFS root union.
+  Mounts a readable bundle and adds it to the AUFS root union. If the invoking
+  desktop user has an Xfce panel running, `sb` restarts the panel in the same
+  user session after the module is attached so application menus and panel
+  plugins immediately see the changed runtime filesystem.
 
 * `deactivate BUNDLE`
-  Removes an active bundle from the AUFS root union and unmounts it.
+  Removes an active bundle from the AUFS root union and unmounts it. If the
+  invoking desktop user has an Xfce panel running, `sb` temporarily stops the
+  panel and its plugin processes before removing the AUFS branch, then restores
+  the panel in the same user session. This releases application-menu watches
+  that can otherwise keep files in the module busy.
 
 * `list [--json]`
   Lists the bundles that actually compose the running AUFS or OverlayFS root,

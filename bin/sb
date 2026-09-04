@@ -756,6 +756,119 @@ activate() {
     echo "MiniOS bundle activated: $BAS"
 }
 
+# Preserve the invoking user's Xfce panel session across a runtime module
+# change. Whisker Menu and the panel itself keep inotify watches below
+# /usr/share/applications; those watches can make AUFS reject branch removal.
+# Runtime callers should not have to know about desktop-specific blockers.
+capture_xfce_panel_context() {
+    local PID ENTRY ARG FIRST_ARG=true TARGET_UID=""
+
+    XFCE_PANEL_RESTART=false
+    XFCE_PANEL_PID=""
+    XFCE_PANEL_UID=""
+    XFCE_PANEL_GID=""
+    XFCE_PANEL_EXE=""
+    XFCE_PANEL_SETPRIV=""
+    XFCE_PANEL_ENV_BIN=""
+    XFCE_PANEL_CHILDREN=()
+    XFCE_PANEL_ENV=()
+    XFCE_PANEL_ARGS=()
+
+    command -v pgrep >/dev/null 2>&1 || return 0
+    if [ -n "${PKEXEC_UID:-}" ]; then
+        [[ $PKEXEC_UID =~ ^[0-9]+$ ]] || die "Invalid PKEXEC_UID."
+        TARGET_UID=$PKEXEC_UID
+    fi
+
+    if [ -n "$TARGET_UID" ]; then
+        PID=$(pgrep -u "$TARGET_UID" -x xfce4-panel 2>/dev/null | head -n 1 || true)
+    else
+        PID=$(pgrep -x xfce4-panel 2>/dev/null | head -n 1 || true)
+    fi
+    [ -n "$PID" ] || return 0
+    [ -r "/proc/$PID/environ" ] && [ -r "/proc/$PID/cmdline" ] || return 0
+
+    XFCE_PANEL_UID=$(stat -c %u "/proc/$PID" 2>/dev/null || true)
+    XFCE_PANEL_GID=$(stat -c %g "/proc/$PID" 2>/dev/null || true)
+    XFCE_PANEL_EXE=$(readlink -f -- "/proc/$PID/exe" 2>/dev/null || true)
+    [ -n "$XFCE_PANEL_UID" ] && [ -n "$XFCE_PANEL_GID" ] && [ -n "$XFCE_PANEL_EXE" ] || return 0
+
+    XFCE_PANEL_SETPRIV=$(command -v setpriv) || die "Required command not found: setpriv"
+    XFCE_PANEL_ENV_BIN=$(command -v env) || die "Required command not found: env"
+    while IFS= read -r -d '' ENTRY; do
+        case "$ENTRY" in *=*) XFCE_PANEL_ENV+=("$ENTRY") ;; esac
+    done <"/proc/$PID/environ"
+    while IFS= read -r -d '' ARG; do
+        if [ "$FIRST_ARG" = true ]; then
+            FIRST_ARG=false
+        else
+            XFCE_PANEL_ARGS+=("$ARG")
+        fi
+    done <"/proc/$PID/cmdline"
+    mapfile -t XFCE_PANEL_CHILDREN < <(pgrep -P "$PID" 2>/dev/null || true)
+    XFCE_PANEL_PID=$PID
+    XFCE_PANEL_RESTART=true
+}
+
+wait_for_process_exit() {
+    local PID="$1" ATTEMPT
+    for ATTEMPT in {1..50}; do
+        kill -0 "$PID" 2>/dev/null || return 0
+        sleep 0.05
+    done
+    return 1
+}
+
+stop_xfce_panel() {
+    local PID
+    [ "${XFCE_PANEL_RESTART:-false}" = true ] || return 0
+
+    kill -TERM "$XFCE_PANEL_PID" 2>/dev/null || true
+    for PID in "${XFCE_PANEL_CHILDREN[@]}"; do
+        kill -TERM "$PID" 2>/dev/null || true
+    done
+
+    if ! wait_for_process_exit "$XFCE_PANEL_PID"; then
+        kill -KILL "$XFCE_PANEL_PID" 2>/dev/null || true
+        wait_for_process_exit "$XFCE_PANEL_PID" ||
+            die "Unable to stop xfce4-panel before changing MiniOS modules."
+    fi
+    for PID in "${XFCE_PANEL_CHILDREN[@]}"; do
+        if ! wait_for_process_exit "$PID"; then
+            kill -KILL "$PID" 2>/dev/null || true
+            wait_for_process_exit "$PID" || true
+        fi
+    done
+}
+
+restore_xfce_panel() {
+    local RESTART=${XFCE_PANEL_RESTART:-false}
+    XFCE_PANEL_RESTART=false
+    [ "$RESTART" = true ] || return 0
+    [ -x "$XFCE_PANEL_EXE" ] || return 0
+
+    (
+        # The AUFS inventory lock uses fd 9.  Do not let the restarted panel
+        # inherit it, otherwise the lock would survive the sb process.
+        exec 9>&-
+        "$XFCE_PANEL_SETPRIV" \
+            --reuid="$XFCE_PANEL_UID" --regid="$XFCE_PANEL_GID" --init-groups \
+            "$XFCE_PANEL_ENV_BIN" -i "${XFCE_PANEL_ENV[@]}" \
+            PATH=/usr/sbin:/usr/bin:/sbin:/bin \
+            "$XFCE_PANEL_EXE" "${XFCE_PANEL_ARGS[@]}" \
+            </dev/null >/dev/null 2>&1 &
+    )
+}
+
+restart_xfce_panel() {
+    capture_xfce_panel_context
+    [ "${XFCE_PANEL_RESTART:-false}" = true ] || return 0
+    trap 'restore_xfce_panel' EXIT
+    stop_xfce_panel
+    restore_xfce_panel
+    trap - EXIT
+}
+
 # Deactivate MiniOS bundle of the given name
 # $1 = path to bundle file, or its name
 #
@@ -790,6 +903,10 @@ deactivate() {
     if [ -z "$SB" ] || [ ! -d "$BUNDLES/$SB" ]; then
         die "Can't find active MiniOS bundle $1"
     fi
+
+    capture_xfce_panel_context
+    trap 'restore_xfce_panel' EXIT
+    stop_xfce_panel
 
     echo "Attempting to deactivate MiniOS bundle $SB..."
     if [ -r "$AUFS_BRANCH_MANIFEST" ]; then
@@ -828,6 +945,8 @@ deactivate() {
     esac
 
     echo "MiniOS bundle deactivated: $SB"
+    # Keep the panel stopped until the dispatcher has refreshed MiniOS
+    # runtime caches.  The EXIT trap still restores it on every failure path.
 }
 
 fix_system() {
@@ -960,14 +1079,20 @@ if [ -r /etc/live/config.conf ]; then
 fi
 
 case "$1" in
-"activate" | "deactivate")
+"activate")
     [ $# -ge 2 ] || brief_help
     aufs_support
-    ${1} "$2"
+    activate "$2"
     fix_system
-    if pgrep xfce4-panel >/dev/null; then
-        killall -HUP xfce4-panel
-    fi
+    restart_xfce_panel
+    ;;
+"deactivate")
+    [ $# -ge 2 ] || brief_help
+    aufs_support
+    deactivate "$2"
+    fix_system
+    restore_xfce_panel
+    trap - EXIT
     ;;
 "savechanges")
     shift

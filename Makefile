@@ -9,8 +9,10 @@ LOCALEDIR = usr/share/locale
 COMPLETIONSDIR = usr/share/bash-completion/completions
 AUTOSTARTDIR = etc/xdg/autostart
 MANDIR = usr/share/man/man1
+MIMEDIR = usr/share/mime/packages
 
 ENGINE_FILES = $(shell find lib -name "*.py" -type f 2>/dev/null)
+MIME_FILES = $(shell find share/mime/packages -name "*.xml" -type f 2>/dev/null)
 
 DOC_FILES = $(shell find doc -name "*.md")
 MAN_FILES = $(patsubst doc/%.md, man/%.1, $(DOC_FILES))
@@ -65,6 +67,9 @@ install: build
 
 	install -d $(DESTDIR)/$(AUTOSTARTDIR)
 	if [ -n "$(AUTOSTART)" ]; then install -m644 $(AUTOSTART) $(DESTDIR)/$(AUTOSTARTDIR); fi
+
+	install -d $(DESTDIR)/$(MIMEDIR)
+	if [ -n "$(MIME_FILES)" ]; then install -m644 $(MIME_FILES) $(DESTDIR)/$(MIMEDIR); fi
 
 	set -e; if ls man/*.1 >/dev/null 2>&1; then \
 		install -d $(DESTDIR)/$(MANDIR); \
