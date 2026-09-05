@@ -48,7 +48,7 @@ help() {
     echo "  -d, --directory DIR     $(gettext "Copy contents of DIR to the root of the module")"
     echo "  -n, --name NAME         $(gettext "Use NAME as the filename for the module")"
     echo "  -l, --level LEVEL       $(gettext "Use LEVEL as the filter level")"
-    echo "  -c, --comp TYPE         $(gettext "Compression type (zstd, gzip, lzo, xz). Default: zstd")"
+    echo "  -c, --comp TYPE         $(gettext "Compression type (zstd, gzip, lzo, lz4, xz). Default: zstd")"
     echo "  -b, --bext EXT          $(gettext "Bundle extension. Default: sb")"
     echo "      --help              $(gettext "Display this help and exit")"
     echo "      --version           $(gettext "Display version information and exit")"
@@ -88,7 +88,7 @@ option_requires_value() {
 
 validate_comp() {
     case $1 in
-    zstd | gzip | lzo | xz) ;;
+    zstd | gzip | lzo | lz4 | xz) ;;
     *)
         echo "Invalid compression type: $1" >&2
         brief_help
@@ -502,7 +502,7 @@ load_session_state() {
        $SESSION_PHASE =~ ^(ready|finishing|captured|cancelling)$ &&
        -n $WORK_PARENT && -n $WORK_NAME && $WORK_DEV =~ ^[0-9]+$ &&
        $WORK_INO =~ ^[0-9]+$ && -n $FILENAME &&
-       $COMP_TYPE =~ ^(zstd|gzip|lzo|xz)$ && $SESSION_SEED =~ ^[01]$ ]] || {
+       $COMP_TYPE =~ ^(zstd|gzip|lzo|lz4|xz)$ && $SESSION_SEED =~ ^[01]$ ]] || {
         echo "Incomplete or invalid chroot session state." >&2
         return 1
     }

@@ -145,6 +145,19 @@ assert_output_contains() {
     [[ $output == *"$1"* ]]
 }
 
+@test "lz4 compression is accepted and passed to mksquashfs" {
+    write_file "$CHANGES/usr/share/lz4-test.txt" value
+    target="$OUTPUT_DIR/lz4.sb"
+    state="$TEST_ROOT/lz4 state"
+
+    run_module "$target" "$state" --profile exact --comp lz4
+
+    [ "$status" -eq 0 ]
+    [ -f "$target" ]
+    args=$(tr '\0' '\n' <"$state/args")
+    [[ "$args" == *$'-comp\nlz4\n'* ]]
+}
+
 @test "exact preserves session data while clean removes privacy-sensitive classes" {
     write_file "$CHANGES/etc/default/minios" defaults
     write_file "$CHANGES/usr/bin/session-tool" software

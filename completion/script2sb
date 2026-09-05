@@ -16,7 +16,7 @@ _script2sb() {
         return
         ;;
     -c | --comp)
-        COMPREPLY=($(compgen -W 'zstd gzip lzo xz' -- "$cur"))
+        COMPREPLY=($(compgen -W 'zstd gzip lzo lz4 xz' -- "$cur"))
         return
         ;;
     -b | --bext)
@@ -38,7 +38,7 @@ _script2sb() {
             return
             ;;
         --comp)
-            COMPREPLY=($(compgen -W 'zstd gzip lzo xz' -- "$cur"))
+            COMPREPLY=($(compgen -W 'zstd gzip lzo lz4 xz' -- "$cur"))
             return
             ;;
         --bext)

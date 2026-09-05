@@ -48,7 +48,7 @@ help() {
     printf '       %s [OPTIONS] --inventory-json FILE [CHANGES_DIRECTORY]\n' "$PROGRAM_NAME"
     printf '%s\n\n' "$(gettext "Capture the writable layer of a running MiniOS session.")"
     printf '%s:\n' "$(gettext "Options")"
-    printf '  -c, --comp TYPE          %s\n' "$(gettext "Compression: zstd, gzip, lzo, or xz (default: zstd)")"
+    printf '  -c, --comp TYPE          %s\n' "$(gettext "Compression: zstd, gzip, lzo, lz4, or xz (default: zstd)")"
     printf '  -b, --bext EXT           %s\n' "$(gettext "Bundle extension used in help text (default: sb)")"
     printf '      --profile PROFILE    %s\n' "$(gettext "Capture profile: exact, clean, or selected")"
     printf '      --selection FILE     %s\n' "$(gettext "Strict JSON selection for the selected profile")"
@@ -256,7 +256,7 @@ esac
 [[ $PROFILE == selected || $SELECTION_SET != true ]] ||
     die 1 "$(gettext "--selection is only valid with --profile selected")"
 case $COMP_TYPE in
-zstd | gzip | lzo | xz) ;;
+zstd | gzip | lzo | lz4 | xz) ;;
 *) die 1 "$(gettext "Invalid compression type:") $COMP_TYPE" ;;
 esac
 [[ $BEXT =~ ^[A-Za-z0-9][A-Za-z0-9._+-]*$ ]] ||

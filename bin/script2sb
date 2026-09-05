@@ -32,7 +32,7 @@ help() {
     echo ""
     echo "$(gettext "Options"):"
     echo "  -b, --bext EXT              $(gettext "Bundle extension. Default: sb")"
-    echo "  -c, --comp TYPE             $(gettext "Compression type (zstd, gzip, lzo, xz). Default: zstd")"
+    echo "  -c, --comp TYPE             $(gettext "Compression type (zstd, gzip, lzo, lz4, xz). Default: zstd")"
     echo "  -d, --directory DIR         $(gettext "Copy contents of DIR to the root of the module")"
     echo "  -n, --name NAME             $(gettext "Use NAME as the filename for the module")"
     echo "  -l, --level LEVEL           $(gettext "Use LEVEL as the filter level")"
@@ -138,7 +138,7 @@ option_requires_value() {
 
 validate_comp() {
     case $1 in
-    zstd | gzip | lzo | xz) ;;
+    zstd | gzip | lzo | lz4 | xz) ;;
     *)
         echo "Invalid compression type: $1" >&2
         brief_help

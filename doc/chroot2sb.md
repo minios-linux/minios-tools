@@ -51,7 +51,7 @@ cleanup after successful capture leaves the session in `captured` state so
     Use LEVEL as the filter level
 
 * `-c, --comp TYPE`  
-    Compression type (zstd, gzip, lzo, xz). Default: zstd
+    Compression type (zstd, gzip, lzo, lz4, xz). Default: zstd
 
 * `-b, --bext EXT`
     Bundle extension. Default: sb
@@ -72,7 +72,7 @@ cleanup after successful capture leaves the session in `captured` state so
    are copied before the chroot starts.
 3. Optionally, you can specify a filename for saving changes using the `-n` or `--name NAME` option, where NAME is the filename. If this option is not specified, the filename will be generated automatically based on the date and time.
 4. Optionally, you can specify a filtering level using the `-l` or `--level LEVEL` option, where LEVEL is a numeric value. This option is used to filter overlay filesystem layers.
-5. Optionally, specify the compression type using the `-c` or `--comp TYPE` option. Supported types are zstd, gzip, lzo, and xz. The default is zstd.
+5. Optionally, specify the compression type using the `-c` or `--comp TYPE` option. Supported types are zstd, gzip, lzo, lz4, and xz. The default is zstd.
 6. Optionally, change the bundle extension using the `-b` or `--bext EXT` option.  The default is sb.
 
 ## EXIT STATUS

@@ -1,14 +1,14 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
+# This file is distributed under the same license as the minios-tools package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: minios-tools 1.6.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-01 01:24+0300\n"
+"POT-Creation-Date: 2026-09-05 03:55+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -54,7 +54,7 @@ msgid "Use LEVEL as the filter level"
 msgstr ""
 
 #: bin/apt2sb:43 bin/chroot2sb:51 bin/script2sb:35
-msgid "Compression type (zstd, gzip, lzo, xz). Default: zstd"
+msgid "Compression type (zstd, gzip, lzo, lz4, xz). Default: zstd"
 msgstr ""
 
 #: bin/apt2sb:44 bin/chroot2sb:52 bin/script2sb:34
@@ -157,7 +157,7 @@ msgstr ""
 msgid "Convert a directory tree into a compressed .sb module."
 msgstr ""
 
-#: bin/dir2sb:39
+#: bin/dir2sb:39 bin/savechanges:51
 msgid "Compression: zstd, gzip, lzo, lz4, or xz (default: zstd)"
 msgstr ""
 
@@ -295,10 +295,6 @@ msgstr ""
 
 #: bin/savechanges:49
 msgid "Capture the writable layer of a running MiniOS session."
-msgstr ""
-
-#: bin/savechanges:51
-msgid "Compression: zstd, gzip, lzo, or xz (default: zstd)"
 msgstr ""
 
 #: bin/savechanges:53

@@ -40,7 +40,7 @@ help() {
     echo "$(gettext "Options"):"
     echo "  -n, --name NAME             $(gettext "Use NAME as the filename for the module instead of PACKAGE1").$BEXT"
     echo "  -l, --level LEVEL           $(gettext "Use LEVEL as the filter level")"
-    echo "  -c, --comp TYPE             $(gettext "Compression type (zstd, gzip, lzo, xz). Default: zstd")"
+    echo "  -c, --comp TYPE             $(gettext "Compression type (zstd, gzip, lzo, lz4, xz). Default: zstd")"
     echo "  -b, --bext EXT              $(gettext "Bundle extension. Default: sb")"
     echo "      --json                  $(gettext "Emit machine-readable phase events and result")"
     echo "      --help                  $(gettext "Display this help and exit")"
@@ -152,7 +152,7 @@ option_requires_value() {
 
 validate_comp() {
     case $1 in
-    zstd | gzip | lzo | xz) ;;
+    zstd | gzip | lzo | lz4 | xz) ;;
     *)
         echo "Invalid compression type: $1" >&2
         brief_help

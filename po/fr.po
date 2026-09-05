@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: minios-tools 1.6.0\n"
+"Project-Id-Version: minios-tools 1.6.7\n"
 "Report-Msgid-Bugs-To: support@minios.dev\n"
-"POT-Creation-Date: 2026-09-01 01:24+0300\n"
-"PO-Revision-Date: 2026-08-31 21:18+0000\n"
+"POT-Creation-Date: 2026-09-05 03:55+0300\n"
+"PO-Revision-Date: 2026-09-05 00:55+0000\n"
 "Last-Translator: crims0n <crims0n@minios.dev>\n"
 "Language-Team: none\n"
 "Language: fr\n"
@@ -54,8 +54,8 @@ msgid "Use LEVEL as the filter level"
 msgstr "Utiliser NIVEAU comme niveau de filtre"
 
 #: bin/apt2sb:43 bin/chroot2sb:51 bin/script2sb:35
-msgid "Compression type (zstd, gzip, lzo, xz). Default: zstd"
-msgstr "Type de compression (zstd, gzip, lzo, xz). Par défaut : zstd"
+msgid "Compression type (zstd, gzip, lzo, lz4, xz). Default: zstd"
+msgstr "Type de compression (zstd, gzip, lzo, lz4, xz). Par défaut : zstd"
 
 #: bin/apt2sb:44 bin/chroot2sb:52 bin/script2sb:34
 msgid "Bundle extension. Default: sb"
@@ -157,7 +157,7 @@ msgstr "Utiliser NOM comme nom de fichier pour le module"
 msgid "Convert a directory tree into a compressed .sb module."
 msgstr "Convertit un arbre de répertoires en un module compressé .sb."
 
-#: bin/dir2sb:39
+#: bin/dir2sb:39 bin/savechanges:51
 msgid "Compression: zstd, gzip, lzo, lz4, or xz (default: zstd)"
 msgstr "Compression : zstd, gzip, lzo, lz4 ou xz (par défaut : zstd)"
 
@@ -296,10 +296,6 @@ msgstr "Créé"
 #: bin/savechanges:49
 msgid "Capture the writable layer of a running MiniOS session."
 msgstr "Capture la couche inscriptible d'une session MiniOS en cours d'exécution."
-
-#: bin/savechanges:51
-msgid "Compression: zstd, gzip, lzo, or xz (default: zstd)"
-msgstr "Compression : zstd, gzip, lzo ou xz (par défaut : zstd)"
 
 #: bin/savechanges:53
 msgid "Capture profile: exact, clean, or selected"
@@ -708,3 +704,9 @@ msgstr "Changement de résolution virtuelle MiniOS"
 #: debian/minios-tools/etc/xdg/autostart/minios-virtual-resolution.desktop:17
 msgid "Script for automatic resolution change in virtualization environment on XFCE startup"
 msgstr "Script pour le changement automatique de résolution dans un environnement de virtualisation au démarrage de XFCE"
+
+#~ msgid "Compression type (zstd, gzip, lzo, xz). Default: zstd"
+#~ msgstr "Type de compression (zstd, gzip, lzo, xz). Par défaut : zstd"
+
+#~ msgid "Compression: zstd, gzip, lzo, or xz (default: zstd)"
+#~ msgstr "Compression : zstd, gzip, lzo ou xz (par défaut : zstd)"

@@ -25,7 +25,7 @@ Packages a module from changes made by an installation script.
     Use FILE as the installation script
 
 * `-c, --comp TYPE`  
-    Compression type (zstd, gzip, lzo, xz). Default: zstd
+    Compression type (zstd, gzip, lzo, lz4, xz). Default: zstd
 
 * `-b, --bext EXT`  
     Bundle extension. Default: sb
@@ -49,7 +49,7 @@ Packages a module from changes made by an installation script.
    are copied before the installation script runs.
 4. Optionally, you can specify a filename for saving changes using the `-n` or `--name NAME` option, where NAME is the filename. If this option is not specified, the filename will be generated automatically based on the name of the installation script.
 5. Optionally, you can specify a filtering level using the `-l` or `--level LEVEL` option, where LEVEL is a numeric value. This option is used to filter overlay filesystem layers.
-6. Optionally, specify the compression type using the `-c` or `--comp TYPE` option. Supported types are zstd, gzip, lzo, and xz. The default is zstd.
+6. Optionally, specify the compression type using the `-c` or `--comp TYPE` option. Supported types are zstd, gzip, lzo, lz4, and xz. The default is zstd.
 7. Optionally, change the bundle extension using the `-b` or `--bext EXT` option.  The default is sb.
 
 If you do not specify the `--directory`, `--name`, and `--level` options, they are not used. If you do not specify the `--name` option, then a filename for saving changes is generated automatically based on the name of the installation script.

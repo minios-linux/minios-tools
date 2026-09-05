@@ -27,7 +27,7 @@ The changes directory defaults to **/run/initramfs/memory/changes** or **/lib/li
 ## OPTIONS
 
 **-c**, **--comp** *TYPE*
-: Use **zstd**, **gzip**, **lzo**, or **xz** compression. The default is **zstd**.
+: Use **zstd**, **gzip**, **lzo**, **lz4**, or **xz** compression. The default is **zstd**.
 
 **-b**, **--bext** *EXT*
 : Set the bundle extension displayed by help. The default is **sb**. The exact

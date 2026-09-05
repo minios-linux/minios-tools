@@ -10,7 +10,7 @@ _savechanges() {
 
     case $prev in
     -c | --comp)
-        mapfile -t COMPREPLY < <(compgen -W 'zstd gzip lzo xz' -- "$cur")
+        mapfile -t COMPREPLY < <(compgen -W 'zstd gzip lzo lz4 xz' -- "$cur")
         return
         ;;
     -b | --bext)
@@ -32,7 +32,7 @@ _savechanges() {
         cur=${cur#*=}
         case $option in
         --comp)
-            mapfile -t COMPREPLY < <(compgen -W 'zstd gzip lzo xz' -- "$cur")
+            mapfile -t COMPREPLY < <(compgen -W 'zstd gzip lzo lz4 xz' -- "$cur")
             return
             ;;
         --bext)

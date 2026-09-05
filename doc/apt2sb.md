@@ -29,7 +29,7 @@ installation and upgrade require root and a supported MiniOS live session.
     Use LEVEL as the filter level
 
 * `-c, --comp TYPE`  
-    Compression type (zstd, gzip, lzo, xz). Default: zstd
+    Compression type (zstd, gzip, lzo, lz4, xz). Default: zstd
 
 * `-b, --bext EXT`  
     Bundle extension. Default: sb
@@ -82,7 +82,7 @@ For `install` only:
 2. Use the `install` command followed by one or more package names that you wish to convert into modules. The script supports installing both packages from the repository and local packages. To install local packages, simply include the path to the local .deb file as an argument.
 3. If you want to specify a different filename for the module, use the `-n, --name NAME` option, where `NAME` stands for the preferred filename. If not provided, the filename will be automatically derived from the name of the first package.
 4. You can define the filter level using the `-l, --level LEVEL` option, where `LEVEL` is a numerical value.
-5. Use the  `-c, --comp TYPE` option to set the compression type. Supported types are: zstd, gzip, lzo, xz. The default is zstd.
+5. Use the  `-c, --comp TYPE` option to set the compression type. Supported types are: zstd, gzip, lzo, lz4, xz. The default is zstd.
 6. Use the `-b, --bext EXT` option to change the bundle extension. The default is sb.
 7. If you want to accept all confirmations automatically, use the `-y` or `--yes` option.
 8. Use other APT options according to your package dependency requirements.
