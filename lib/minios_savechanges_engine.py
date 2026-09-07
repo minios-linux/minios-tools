@@ -786,6 +786,7 @@ def rooted(path, prefixes):
 
 INTERNAL_NAMES = {
     b".wh..wh.orph", b".wh..wh.plnk", b".wh..wh.aufs", b".wh..wh.pwd.lock",
+    b".minios-merge",
 }
 
 

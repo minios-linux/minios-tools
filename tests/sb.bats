@@ -29,11 +29,26 @@ load_sb_functions() {
 
     run "$SB" version
     [ "$status" -eq 0 ]
-    [[ $output == "sb 1.0.3" ]]
+    [[ $output == "sb 1.1.0" ]]
 }
 @test "list reaches the read-only live-state path before privilege checks" {
     run "$SB" list --json
     [[ $output != *"This script must be run as root."* ]]
+}
+
+@test "runtime refresh uses the documented live module mode setting" {
+    run grep -Fq 'if [ "${LIVE_MODULE_MODE:-}" = "merged" ]; then' "$SB"
+    [ "$status" -eq 0 ]
+    run grep -Fq 'if [ "${MODULE_MODE:-}" = "merged" ]; then' "$SB"
+    [ "$status" -ne 0 ]
+}
+
+@test "package rejects only incompatible installed live-config versions" {
+    control="$BATS_TEST_DIRNAME/../debian/control"
+    run grep -Fx 'Breaks: minios-live-config (<< 11.0.5.20)' "$control"
+    [ "$status" -eq 0 ]
+    run grep -E '^(Depends|Recommends):.*minios-live-config' "$control"
+    [ "$status" -ne 0 ]
 }
 
 @test "JSON list preserves order and delimiter-sensitive paths" {
@@ -366,6 +381,8 @@ load_sb_functions() {
     : >"$data/config.conf"
     : >"$data/00-core.sb"
     : >"$data/modules/50-user.sb"
+    mkdir -p "$data/modules-disabled"
+    : >"$data/modules-disabled/60-disabled.sb"
 
     discover_data_root() { printf '%s\n' "$data"; }
     boot_arg_value() { return 1; }
@@ -374,7 +391,7 @@ load_sb_functions() {
 
     run print_next_boot json
     [ "$status" -eq 0 ]
-    run python3 -c 'import json,sys; d=json.loads(sys.argv[1]); assert d["add_available"] is True; m={x["name"]:x for x in d["modules"]}; assert m["00-core.sb"]["removable"] is False; assert m["50-user.sb"]["removable"] is True' "$output"
+    run python3 -c 'import json,sys; d=json.loads(sys.argv[1]); assert d["add_available"] is True; m={x["name"]:x for x in d["modules"]}; assert m["00-core.sb"]["removable"] is False; assert m["50-user.sb"]["removable"] is True; assert [x["name"] for x in d["disabled_modules"]] == ["60-disabled.sb"]; assert d["disabled_modules"][0]["origin"] == "disabled-modules"; assert d["disabled_modules"][0]["removable"] is True' "$output"
     [ "$status" -eq 0 ]
 }
 
@@ -454,7 +471,7 @@ load_sb_functions() {
     [ "$status" -eq 0 ]
 }
 
-@test "next-boot remove deletes a writable user module but refuses base" {
+@test "next-boot disable preserves a user module and enable restores it" {
     load_sb_functions
     data="$TEST_ROOT/data/minios"
     mkdir -p "$data/modules"
@@ -469,16 +486,72 @@ load_sb_functions() {
         printf '%s\n' "$BATS_TEST_DIRNAME/../lib/minios_convert_engine.py"
     }
 
-    run next_boot_remove json 50-user.sb
+    run next_boot_disable json 50-user.sb
     [ "$status" -eq 0 ]
     [ ! -e "$data/modules/50-user.sb" ]
-    run python3 -c 'import json,sys; d=json.loads(sys.argv[1]); assert d["operation"] == "next-boot-remove"; assert d["name"] == "50-user.sb"' "$output"
+    [ -f "$data/modules-disabled/50-user.sb" ]
+    run python3 -c 'import json,sys; d=json.loads(sys.argv[1]); assert d["operation"] == "next-boot-disable"; assert d["name"] == "50-user.sb"; assert d["path"].endswith("/modules-disabled/50-user.sb")' "$output"
     [ "$status" -eq 0 ]
 
-    run next_boot_remove json 00-core.sb
+    run next_boot_enable json 50-user.sb
+    [ "$status" -eq 0 ]
+    [ -f "$data/modules/50-user.sb" ]
+    [ ! -e "$data/modules-disabled/50-user.sb" ]
+    run python3 -c 'import json,sys; d=json.loads(sys.argv[1]); assert d["operation"] == "next-boot-enable"; assert d["name"] == "50-user.sb"; assert d["path"].endswith("/modules/50-user.sb")' "$output"
+    [ "$status" -eq 0 ]
+
+    run next_boot_disable json 00-core.sb
     [ "$status" -ne 0 ]
     [[ $output == *"read-only in the next-boot composition"* ]]
     [ -f "$data/00-core.sb" ]
+}
+
+@test "next-boot delete removes only a writable disabled user module" {
+    load_sb_functions
+    data="$TEST_ROOT/data/minios"
+    mkdir -p "$data/modules-disabled" "$data/modules"
+    : >"$data/config.conf"
+    : >"$data/modules-disabled/50-user.sb"
+    : >"$data/modules/60-active.sb"
+    discover_data_root() { printf '%s\n' "$data"; }
+    boot_arg_value() { return 1; }
+    findmnt() { return 1; }
+    storage_path_is_durable_writable() { [ "$1" = "$data" ]; }
+    converter_engine_path() {
+        printf '%s\n' "$BATS_TEST_DIRNAME/../lib/minios_convert_engine.py"
+    }
+
+    run next_boot_delete json 50-user.sb
+    [ "$status" -eq 0 ]
+    [ ! -e "$data/modules-disabled/50-user.sb" ]
+    run python3 -c 'import json,sys; d=json.loads(sys.argv[1]); assert d["operation"] == "next-boot-delete"; assert d["name"] == "50-user.sb"; assert d["path"].endswith("/modules-disabled/50-user.sb")' "$output"
+    [ "$status" -eq 0 ]
+
+    run next_boot_delete json 60-active.sb
+    [ "$status" -ne 0 ]
+    [[ $output == *"not disabled for the next boot"* ]]
+    [ -f "$data/modules/60-active.sb" ]
+}
+
+@test "next-boot delete rejects traversal and a read-only disabled store" {
+    load_sb_functions
+    data="$TEST_ROOT/data/minios"
+    mkdir -p "$data/modules-disabled"
+    : >"$data/config.conf"
+    : >"$data/modules-disabled/50-user.sb"
+    discover_data_root() { printf '%s\n' "$data"; }
+    boot_arg_value() { return 1; }
+    findmnt() { return 1; }
+    storage_path_is_durable_writable() { return 1; }
+
+    run next_boot_delete json ../50-user.sb
+    [ "$status" -ne 0 ]
+    [[ $output == *"Invalid module name"* ]]
+
+    run next_boot_delete json 50-user.sb
+    [ "$status" -ne 0 ]
+    [[ $output == *"disabled module store is read-only"* ]]
+    [ -f "$data/modules-disabled/50-user.sb" ]
 }
 
 @test "module copy validates the staged bytes before publication" {

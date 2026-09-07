@@ -40,7 +40,8 @@ session-capture tools.
   source. Current `bext`, `load`, and `noload` parameters are applied. Later
   sources replace an earlier module with the same basename before final layer
   ordering. JSON additionally reports whether a durable writable add target is
-  available and whether each selected module can be removed.
+  available and whether each selected module can be disabled. The JSON result
+  returns excluded modules separately in `disabled_modules`.
 
 * `next-boot add FILE [--json]`
   Adds a valid SquashFS module to durable next-boot storage. A separate durable
@@ -50,10 +51,22 @@ session-capture tools.
   is staged under a non-module name, validated, fsynced, and atomically
   published without replacing an existing module. Requires root.
 
-* `next-boot remove NAME [--json]`
-  Removes the currently selected user module with the exact basename from its
-  durable writable `modules/` or persistence source. Base modules and modules
-  on a read-only or volatile source are refused. Requires root.
+* `next-boot disable NAME [--json]`
+  Atomically moves the selected user module from `modules/` to the sibling
+  `modules-disabled/` store. The file is preserved but excluded from future
+  boots. Base modules and modules on read-only or volatile sources are refused.
+  `next-boot remove` is retained as an alias with the same safe behavior.
+  Requires root.
+
+* `next-boot enable NAME [--json]`
+  Atomically restores a module from `modules-disabled/` to its corresponding
+  `modules/` store without replacing an existing file. Requires root.
+
+* `next-boot delete NAME [--json]`
+  Permanently deletes a module from writable `modules-disabled/` storage. The
+  command refuses active modules, read-only stores, and unsafe names. Disable a
+  module first and verify the next-boot composition before deleting it.
+  Requires root.
 
 * `inspect FILE [--json]`
   Lists a SquashFS module without extracting it. The command is rootless and
@@ -81,9 +94,11 @@ session-capture tools.
 ## USAGE NOTES
 
 1. `list`, the read-only `next-boot` query, `inspect`, `help`, and `version`
-   do not require root. `next-boot add`, `next-boot remove`, `activate`,
-   `deactivate`, `savechanges`, and the compatibility `conv` dispatcher retain
-   their privilege requirements.
+   do not require root. The `next-boot` mutations `add`, `disable`, `remove`,
+   `enable`, and `delete` require root.
+   `activate`, `deactivate`, `savechanges`, and the compatibility `conv`
+   dispatcher retain their privilege requirements. Run privileged commands as
+   root, for example with `sudo` when configured.
 2. Native MiniOS runtime state is read from `/run/initramfs/memory`. The Debian
    live-boot `/lib/live/mount` layout remains a compatibility fallback.
 3. `activate` and `deactivate` are available only when `/` is actually mounted
@@ -102,8 +117,11 @@ session-capture tools.
 - `sb list --json`
 - `sb next-boot`
 - `sb next-boot --json`
-- `sb next-boot add 50-extra.sb`
-- `sb next-boot remove 50-extra.sb`
+- `sudo sb next-boot add 50-extra.sb`
+- `sudo sb next-boot disable 50-extra.sb`
+- `sudo sb next-boot enable 50-extra.sb`
+- `sudo sb next-boot disable 50-extra.sb`
+- `sudo sb next-boot delete 50-extra.sb`
 - `sb savechanges session.sb`
 - `sb rm example_directory`
 - `sb conv example_directory example.sb`

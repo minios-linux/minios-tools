@@ -618,6 +618,34 @@ def command_remove_file(arguments):
         os.close(parent_fd)
 
 
+def command_move_file(arguments):
+    if len(arguments) != 2:
+        fail(2, "move-file requires SOURCE TARGET")
+    source = os.path.abspath(os.fsencode(arguments[0]))
+    target = os.path.abspath(os.fsencode(arguments[1]))
+    source_parent, source_name = os.path.split(source)
+    target_parent, target_name = os.path.split(target)
+    if not source_name or not target_name:
+        fail(2, "invalid file path")
+    source_fd = open_absolute_directory(source_parent)
+    target_fd = -1
+    try:
+        target_fd = open_absolute_directory(target_parent)
+        metadata = os.stat(
+            source_name, dir_fd=source_fd, follow_symlinks=False)
+        if not stat.S_ISREG(metadata.st_mode):
+            fail(5, "source path is not a regular file")
+        rename_noreplace(
+            source_fd, source_name, target_fd, target_name, True)
+        fsync_directory(source_fd)
+        if target_fd != source_fd:
+            fsync_directory(target_fd)
+    finally:
+        if target_fd >= 0:
+            os.close(target_fd)
+        os.close(source_fd)
+
+
 def caller_identity(uid_text):
     if not uid_text:
         return None
@@ -946,6 +974,7 @@ COMMANDS = {
     "publish-dir": command_publish_dir,
     "ensure-directory": command_ensure_directory,
     "remove-file": command_remove_file,
+    "move-file": command_move_file,
     "copy-module": command_copy_module,
     "check-input": command_check_input,
     "copy-input": command_copy_input,

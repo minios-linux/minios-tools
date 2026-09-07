@@ -162,6 +162,7 @@ assert_output_contains() {
     write_file "$CHANGES/etc/default/minios" defaults
     write_file "$CHANGES/usr/bin/session-tool" software
     write_file "$CHANGES/var/lib/dpkg/status" packages
+    write_file "$CHANGES/var/lib/dpkg/.minios-merge/status.base" internal-dpkg-baseline
     write_file "$CHANGES/home/live/Documents/note.txt" private-home
     write_file "$CHANGES/root/admin.txt" private-root
     write_file "$CHANGES/var/log/session.log" private-log
@@ -193,6 +194,7 @@ assert_output_contains() {
     [ -f "$exact_state/tree/var/log/session.log" ]
     [ -f "$exact_state/tree/etc/machine-id" ]
     [ -d "$exact_state/tree/empty exact directory" ]
+    [ ! -e "$exact_state/tree/var/lib/dpkg/.minios-merge" ]
     [ ! -e "$exact_state/tree/run/session/runtime" ]
     [ ! -e "$exact_state/tree/.wh..wh.orph" ]
 

@@ -74,15 +74,19 @@ def command_sb_next_boot(arguments):
     if mode not in ("text", "json") or add_available not in ("0", "1"):
         raise ProtocolError("invalid sb-next-boot arguments")
     chosen = {}
+    disabled = {}
     for source_raw, origin_raw, removable_raw in read_records(3):
         source = os.fsdecode(source_raw)
         origin = os.fsdecode(origin_raw)
-        if origin not in ("base", "modules", "persistence"):
+        if origin not in (
+                "base", "modules", "persistence",
+                "disabled-modules", "disabled-persistence"):
             raise ProtocolError("invalid module origin")
         if removable_raw not in (b"0", b"1"):
             raise ProtocolError("invalid removable flag")
         name = os.path.basename(source)
-        chosen[name] = {
+        target = disabled if origin.startswith("disabled-") else chosen
+        target[name] = {
             "name": name,
             "source": source,
             "origin": origin,
@@ -90,6 +94,9 @@ def command_sb_next_boot(arguments):
         }
     modules = sorted(
         chosen.values(), key=lambda item: (numeric_prefix(item["name"]), item["name"]))
+    disabled_modules = sorted(
+        (item for name, item in disabled.items() if name not in chosen),
+        key=lambda item: (numeric_prefix(item["name"]), item["name"]))
     if mode == "text":
         for item in modules:
             print("{}\t{}\t{}".format(
@@ -97,12 +104,14 @@ def command_sb_next_boot(arguments):
         return
     result("sb", "next-boot", data_root=data_root,
            bundle_extension=extension, add_available=add_available == "1",
-           modules=modules)
+           modules=modules, disabled_modules=disabled_modules)
 def command_sb_mutation(arguments):
     if len(arguments) != 3:
         raise ProtocolError("sb-mutation requires OPERATION NAME PATH")
     operation, name, path = arguments
-    if operation not in ("next-boot-add", "next-boot-remove"):
+    if operation not in (
+            "next-boot-add", "next-boot-disable", "next-boot-enable",
+            "next-boot-delete"):
         raise ProtocolError("invalid sb mutation operation")
     result("sb", operation, name=name, path=path)
 
