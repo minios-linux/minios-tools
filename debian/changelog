@@ -1,3 +1,9 @@
+minios-tools (1.7.1) unstable; urgency=medium
+
+  * Fix umask handling in sb script
+
+ -- crims0n <crims0n@minios.dev>  Wed, 09 Sep 2026 20:28:59 +0300
+
 minios-tools (1.7.0) unstable; urgency=medium
 
   * Preserve excluded next-boot modules in sibling disabled storage, allow

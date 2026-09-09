@@ -189,7 +189,7 @@ aufs_manifest_add() {
         return
     fi
     temporary="${AUFS_BRANCH_MANIFEST}.tmp.$$"
-    umask 077
+    ( umask 077; : >"$temporary" ) || return 1
     {
         IFS= read -r record || return 1
         printf '%s\n' "$record"
@@ -217,7 +217,7 @@ aufs_manifest_remove() {
         return
     fi
     temporary="${AUFS_BRANCH_MANIFEST}.tmp.$$"
-    umask 077
+    ( umask 077; : >"$temporary" ) || return 1
     while IFS= read -r record; do
         path=${record%=*}
         if aufs_branch_matches "$path" "$branch"; then
@@ -1069,7 +1069,7 @@ fix_system() {
         fi
         if [ -x "/usr/sbin/minios-update-cache" ]; then
             # fix caches
-            /usr/sbin/minios-update-cache "$BUNDLES" 2>/dev/null &
+            /usr/sbin/minios-update-cache "$BUNDLES" 2>/dev/null
         fi
         if [ -x "/usr/sbin/minios-update-dpkg" ]; then
             # The package database must match the new branch set before sb

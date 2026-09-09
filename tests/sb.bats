@@ -130,11 +130,14 @@ load_sb_functions() {
     AUFS_BRANCH_MANIFEST="$TEST_ROOT/aufs-branches"
     printf '%s\n%s\n' "$TEST_ROOT/changes=rw" "$TEST_ROOT/00-core.sb=rr+wh" \
         >"$AUFS_BRANCH_MANIFEST"
+    umask 022
 
     aufs_manifest_add "$TEST_ROOT/05-extra.sb"
+    [ "$(umask)" = 0022 ]
     [ "$(stat -c %a "$AUFS_BRANCH_MANIFEST")" = 644 ]
     [ "$(sed -n '2p' "$AUFS_BRANCH_MANIFEST")" = "$TEST_ROOT/05-extra.sb=rr+wh" ]
     aufs_manifest_remove "$TEST_ROOT/05-extra.sb"
+    [ "$(umask)" = 0022 ]
     [ "$(stat -c %a "$AUFS_BRANCH_MANIFEST")" = 644 ]
     ! grep -Fq 05-extra "$AUFS_BRANCH_MANIFEST"
 }
