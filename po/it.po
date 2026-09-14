@@ -5,9 +5,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: minios-tools 1.7.0\n"
+"Project-Id-Version: minios-tools 1.7.1\n"
 "Report-Msgid-Bugs-To: support@minios.dev\n"
-"POT-Creation-Date: 2026-09-07 00:46+0300\n"
+"POT-Creation-Date: 2026-09-13 22:42+0300\n"
 "PO-Revision-Date: 2026-09-06 21:46+0000\n"
 "Last-Translator: crims0n <crims0n@minios.dev>\n"
 "Language-Team: none\n"
@@ -694,21 +694,17 @@ msgid "Use FILE as the installation script"
 msgstr "Usa FILE come script di installazione"
 
 #: autostart/minios-setup-keyboard.desktop:7
-#: debian/minios-tools/etc/xdg/autostart/minios-setup-keyboard.desktop:7
 msgid "MiniOS Keyboard Setup"
 msgstr "Configurazione tastiera MiniOS"
 
 #: autostart/minios-setup-keyboard.desktop:17
-#: debian/minios-tools/etc/xdg/autostart/minios-setup-keyboard.desktop:17
 msgid "Configure keyboard layout from boot parameters"
 msgstr "Configura il layout della tastiera dai parametri di avvio"
 
 #: autostart/minios-virtual-resolution.desktop:7
-#: debian/minios-tools/etc/xdg/autostart/minios-virtual-resolution.desktop:7
 msgid "MiniOS Virtual Resolution Change"
 msgstr "Cambio risoluzione virtuale MiniOS"
 
 #: autostart/minios-virtual-resolution.desktop:17
-#: debian/minios-tools/etc/xdg/autostart/minios-virtual-resolution.desktop:17
 msgid "Script for automatic resolution change in virtualization environment on XFCE startup"
 msgstr "Script per il cambio automatico della risoluzione in un ambiente di virtualizzazione all'avvio di XFCE"

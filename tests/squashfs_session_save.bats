@@ -39,6 +39,11 @@ teardown() {
     [ "$status" -eq 0 ]
 }
 
+@test "SquashFS runtime authority accepts the dynblk boot-state field only as none" {
+    run python3 "$BACKEND_CASE" runtime-state-dynblk-field
+    [ "$status" -eq 0 ]
+}
+
 shutdown_environment() {
     local policy=${1:-shutdown}
     BOOT_STATE="$WORK/boot-state"
@@ -47,7 +52,13 @@ shutdown_environment() {
     CONSOLE="$WORK/console"
     SAVE_COMMAND="$WORK/minios-squashfs-save"
     CALLED="$WORK/called"
-    mkdir -p "$SESSIONS"
+    mkdir -p "$SESSIONS" "$WORK/bin"
+    cat >"$WORK/bin/sync" <<'EOF'
+#!/bin/sh
+exit 0
+EOF
+    chmod 755 "$WORK/bin/sync"
+    TEST_PATH="$WORK/bin:$PATH"
     printf '%s\n' 'boot_level=ok' 'mode=squashfs' 'session=1' >"$BOOT_STATE"
     printf '%s\n' 'default=1' 'running=1' 'session_mode[1]=squashfs' \
         "session_policy[1]=$policy" >"$SESSIONS/session.conf"
@@ -65,6 +76,7 @@ EOF
 @test "shutdown helper saves through Tools and publishes the initramfs marker" {
     shutdown_environment shutdown
     run env \
+        PATH="$TEST_PATH" \
         MINIOS_SHUTDOWN_BOOT_STATE="$BOOT_STATE" \
         MINIOS_SHUTDOWN_SESSIONS_DIR="$SESSIONS" \
         MINIOS_SHUTDOWN_MARKER="$MARKER" \
@@ -89,7 +101,7 @@ echo '{"message":"directory identity changed during inventory","success":false}'
 exit 1
 EOF
     chmod 755 "$SAVE_COMMAND"
-    run env MINIOS_SHUTDOWN_BOOT_STATE="$BOOT_STATE" \
+    run env PATH="$TEST_PATH" MINIOS_SHUTDOWN_BOOT_STATE="$BOOT_STATE" \
         MINIOS_SHUTDOWN_SESSIONS_DIR="$SESSIONS" \
         MINIOS_SHUTDOWN_MARKER="$MARKER" \
         MINIOS_SHUTDOWN_SAVE_COMMAND="$SAVE_COMMAND" \
@@ -101,7 +113,7 @@ EOF
 
 @test "manual SquashFS policy skips shutdown save" {
     shutdown_environment manual
-    run env MINIOS_SHUTDOWN_BOOT_STATE="$BOOT_STATE" \
+    run env PATH="$TEST_PATH" MINIOS_SHUTDOWN_BOOT_STATE="$BOOT_STATE" \
         MINIOS_SHUTDOWN_SESSIONS_DIR="$SESSIONS" \
         MINIOS_SHUTDOWN_MARKER="$MARKER" \
         MINIOS_SHUTDOWN_SAVE_COMMAND="$SAVE_COMMAND" \

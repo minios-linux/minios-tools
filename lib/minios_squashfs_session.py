@@ -241,7 +241,7 @@ class SquashfsSessionSaver:
             raise SquashfsSaveError("Persistence runtime state is not trusted")
         allowed = {
             "boot_id", "boot_level", "mode", "session", "durable", "writable",
-            "sessions_device", "sessions_inode", "active_generation",
+            "sessions_device", "sessions_inode", "active_generation", "dynblk_device",
         }
         state = {}
         with open(self.boot_state_file, "r", encoding="utf-8") as stream:
@@ -297,6 +297,7 @@ class SquashfsSessionSaver:
             "durable": "1",
             "writable": "1",
             "active_generation": "current",
+            "dynblk_device": "none",
         }
         if any(state.get(key) != value for key, value in required.items()):
             raise SquashfsSaveError(

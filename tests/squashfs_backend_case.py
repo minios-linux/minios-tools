@@ -9,6 +9,7 @@ import tempfile
 
 ROOT = os.path.realpath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(ROOT, "lib"))
+import minios_squashfs_session as squashfs_backend
 from minios_squashfs_session import SquashfsSaveError, SquashfsSessionSaver
 
 
@@ -188,6 +189,43 @@ def case_metadata_failure():
         with open(os.path.join(session, "changes.sb"), "rb") as stream:
             assert stream.read() == b"hsqs-new-snapshot"
 
+
+def case_runtime_state_dynblk_field():
+    with tempfile.TemporaryDirectory() as root:
+        changes, _session, _old = setup_session(root)
+        boot_state = os.path.join(root, "boot-state")
+        boot_id = os.path.join(root, "boot-id")
+        selected = os.stat(changes)
+        boot_identity = "01234567-89ab-cdef-0123-456789abcdef"
+        with open(boot_id, "w", encoding="ascii") as stream:
+            stream.write(boot_identity + "\n")
+        state = (
+            "boot_id={}\nboot_level=ok\nmode=squashfs\nsession=1\n"
+            "durable=1\nwritable=1\nsessions_device={}\nsessions_inode={}\n"
+            "active_generation=current\ndynblk_device=none\n".format(
+                boot_identity, selected.st_dev, selected.st_ino))
+        with open(boot_state, "w", encoding="utf-8") as stream:
+            stream.write(state)
+        os.chmod(boot_state, 0o600)
+        saver = SquashfsSessionSaver(
+            sessions_dir=changes, boot_state_file=boot_state, boot_id_file=boot_id)
+        saver._detect_filesystem = lambda: "ext4"
+        old_paths = squashfs_backend.SESSION_PATHS
+        squashfs_backend.SESSION_PATHS = (changes,)
+        try:
+            assert saver._validate_runtime("1")["dynblk_device"] == "none"
+            with open(boot_state, "w", encoding="utf-8") as stream:
+                stream.write(state.replace("dynblk_device=none", "dynblk_device=/dev/dynblk0"))
+            try:
+                saver._validate_runtime("1")
+            except SquashfsSaveError as error:
+                assert "not active in this boot" in str(error)
+            else:
+                raise AssertionError("SquashFS accepted a dynblk device in runtime state")
+        finally:
+            squashfs_backend.SESSION_PATHS = old_paths
+
+
 CASES = {
     "save": case_save,
     "finalize": case_finalize,
@@ -195,6 +233,7 @@ CASES = {
     "identity": case_identity_mismatch,
     "generation": case_generation_changed,
     "metadata": case_metadata_failure,
+    "runtime-state-dynblk-field": case_runtime_state_dynblk_field,
 }
 
 

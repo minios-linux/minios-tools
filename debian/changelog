@@ -1,8 +1,10 @@
 minios-tools (1.7.1) unstable; urgency=medium
 
-  * Fix umask handling in sb script
+  * Fix umask handling in sb script.
+  * Accept the dynblk device identity field in protected boot-state while keeping
+    SquashFS runtime validation fail-closed to dynblk_device=none.
 
- -- crims0n <crims0n@minios.dev>  Wed, 09 Sep 2026 20:28:59 +0300
+ -- crims0n <crims0n@minios.dev>  Sun, 13 Sep 2026 22:47:24 +0300
 
 minios-tools (1.7.0) unstable; urgency=medium
 
