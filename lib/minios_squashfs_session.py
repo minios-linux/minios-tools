@@ -242,6 +242,7 @@ class SquashfsSessionSaver:
         allowed = {
             "boot_id", "boot_level", "mode", "session", "durable", "writable",
             "sessions_device", "sessions_inode", "active_generation", "dynblk_device",
+            "encryption", "crypt_mapper", "loop_device",
         }
         state = {}
         with open(self.boot_state_file, "r", encoding="utf-8") as stream:
@@ -298,6 +299,9 @@ class SquashfsSessionSaver:
             "writable": "1",
             "active_generation": "current",
             "dynblk_device": "none",
+            "encryption": "none",
+            "crypt_mapper": "none",
+            "loop_device": "none",
         }
         if any(state.get(key) != value for key, value in required.items()):
             raise SquashfsSaveError(

@@ -202,6 +202,42 @@ has_mounts_under() {
     return 1
 }
 
+chroot_process_pids() {
+    local proc pid process_root
+
+    [[ -n $UNION && -d $UNION ]] || return 0
+    for proc in /proc/[0-9]*; do
+        process_root=$(realpath -e -- "$proc/root" 2>/dev/null) || continue
+        [[ $process_root == "$UNION" || $process_root == "$UNION/"* ]] || continue
+        pid=${proc##*/}
+        [[ $pid == $$ ]] && continue
+        printf '%s\n' "$pid"
+    done
+}
+
+stop_chroot_processes() {
+    local attempt
+    local -a pids=()
+
+    for attempt in 1 2 3; do
+        mapfile -t pids < <(chroot_process_pids)
+        (( ${#pids[@]} > 0 )) || return 0
+        kill -TERM "${pids[@]}" 2>/dev/null || true
+        sleep 0.5
+    done
+
+    mapfile -t pids < <(chroot_process_pids)
+    (( ${#pids[@]} > 0 )) || return 0
+    kill -KILL "${pids[@]}" 2>/dev/null || true
+
+    for attempt in 1 2 3; do
+        sleep 0.2
+        mapfile -t pids < <(chroot_process_pids)
+        (( ${#pids[@]} > 0 )) || return 0
+    done
+    return 1
+}
+
 detach_chroot_mounts() {
     local ok=true
     local mount_point
@@ -229,6 +265,7 @@ cleanup() {
     set +e
 
     if [[ -n $UNION ]]; then
+        stop_chroot_processes || cleanup_failed=true
         detach_chroot_mounts || cleanup_failed=true
         safe_umount "$UNION" || cleanup_failed=true
     fi
@@ -531,6 +568,10 @@ else
     fi
 fi
 
+if ! stop_chroot_processes; then
+    echo "Failed to stop one or more processes started in the chroot; no module was created." >&2
+    exit 1
+fi
 if ! detach_chroot_mounts; then
     echo "Failed to unmount one or more chroot filesystems; no module was created." >&2
     exit 1

@@ -39,7 +39,7 @@ teardown() {
     [ "$status" -eq 0 ]
 }
 
-@test "SquashFS runtime authority accepts the dynblk boot-state field only as none" {
+@test "SquashFS runtime authority rejects storage ownership fields" {
     run python3 "$BACKEND_CASE" runtime-state-dynblk-field
     [ "$status" -eq 0 ]
 }

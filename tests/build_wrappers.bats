@@ -47,6 +47,19 @@ setup() {
     done
 }
 
+@test "build wrappers stop processes rooted in their private chroot before teardown" {
+    local tool
+    for tool in apt2sb script2sb chroot2sb; do
+        run grep -F 'process_root=$(realpath -e -- "$proc/root"' "$BIN/$tool"
+        [ "$status" -eq 0 ]
+        run grep -F '[[ $process_root == "$UNION" || $process_root == "$UNION/"* ]]' "$BIN/$tool"
+        [ "$status" -eq 0 ]
+    done
+    [ "$(grep -Fc 'stop_chroot_processes' "$BIN/apt2sb")" -eq 3 ]
+    [ "$(grep -Fc 'stop_chroot_processes' "$BIN/script2sb")" -eq 3 ]
+    [ "$(grep -Fc 'stop_chroot_processes' "$BIN/chroot2sb")" -eq 6 ]
+}
+
 @test "chroot wrappers make temporary resolver settings readable" {
     local tool expected actual
     for tool in apt2sb script2sb chroot2sb; do
@@ -281,6 +294,8 @@ setup() {
     run grep -F 'run_convert_engine check-workspace' "$BIN/chroot2sb"
     [ "$status" -eq 0 ]
     run grep -F 'chroot "$UNION"' "$BIN/chroot2sb"
+    [ "$status" -eq 0 ]
+    run grep -F 'chroot "$UNION" {SESSION_LOCK_FD}>&-' "$BIN/chroot2sb"
     [ "$status" -eq 0 ]
 }
 

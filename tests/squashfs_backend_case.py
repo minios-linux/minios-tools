@@ -202,7 +202,8 @@ def case_runtime_state_dynblk_field():
         state = (
             "boot_id={}\nboot_level=ok\nmode=squashfs\nsession=1\n"
             "durable=1\nwritable=1\nsessions_device={}\nsessions_inode={}\n"
-            "active_generation=current\ndynblk_device=none\n".format(
+            "active_generation=current\ndynblk_device=none\n"
+            "encryption=none\ncrypt_mapper=none\nloop_device=none\n".format(
                 boot_identity, selected.st_dev, selected.st_ino))
         with open(boot_state, "w", encoding="utf-8") as stream:
             stream.write(state)
@@ -222,6 +223,14 @@ def case_runtime_state_dynblk_field():
                 assert "not active in this boot" in str(error)
             else:
                 raise AssertionError("SquashFS accepted a dynblk device in runtime state")
+            with open(boot_state, "w", encoding="utf-8") as stream:
+                stream.write(state.replace("encryption=none", "encryption=luks"))
+            try:
+                saver._validate_runtime("1")
+            except SquashfsSaveError as error:
+                assert "not active in this boot" in str(error)
+            else:
+                raise AssertionError("SquashFS accepted encrypted runtime state")
         finally:
             squashfs_backend.SESSION_PATHS = old_paths
 
