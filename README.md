@@ -1,8 +1,8 @@
 # MiniOS Tools
 
-A collection of command-line tools for managing MiniOS live systems and module bundles.
-
 ## Overview
+
+A collection of command-line tools for managing MiniOS live systems and module bundles.
 
 MiniOS Tools provides utilities for creating, managing, and customizing MiniOS live systems. These tools manage compressed filesystem bundles (.sb modules) and maintain live system configurations.
 
@@ -60,10 +60,10 @@ Translations are provided for the command-line messages that use the localizatio
 - Root privileges for most operations
 - AUFS/OverlayFS support for some bundle operations
 
-## License
-
-Distributed under the same license as MiniOS Linux.
-
 ## Support
 
 For issues and questions, visit: https://github.com/minios-linux/minios-live
+
+## License
+
+Distributed under the same license as MiniOS Linux.
