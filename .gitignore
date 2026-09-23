@@ -1,4 +1,6 @@
 # Debian build artifacts
+/.pc/
+/obj-*/
 debian/.debhelper/
 debian/debhelper-build-stamp
 debian/files
@@ -15,6 +17,7 @@ debian/tmp/
 /*.deb
 /*.dsc
 /*.tar.*
+/*.udeb
 
 # Man pages (generated)
 man/
