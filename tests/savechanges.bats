@@ -120,6 +120,7 @@ run_module() {
         UNSQUASHFS_FAIL_PATTERN="${UNSQUASHFS_FAIL_PATTERN:-__never__}" \
         SAVECHANGES_TEST_FAIL_OUTPUT_DIR_FSYNC="${SAVECHANGES_TEST_FAIL_OUTPUT_DIR_FSYNC:-0}" \
         SAVECHANGES_TEST_PAUSE_AFTER_PUBLISH="${SAVECHANGES_TEST_PAUSE_AFTER_PUBLISH:-}" \
+        MINIOS_SESSION_DIRECT_OUTPUT="${SAVECHANGES_TEST_SESSION_DIRECT_OUTPUT:-0}" \
         NO_COLOR=1 \
         "$SAVECHANGES" "$@" "$target" "$changes"
 }
@@ -143,6 +144,28 @@ run_inventory() {
 
 assert_output_contains() {
     [[ $output == *"$1"* ]]
+}
+
+@test "private direct session output cannot be requested by unprivileged callers" {
+    run env MINIOS_SESSION_DIRECT_OUTPUT=1 "$SAVECHANGES" --json --profile exact \
+        "$OUTPUT_DIR/.changes.sb.new-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" "$CHANGES"
+    [ "$status" -ne 0 ]
+    assert_output_contains "Invalid private session output request"
+    [ ! -e "$OUTPUT_DIR/.changes.sb.new-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" ]
+}
+
+@test "session candidate compresses once in private output storage" {
+    write_file "$CHANGES/etc/minios-session" data
+    mkdir -p "$TEST_ROOT/ram work"
+    chmod 0700 "$OUTPUT_DIR" "$TEST_ROOT/ram work"
+    target="$OUTPUT_DIR/.changes.sb.new-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    SAVECHANGES_TEST_SESSION_DIRECT_OUTPUT=1 run_module "$target" \
+        "$TEST_ROOT/direct output state" --json --profile exact \
+        --work-parent "$TEST_ROOT/ram work"
+    [ "$status" -eq 0 ]
+    [ -f "$target" ]
+    [ "$(stat -c '%a' "$target")" = 600 ]
+    [ "$(find "$OUTPUT_DIR" -maxdepth 1 -name 'savechanges.*' | wc -l)" -eq 0 ]
 }
 
 @test "lz4 compression is accepted and passed to mksquashfs" {

@@ -2,6 +2,7 @@
 from __future__ import print_function
 
 import hashlib
+import io
 import json
 import os
 import sys
@@ -51,9 +52,9 @@ def setup_session(root, policy="shutdown", generation="7"):
     return changes, session, old
 
 
-def fake_capture(payload=b"hsqs-new-snapshot", mutate=None):
+def fake_capture(payload=b"hsqs-new-snapshot", mutate=None, expected_work_parent=None):
     def capture(output_path, work_parent, progress_callback=None):
-        assert os.path.dirname(output_path) == work_parent
+        assert work_parent == (expected_work_parent or os.path.dirname(output_path))
         with open(output_path, "wb") as stream:
             stream.write(payload)
         metadata = os.stat(output_path)
@@ -106,6 +107,78 @@ def case_save():
         assert record["digest"] == hashlib.sha256(b"hsqs-new-snapshot").hexdigest()
         assert record["capture_boot_id"] == "boot-test"
         assert not any(key.startswith("old_") for key in record)
+        assert not any(name.startswith(".changes.sb.new-") for name in os.listdir(session))
+
+
+def case_ram_workspace():
+    with tempfile.TemporaryDirectory() as root:
+        changes, session, _old = setup_session(root)
+        scratch = os.path.join(root, "volatile-work-parent")
+        os.mkdir(scratch)
+        saver = saver_for(changes)
+        saver._ram_work_parent = lambda: scratch
+        saver._run_savechanges = fake_capture(expected_work_parent=scratch)
+        result = saver.save("1")
+        assert result["generation"] == 8
+        with open(os.path.join(session, "changes.sb"), "rb") as stream:
+            assert stream.read() == b"hsqs-new-snapshot"
+
+
+def case_ram_mount_covering():
+    path = "/run/initramfs/memory"
+    livekit = "24 1 0:24 / /run rw - tmpfs tmpfs rw\n"
+    dracut = livekit + "25 24 0:25 / /run/initramfs/memory rw - tmpfs tmpfs rw\n"
+    unsafe = livekit + "25 24 8:1 / /run/initramfs/memory rw - ext4 /dev/sda rw\n"
+    assert SquashfsSessionSaver._tmpfs_covers(path, io.StringIO(livekit))
+    assert SquashfsSessionSaver._tmpfs_covers(path, io.StringIO(dracut))
+    assert not SquashfsSessionSaver._tmpfs_covers(path, io.StringIO(unsafe))
+
+
+def case_ram_space_fallback():
+    with tempfile.TemporaryDirectory() as root:
+        changes, session, _old = setup_session(root)
+        scratch = os.path.join(root, "volatile-work-parent")
+        os.mkdir(scratch)
+        saver = saver_for(changes)
+        saver._ram_work_parent = lambda: scratch
+        disk_capture = fake_capture()
+        attempts = []
+        def capture(output_path, work_parent, progress_callback=None):
+            attempts.append(work_parent)
+            if work_parent == scratch:
+                raise SquashfsSaveError(
+                    "savechanges failed: insufficient private temporary space")
+            return disk_capture(output_path, work_parent, progress_callback)
+        saver._run_savechanges = capture
+        result = saver.save("1")
+        assert attempts == [scratch, session]
+        assert result["generation"] == 8
+
+
+def case_ram_failure_is_not_retried():
+    with tempfile.TemporaryDirectory() as root:
+        changes, session, previous = setup_session(root)
+        scratch = os.path.join(root, "volatile-work-parent")
+        os.mkdir(scratch)
+        saver = saver_for(changes)
+        saver._ram_work_parent = lambda: scratch
+        attempts = []
+        def capture(output_path, work_parent, progress_callback=None):
+            attempts.append(work_parent)
+            # An error after a candidate output exists must never retry over it.
+            with open(output_path, "wb") as stream:
+                stream.write(b"partial")
+            raise SquashfsSaveError("insufficient private temporary space")
+        saver._run_savechanges = capture
+        try:
+            saver.save("1")
+        except SquashfsSaveError:
+            pass
+        else:
+            raise AssertionError("accepted partial RAM output")
+        assert attempts == [scratch]
+        with open(os.path.join(session, "changes.sb"), "rb") as stream:
+            assert stream.read() == previous
         assert not any(name.startswith(".changes.sb.new-") for name in os.listdir(session))
 
 
@@ -237,6 +310,10 @@ def case_runtime_state_dynblk_field():
 
 CASES = {
     "save": case_save,
+    "ram-workspace": case_ram_workspace,
+    "ram-mount-covering": case_ram_mount_covering,
+    "ram-space-fallback": case_ram_space_fallback,
+    "ram-no-retry-after-output": case_ram_failure_is_not_retried,
     "finalize": case_finalize,
     "manual-shutdown": case_manual_shutdown_rejected,
     "identity": case_identity_mismatch,

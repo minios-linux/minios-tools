@@ -18,6 +18,7 @@ import time
 from datetime import datetime, timezone
 
 SAVECHANGES_COMMAND = "/usr/bin/savechanges"
+RAM_WORK_PARENT = "/run/initramfs/memory"
 BOOT_STATE_FILE = "/run/initramfs/minios-persistence/boot-state"
 BOOT_ID_FILE = "/proc/sys/kernel/random/boot_id"
 SESSION_PATHS = (
@@ -95,6 +96,52 @@ class SquashfsSessionSaver:
         if len(unique) > 1:
             raise SquashfsSaveError("Selected persistence storage is ambiguous")
         return unique[0] if unique else None
+
+    @staticmethod
+    def _tmpfs_covers(path, mountinfo):
+        covering = ("", "")
+        for line in mountinfo:
+            if " - " not in line:
+                continue
+            left, right = line.split(" - ", 1)
+            mounted = left.split()[4]
+            if ((path == mounted or path.startswith(mounted.rstrip("/") + "/"))
+                    and len(mounted) > len(covering[0])):
+                covering = (mounted, right.split()[0])
+        return covering[1] == "tmpfs"
+
+    @staticmethod
+    def _ram_work_parent():
+        """Prefer the trusted initrd tmpfs when capture has enough headroom.
+
+        savechanges performs the precise staging/inode bound check itself.
+        This conservative check avoids even attempting a RAM capture on a
+        low-memory machine; it never changes the output publication location.
+        """
+        path = RAM_WORK_PARENT
+        try:
+            metadata = os.stat(path, follow_symlinks=False)
+            mode = stat.S_IMODE(metadata.st_mode)
+            if (not stat.S_ISDIR(metadata.st_mode) or metadata.st_uid != 0 or
+                    (mode & 0o022 and not mode & stat.S_ISVTX) or
+                    os.path.realpath(path) != path):
+                return None
+            # Dracut moves /memory as a separate mount. LiveKit may retain the
+            # same directory inside the existing /run tmpfs after pivot_root.
+            # Require the nearest covering mount to be tmpfs in either case.
+            with open("/proc/self/mountinfo", "r", encoding="utf-8") as stream:
+                if not SquashfsSessionSaver._tmpfs_covers(path, stream):
+                    return None
+            with open("/proc/meminfo", "r", encoding="ascii") as stream:
+                available = next((int(line.split()[1]) * 1024 for line in stream
+                                  if line.startswith("MemAvailable:")), 0)
+            free = os.statvfs(path)
+            if (available < 768 * 1024 * 1024 or
+                    free.f_bavail * free.f_frsize < 256 * 1024 * 1024):
+                return None
+        except (OSError, ValueError, IndexError):
+            return None
+        return path
 
     def _session_path(self, session_id):
         session_id = _validate_session_id(session_id)
@@ -373,6 +420,10 @@ class SquashfsSessionSaver:
             "PATH": "/usr/sbin:/usr/bin:/sbin:/bin",
             "LC_ALL": "C.UTF-8",
             "LANG": "C.UTF-8",
+            # This output is a private candidate in the session directory.
+            # savechanges may compress directly into it; save() verifies it
+            # before replacing the currently published changes.sb.
+            "MINIOS_SESSION_DIRECT_OUTPUT": "1",
         }
         events = []
         with tempfile.TemporaryFile() as error_file:
@@ -576,8 +627,25 @@ class SquashfsSessionSaver:
                     current_identity = (current.st_dev, current.st_ino)
 
                 new_path = os.path.join(session_path, new_name)
-                result = self._run_savechanges(
-                    new_path, session_path, progress_callback=progress_callback)
+                work_parent = self._ram_work_parent() or session_path
+                try:
+                    result = self._run_savechanges(
+                        new_path, work_parent, progress_callback=progress_callback)
+                except SquashfsSaveError as error:
+                    # Only retry savechanges' pre-publication space check; a
+                    # generic failure or a file already present at the output
+                    # path must never be reinterpreted as safe to retry.
+                    insufficient = (
+                        "insufficient private temporary space",
+                        "insufficient private temporary inodes",
+                        "insufficient private module space after staging",
+                    )
+                    if (work_parent == session_path or
+                            not any(reason in str(error) for reason in insufficient) or
+                            os.path.lexists(new_path)):
+                        raise
+                    result = self._run_savechanges(
+                        new_path, session_path, progress_callback=progress_callback)
                 result_identity = self._validate_capture(directory_fd, new_name, result)
                 capture_validated = True
                 _sync_directory(directory_fd)

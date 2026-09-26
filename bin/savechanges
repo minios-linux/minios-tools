@@ -279,6 +279,7 @@ else
 fi
 
 [[ -n $OUTPUT_INPUT && $OUTPUT_INPUT != */ ]] || die 1 "$(gettext "Invalid output filename")"
+DIRECT_SESSION_OUTPUT=0
 validate_no_line_break "$(gettext "Output path")" "$OUTPUT_INPUT"
 validate_no_line_break "$(gettext "Changes directory")" "$CHANGES_INPUT"
 validate_no_line_break "$(gettext "Mounted root")" "$MOUNTED_ROOT_INPUT"
@@ -325,7 +326,16 @@ if (( EUID != 0 )) && [[ ${MINIOS_TOOLS_TEST_ALLOW_NON_ROOT:-0} == 1 &&
     TEST_MODE=true
 fi
 if (( EUID != 0 )) && [[ $TEST_MODE != true ]]; then
+    [[ ${MINIOS_SESSION_DIRECT_OUTPUT:-} != 1 ]] ||
+        die 1 "Invalid private session output request"
     die 1 "$(gettext "This script must be run as root.")"
+fi
+if [[ ${MINIOS_SESSION_DIRECT_OUTPUT:-} == 1 ]]; then
+    [[ $MODE == module && $PROFILE == exact && $JSON_MODE == true &&
+       $METADATA_SET != true && $OUTPUT_INPUT =~ (^|/)\.changes\.sb\.new-[0-9a-f]{32}$ &&
+       ( $EUID == 0 || $TEST_MODE == true ) ]] ||
+        die 1 "Invalid private session output request"
+    DIRECT_SESSION_OUTPUT=1
 fi
 [[ -n $CHANGES_INPUT ]] || die 2 "$(gettext "Cannot detect the live writable changes directory")"
 
@@ -531,4 +541,4 @@ exec "$ENV_BIN" -i "${ENGINE_ENV[@]}" "$PYTHON_BIN" -I "$SAVECHANGES_ENGINE" \
     "$([[ $TEST_MODE == true ]] && printf 1 || printf 0)" "$MKSQUASHFS_BIN" \
     "$UNSQUASHFS_BIN" "$MOUNTINFO_PATH" "$CMDLINE_PATH" "$BOOT_ID_PATH" \
     "$RUNNING_SOURCE_PATH" "$CANCEL_PATH" "$([[ $JSON_MODE == true ]] && printf 1 || printf 0)" \
-    "$AUFS_SYSFS_PATH" "$MOUNTED_ROOT_PATH" "$AUFS_BRANCHES_PATH"
+    "$AUFS_SYSFS_PATH" "$MOUNTED_ROOT_PATH" "$AUFS_BRANCHES_PATH" "$DIRECT_SESSION_OUTPUT"

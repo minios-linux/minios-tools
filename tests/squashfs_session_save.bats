@@ -14,6 +14,26 @@ teardown() {
     [ "$status" -eq 0 ]
 }
 
+@test "SquashFS saver stages in RAM but publishes only in the session directory" {
+    run python3 "$BACKEND_CASE" ram-workspace
+    [ "$status" -eq 0 ]
+}
+
+@test "SquashFS saver accepts LiveKit and Dracut tmpfs but rejects disk submounts" {
+    run python3 "$BACKEND_CASE" ram-mount-covering
+    [ "$status" -eq 0 ]
+}
+
+@test "SquashFS saver falls back to disk only for a private RAM space check" {
+    run python3 "$BACKEND_CASE" ram-space-fallback
+    [ "$status" -eq 0 ]
+}
+
+@test "SquashFS saver never retries after RAM output was created" {
+    run python3 "$BACKEND_CASE" ram-no-retry-after-output
+    [ "$status" -eq 0 ]
+}
+
 @test "common backend finalizes shutdown metadata with the same save" {
     run python3 "$BACKEND_CASE" finalize
     [ "$status" -eq 0 ]

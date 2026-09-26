@@ -1,3 +1,13 @@
+minios-tools (1.7.3) unstable; urgency=medium
+
+  * Stage SquashFS session trees in trusted RAM when memory is available,
+    falling back to the existing disk workspace on a private-space failure.
+  * Compress directly into a private candidate in the session directory,
+    removing the second compressed-image copy without weakening validation,
+    fsync, cleanup or atomic replacement of the active snapshot.
+
+ -- crims0n <crims0n@minios.dev>  Sat, 26 Sep 2026 18:54:28 +0300
+
 minios-tools (1.7.2) unstable; urgency=medium
 
   * Accept layered persistence ownership fields in protected boot-state while

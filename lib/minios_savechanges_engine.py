@@ -1749,19 +1749,21 @@ def run_tool_output(arguments, child_env=None):
         CURRENT_PGID = None
 
 
-def rename_noreplace(directory_fd, source, target):
+def rename_noreplace(directory_fd, source, target, destination_fd=None):
+    if destination_fd is None:
+        destination_fd = directory_fd
     libc = ctypes.CDLL(None, use_errno=True)
     renameat2 = getattr(libc, "renameat2", None)
     if renameat2 is not None:
         renameat2.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p,
                               ctypes.c_uint]
         renameat2.restype = ctypes.c_int
-        if renameat2(directory_fd, source, directory_fd, target, 1) == 0:
+        if renameat2(directory_fd, source, destination_fd, target, 1) == 0:
             return "rename"
         number = ctypes.get_errno()
         if number not in (errno.ENOSYS, errno.EINVAL):
             raise OSError(number, os.strerror(number))
-    os.link(source, target, src_dir_fd=directory_fd, dst_dir_fd=directory_fd,
+    os.link(source, target, src_dir_fd=directory_fd, dst_dir_fd=destination_fd,
             follow_symlinks=False)
     return "link"
 
@@ -2121,14 +2123,17 @@ def module_size_bound(footprint):
 
 def execute(arguments):
     global JSON_MODE, TEST_MODE
-    if len(arguments) != 21:
+    if len(arguments) != 22:
         fail("invalid privileged engine invocation")
     (mode, profile, compression, output_path, changes_path, selection_path,
       metadata_path, temp_parent, owner_text, test_text, mksquashfs_path,
       unsquashfs_path, mountinfo_path, cmdline_path, boot_id_path,
        running_source_path, cancel_path, json_text, aufs_sysfs_path, mounted_root,
-       aufs_branches_path) = arguments
+        aufs_branches_path, direct_text) = arguments
     JSON_MODE = json_text == "1"
+    if direct_text not in ("0", "1"):
+        fail("invalid private session output request")
+    direct_session_output = direct_text == "1"
     test_mode = test_text == "1"
     TEST_MODE = test_mode
     owner_uid = int(owner_text) if owner_text else None
@@ -2138,6 +2143,17 @@ def execute(arguments):
     mksquashfs = trusted_tool(mksquashfs_path, test_mode) if mode == "module" else None
     unsquashfs = trusted_tool(unsquashfs_path, test_mode) if mode == "module" else None
     output_parent, output_fd, output_metadata, output_basename = split_output(output_path)
+    if direct_session_output:
+        trusted_parent = (
+            (not test_mode and os.geteuid() == 0 and
+             owner_uid in (None, 0) and output_metadata.st_uid == 0 and
+             not stat.S_IMODE(output_metadata.st_mode) & 0o022) or
+            (test_mode and output_metadata.st_uid == os.geteuid() and
+             stat.S_IMODE(output_metadata.st_mode) == 0o700))
+        if (mode != "module" or profile != "exact" or not JSON_MODE or metadata_path or
+                not trusted_parent or
+                not re.fullmatch(b"[.]changes[.]sb[.]new-[0-9a-f]{32}", output_basename)):
+            fail("invalid private session output request")
     metadata_basename = None
     if metadata_path:
         metadata_parent, metadata_fd, metadata_parent_metadata, metadata_basename = split_output(metadata_path)
@@ -2190,6 +2206,9 @@ def execute(arguments):
 
     temp_parent_fd = -1
     temp_fd = -1
+    direct_parent_fd = -1
+    direct_fd = -1
+    direct_name = None
     temp_name = None
     metadata_identity = None
     output_identity = None
@@ -2256,7 +2275,7 @@ def execute(arguments):
         staged_bound, staged_inodes = planned_staging_bound(
             root_fd, root_metadata, entries, selected)
         module_bound = staged_bound + 16 * 1024 * 1024
-        temp_required = staged_bound + module_bound + 16 * 1024 * 1024
+        temp_required = staged_bound + (0 if direct_session_output else module_bound) + 16 * 1024 * 1024
         output_required = module_bound + 1024 * 1024
         temp_vfs = os.fstatvfs(temp_fd)
         output_vfs = os.fstatvfs(output_fd)
@@ -2303,16 +2322,23 @@ def execute(arguments):
         temp_free = temp_vfs.f_bavail * temp_vfs.f_frsize
         output_free = output_vfs.f_bavail * output_vfs.f_frsize
         if os.fstat(temp_fd).st_dev == output_metadata.st_dev:
-            if min(temp_free, output_free) < module_bound * 2 + 1024 * 1024:
+            remaining = module_bound * (1 if direct_session_output else 2) + 1024 * 1024
+            if min(temp_free, output_free) < remaining:
                 fail("insufficient shared module and publication space after staging")
         else:
-            if temp_free < module_bound:
+            if not direct_session_output and temp_free < module_bound:
                 fail("insufficient private module space after staging")
             if output_free < module_bound + 1024 * 1024:
                 fail("insufficient destination publication space after staging")
 
         phase("capture-compress", "Compressing and fully testing captured session changes")
-        module_path = "/proc/self/fd/{}/module.squashfs".format(temp_fd)
+        if direct_session_output:
+            _direct_parent_path, direct_parent_fd, direct_name, direct_fd = (
+                create_private_temp(output_parent, test_mode, owner_uid))
+        module_parent_fd = direct_fd if direct_session_output else temp_fd
+        module_basename = b"module.squashfs"
+        module_path = "/proc/self/fd/{}/{}".format(
+            module_parent_fd, os.fsdecode(module_basename))
         _help_status, help_output = run_tool_output(
             [mksquashfs, "-help-option", "quiet"], child_env=child_env)
         quiet = "-quiet" in (help_output or "")
@@ -2325,19 +2351,26 @@ def execute(arguments):
             command.extend(["-Xcompression-level", "19"])
         elif compression == "xz":
             command.extend(["-Xbcj", "x86"])
-        if run_tool(command, pass_fds=(temp_fd,), child_env=child_env,
+        # mksquashfs reads the staged tree through temp_fd and writes through
+        # module_parent_fd. They are distinct in session-direct mode.
+        compressor_fds = ((temp_fd, module_parent_fd) if direct_session_output
+                          else (temp_fd,))
+        if run_tool(command, pass_fds=compressor_fds, child_env=child_env,
                     stdout=sys.stderr if JSON_MODE else subprocess.DEVNULL) != 0:
             fail("mksquashfs failed for compression {}".format(compression))
         machine_phase("verify")
-        module_fd = os.open(b"module.squashfs", os.O_RDONLY | os.O_NOFOLLOW, dir_fd=temp_fd)
+        module_fd = os.open(module_basename, os.O_RDONLY | os.O_NOFOLLOW,
+                            dir_fd=module_parent_fd)
         try:
             module_stat = os.fstat(module_fd)
-            if not stat.S_ISREG(module_stat.st_mode) or module_stat.st_size <= 0:
+            if (not stat.S_ISREG(module_stat.st_mode) or module_stat.st_size <= 0 or
+                    (direct_session_output and
+                     (module_stat.st_uid != os.geteuid() or module_stat.st_nlink != 1))):
                 fail("mksquashfs did not create a nonempty regular module")
-            if run_tool([unsquashfs, "-s", module_path], pass_fds=(temp_fd,),
+            if run_tool([unsquashfs, "-s", module_path], pass_fds=(module_parent_fd,),
                         stdout=subprocess.DEVNULL, child_env=child_env) != 0:
                 fail("created module has an invalid SquashFS superblock")
-            if run_tool([unsquashfs, "-ll", module_path], pass_fds=(temp_fd,),
+            if run_tool([unsquashfs, "-ll", module_path], pass_fds=(module_parent_fd,),
                         stdout=subprocess.DEVNULL, child_env=child_env) != 0:
                 fail("created module failed SquashFS listing verification")
             digest = hashlib.sha256()
@@ -2377,9 +2410,36 @@ def execute(arguments):
             os.lseek(module_fd, 0, os.SEEK_SET)
             output_mode = 0o644 if profile == "legacy" else 0o600
             try:
-                output_identity = atomic_publish_stream(
-                    module_fd, output_fd, output_parent, output_metadata,
-                    output_basename, output_mode, owner_uid)
+                if direct_session_output:
+                    os.fchmod(module_fd, output_mode)
+                    os.fsync(module_fd)
+                    held = os.fstat(module_fd)
+                    named = os.stat(module_basename, dir_fd=direct_fd,
+                                    follow_symlinks=False)
+                    if (not stat.S_ISREG(named.st_mode) or named.st_nlink != 1 or
+                            (held.st_dev, held.st_ino) != (named.st_dev, named.st_ino)):
+                        fail("private session output identity changed")
+                    verify_requested_parent(output_parent, output_metadata)
+                    check_cancelled()
+                    method = rename_noreplace(direct_fd, module_basename,
+                                              output_basename, output_fd)
+                    if method == "link":
+                        os.unlink(module_basename, dir_fd=direct_fd)
+                    published = os.stat(output_basename, dir_fd=output_fd,
+                                        follow_symlinks=False)
+                    if ((published.st_dev, published.st_ino) !=
+                            (held.st_dev, held.st_ino) or published.st_nlink != 1):
+                        fail("private session output identity changed")
+                    output_identity = (held.st_dev, held.st_ino)
+                    try:
+                        os.fsync(output_fd)
+                    except OSError as error:
+                        if error.errno not in (errno.EINVAL, errno.ENOTSUP, errno.EOPNOTSUPP):
+                            raise
+                else:
+                    output_identity = atomic_publish_stream(
+                        module_fd, output_fd, output_parent, output_metadata,
+                        output_basename, output_mode, owner_uid)
             except Exception:
                 if metadata_identity is not None:
                     if not remove_if_identity(output_fd, metadata_basename, metadata_identity):
@@ -2387,6 +2447,12 @@ def execute(arguments):
                 raise
         finally:
             os.close(module_fd)
+        if direct_fd >= 0:
+            cleanup_private_temp(direct_fd, direct_parent_fd, direct_name)
+            os.close(direct_fd)
+            os.close(direct_parent_fd)
+            direct_fd = -1
+            direct_parent_fd = -1
         result = {
                 "type": "result",
                 "product_kind": "minios-tool-result",
@@ -2422,6 +2488,20 @@ def execute(arguments):
             if output_identity is not None:
                 if not remove_if_identity(output_fd, output_basename, output_identity):
                     print("E: published module rollback failed", file=sys.stderr, flush=True)
+            elif direct_session_output:
+                # The compressor may have created a partial private candidate
+                # before it failed. Never touch a replacement or foreign file.
+                try:
+                    candidate = os.stat(output_basename, dir_fd=output_fd,
+                                        follow_symlinks=False)
+                    if (stat.S_ISREG(candidate.st_mode) and
+                            candidate.st_uid == os.geteuid() and candidate.st_nlink == 1):
+                        if not remove_if_identity(output_fd, output_basename,
+                                                  (candidate.st_dev, candidate.st_ino)):
+                            print("E: private output rollback failed", file=sys.stderr,
+                                  flush=True)
+                except FileNotFoundError:
+                    pass
             if metadata_identity is not None:
                 if not remove_if_identity(output_fd, metadata_basename, metadata_identity):
                     print("E: capture metadata rollback failed", file=sys.stderr, flush=True)
@@ -2431,6 +2511,12 @@ def execute(arguments):
             finally:
                 os.close(temp_fd)
                 os.close(temp_parent_fd)
+        if direct_fd >= 0:
+            try:
+                cleanup_private_temp(direct_fd, direct_parent_fd, direct_name)
+            finally:
+                os.close(direct_fd)
+                os.close(direct_parent_fd)
         try:
             os.close(root_fd)
         except OSError:

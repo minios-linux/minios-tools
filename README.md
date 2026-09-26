@@ -21,6 +21,13 @@ MiniOS Tools provides utilities for creating, managing, and customizing MiniOS l
 - **savechanges** - Save runtime changes to compressed bundles
 - **minios-squashfs-save** - Atomically save the running SquashFS persistence snapshot; MiniOS core uses the bundled shutdown helper to invoke the same backend at poweroff
 
+The SquashFS saver copies a stable view of session changes into a private
+workspace in the trusted initrd tmpfs when memory permits. The compressor
+writes directly to a private candidate in the session directory. After
+verification and syncing, the saver atomically replaces `changes.sb`. The
+temporary tree falls back to the session filesystem when RAM is insufficient;
+the active snapshot remains intact until publication succeeds.
+
 ## Installation
 
 These tools are typically included with MiniOS distributions. For manual installation:
