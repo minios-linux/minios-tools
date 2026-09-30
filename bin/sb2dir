@@ -9,7 +9,7 @@
 
 set -Eeuo pipefail
 
-VERSION="2.0.1"
+VERSION="2.1.0"
 BEXT="sb"
 export TEXTDOMAIN="minios-tools"
 
@@ -25,6 +25,8 @@ WORKSPACE_NAME=""
 WORKSPACE_DEVICE=""
 WORKSPACE_INODE=""
 TOOL_LOG=""
+CANCEL_FILE=""
+CANCEL_WATCHER=""
 
 RED=""
 BOLD=""
@@ -40,6 +42,7 @@ help() {
     printf '      --keep-ownership     %s\n' "$(gettext "Restore the module ownership instead of the invoking user (needs privilege)")"
     printf '      --allow-special      %s\n' "$(gettext "Permit device nodes, sockets, and FIFOs (needs privilege)")"
     printf '      --json               %s\n' "$(gettext "Emit phase events and a machine-readable result")"
+    printf '      --cancel-file PATH   %s\n' "$(gettext "Cancel when the caller creates this marker file")"
     printf '      --no-color           %s\n' "$(gettext "Disable colored output")"
     printf '      --help               %s\n' "$(gettext "Display this help and exit")"
     printf '      --version            %s\n\n' "$(gettext "Display version information and exit")"
@@ -148,6 +151,7 @@ cleanup() {
     local status=$?
     trap - EXIT
     trap '' INT TERM
+    stop_cancel_watcher
     remove_tool_log
     remove_stage
     close_source
@@ -156,11 +160,19 @@ cleanup() {
 
 handle_signal() {
     trap '' INT TERM
+    stop_cancel_watcher
     stop_child_group || true
     remove_tool_log
     remove_stage
     close_source
     exit 130
+}
+
+stop_cancel_watcher() {
+    [[ -n $CANCEL_WATCHER ]] || return 0
+    kill "$CANCEL_WATCHER" 2>/dev/null || true
+    wait "$CANCEL_WATCHER" 2>/dev/null || true
+    CANCEL_WATCHER=""
 }
 
 trap cleanup EXIT
@@ -177,6 +189,7 @@ while (( $# > 0 )); do
     --keep-ownership) KEEP_OWNERSHIP=true; shift ;;
     --allow-special) ALLOW_SPECIAL=true; shift ;;
     --json) JSON_OUTPUT=true; shift ;;
+    --cancel-file) require_value "$1" "$#"; CANCEL_FILE=$2; shift 2 ;;
     --no-color) DISABLE_COLOR=true; shift ;;
     --help) help; exit 0 ;;
     --version) version; exit 0 ;;
@@ -191,6 +204,21 @@ while (( $# > 0 )); do
 done
 
 console_colors
+if [[ -n $CANCEL_FILE ]]; then
+    [[ $CANCEL_FILE == /* ]] || die 1 "$(gettext "Cancellation marker must be an absolute path")"
+    [[ ! -e $CANCEL_FILE && ! -L $CANCEL_FILE ]] || exit 130
+    (
+        trap - EXIT INT TERM
+        while kill -0 "$$" 2>/dev/null; do
+            if [[ -e $CANCEL_FILE || -L $CANCEL_FILE ]]; then
+                kill -TERM "$$" 2>/dev/null || true
+                exit
+            fi
+            sleep 0.1
+        done
+    ) &
+    CANCEL_WATCHER=$!
+fi
 
 if (( ${#POSITIONAL[@]} != 2 )); then
     brief_help
@@ -280,7 +308,7 @@ if [[ $ALLOW_SPECIAL == false ]]; then
     set +e
     "$UNSQUASHFS_BIN" -ll "$SOURCE_BOUND" 2>/dev/null |
         awk '{ t = substr($1, 1, 1); if (t == "b" || t == "c" || t == "p" || t == "s") found = 1 } END { exit(found ? 0 : 1) }'
-    listing_status=(${PIPESTATUS[@]})
+    listing_status=("${PIPESTATUS[@]}")
     set -e
     (( listing_status[0] == 0 )) ||
         die 5 "$(gettext "unsquashfs failed to inspect the module")"

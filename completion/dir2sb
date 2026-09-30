@@ -9,6 +9,10 @@ _dir2sb() {
     done
 
     case $prev in
+    --cancel-file)
+        _filedir
+        return
+        ;;
     -c | --comp)
         mapfile -t COMPREPLY < <(compgen -W 'zstd gzip lzo lz4 xz' -- "$cur")
         return
@@ -36,10 +40,10 @@ _dir2sb() {
 
     if [[ $cur == --* ]]; then
         mapfile -t COMPREPLY < <(compgen -W \
-            '--comp --bext --keep-ownership --allow-special --json --no-color --help --version' -- "$cur")
+            '--comp --bext --keep-ownership --allow-special --cancel-file --json --no-color --help --version' -- "$cur")
     elif [[ $cur == -* ]]; then
         mapfile -t COMPREPLY < <(compgen -W \
-            '-c -b --comp --bext --keep-ownership --allow-special --json --no-color --help --version' -- "$cur")
+            '-c -b --comp --bext --keep-ownership --allow-special --cancel-file --json --no-color --help --version' -- "$cur")
     else
         mapfile -t COMPREPLY < <(compgen -d -- "$cur")
         local IFS=$'\n'

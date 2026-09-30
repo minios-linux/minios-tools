@@ -9,6 +9,10 @@ _sb2dir() {
     done
 
     case $prev in
+    --cancel-file)
+        _filedir
+        return
+        ;;
     -b | --bext)
         mapfile -t COMPREPLY < <(compgen -W 'sb sqfs sfs' -- "$cur")
         return
@@ -28,10 +32,10 @@ _sb2dir() {
 
     if [[ $cur == --* ]]; then
         mapfile -t COMPREPLY < <(compgen -W \
-            '--bext --keep-ownership --allow-special --json --no-color --help --version' -- "$cur")
+            '--bext --keep-ownership --allow-special --cancel-file --json --no-color --help --version' -- "$cur")
     elif [[ $cur == -* ]]; then
         mapfile -t COMPREPLY < <(compgen -W \
-            '-b --bext --keep-ownership --allow-special --json --no-color --help --version' -- "$cur")
+            '-b --bext --keep-ownership --allow-special --cancel-file --json --no-color --help --version' -- "$cur")
     else
         local IFS=$'\n'
         mapfile -t COMPREPLY < <(compgen -f -X '!*.sb' -- "$cur")

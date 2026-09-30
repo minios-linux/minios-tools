@@ -23,14 +23,17 @@ publication failures remove only the converter-owned output inode.
 ## OPTIONS
 * **-c, --comp** *TYPE*: Compression type: zstd (default), gzip, lzo, lz4, xz.
 * **-b, --bext** *EXT*: Bundle extension displayed in help text (default: sb).
-* **--keep-ownership**: Preserve the source ownership instead of normalizing it
-  to root. Requires privilege.
+* **--keep-ownership**: Preserve all source owners and groups instead of applying
+  the module ownership rules below. Requires privilege.
 * **--allow-special**: Permit device nodes, sockets, and FIFOs in the source.
   Requires privilege.
 * **--json**: Write pure NDJSON phase objects for prepare, compress, verify,
   publish, and complete, followed by a JSON result with the output path, device,
   inode, size, SHA-256 digest, and compression.
 * **--no-color**: Disable colored diagnostics.
+* **--cancel-file** *PATH*: Cancel when the caller creates this marker at an
+  absolute path. GUI callers use a private directory so cancellation works
+  across the PolicyKit privilege boundary. The backend never writes the marker.
 * **--help**: Display help and exit.
 * **--version**: Display version information and exit.
 
@@ -50,9 +53,29 @@ publication failures remove only the converter-owned output inode.
 * **130**: Interrupted by SIGINT or SIGTERM.
 
 ## USAGE NOTES
+Folders extracted by **sb2dir** carry **.minios-module-origin.json**. When this
+record confirms privileged extraction, **dir2sb** automatically preserves all
+owners, modes, extended attributes and special objects, and requires root.
+It does not apply the new-folder normalization rules to an extracted module.
+The origin record is excluded from the resulting module. Keep it with the tree
+when moving or copying the extracted folder, and preserve the tree's metadata.
+An invalid record or a record of unprivileged extraction blocks repackaging;
+re-extract the original module with **sb2dir --keep-ownership** as root.
+
+For a newly created folder without an origin record:
+
 1. Root privileges are not required for an ordinary rootless conversion.
-   Ownership is normalized to root inside the module unless **--keep-ownership**
-   is given.
+   Inside the module, ordinary user and group IDs (1000–60000, inclusive) are
+   replaced with root outside **/home** and **/opt**. These two trees retain the
+   ownership of their contents. System IDs, including nobody and dynamic system
+   users, are preserved. UID and GID are handled independently, so a root-owned
+   file can retain its service group. The module root and the standard top-level
+   directories (**/bin**, **/boot**, **/dev**, **/etc**, **/home**, **/lib**,
+   **/lib32**, **/lib64**, **/libx32**, **/media**, **/mnt**, **/opt**, **/proc**,
+   **/root**, **/run**, **/sbin**, **/srv**, **/sys**, **/tmp**, **/usr**, **/var**)
+   are root:root; merged-/usr symlinks at these paths are handled the same way.
+   Source ownership and permission bits are not changed. **--keep-ownership**
+   bypasses these rules entirely.
 2. Device nodes, sockets, and FIFOs cannot round-trip rootlessly and are
    rejected unless **--allow-special** is given with sufficient privilege.
 3. Regular files, permission bits, symbolic links, empty directories, and user
@@ -60,6 +83,15 @@ publication failures remove only the converter-owned output inode.
    SquashFS tools and destination filesystem support them.
 4. The staged module must pass **unsquashfs -s** before publication. A tool
    process group that leaves descendants is terminated and treated as failure.
+5. Hard links are preserved unless linked paths require different owners under
+   these rules. For such a source, hard links are stored as independent inodes
+   so normalization cannot change ownership of data in **/home** or **/opt**.
+   SquashFS still deduplicates identical file contents.
+6. These rules cannot recover ownership already lost during unprivileged
+   extraction. For an older extracted tree without an origin record, use
+   privileged **dir2sb --keep-ownership** only if it was extracted with its
+   original owners. Merely containing **usr** or **etc** does not identify an
+   extracted module.
 
 ## OUTPUT
 

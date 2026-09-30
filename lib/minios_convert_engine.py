@@ -18,6 +18,155 @@ import sysconfig
 
 BLOCK_SIZE = 1024 * 1024
 RENAME_NOREPLACE = 1
+MODULE_ORIGIN_FILE = '.minios-module-origin.json'
+
+
+def read_module_origin(root_fd):
+    try:
+        descriptor = os.open(MODULE_ORIGIN_FILE, os.O_RDONLY | os.O_NOFOLLOW |
+                             os.O_NONBLOCK, dir_fd=root_fd)
+    except FileNotFoundError:
+        return None
+    try:
+        metadata = os.fstat(descriptor)
+        if not stat.S_ISREG(metadata.st_mode) or metadata.st_size > 4096:
+            fail(3, 'invalid extracted-module origin record')
+        with os.fdopen(os.dup(descriptor), 'r', encoding='utf-8') as stream:
+            value = json.load(stream)
+    except (ValueError, UnicodeError):
+        fail(3, 'invalid extracted-module origin record')
+    finally:
+        os.close(descriptor)
+    if (not isinstance(value, dict) or
+            value.get('product') != 'minios-extracted-module' or
+            type(value.get('schema_version')) is not int or
+            value.get('schema_version') != 1 or
+            type(value.get('ownership_preserved')) is not bool or
+            not isinstance(value.get('source_sha256'), str) or
+            len(value['source_sha256']) != 64 or
+            any(ch not in '0123456789abcdef' for ch in value['source_sha256'])):
+        fail(3, 'invalid extracted-module origin record')
+    return value
+
+
+def command_source_origin(arguments):
+    if len(arguments) != 1:
+        fail(2, 'source-origin requires SOURCE_DIR')
+    root_fd = os.open(arguments[0], os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        origin = read_module_origin(root_fd)
+    finally:
+        os.close(root_fd)
+    if origin is None:
+        print('folder')
+    elif not origin['ownership_preserved']:
+        fail(3, 'source was extracted without preserving ownership; '
+             'extract the original module again as root with '
+             'sb2dir --keep-ownership before repackaging')
+    else:
+        print('module')
+
+
+def write_module_origin(root_fd, source_digest):
+    """Publish provenance with the tree, without changing root attributes."""
+    metadata = os.fstat(root_fd)
+    try:
+        os.fchmod(root_fd, stat.S_IMODE(metadata.st_mode) | stat.S_IWUSR)
+        descriptor = os.open(MODULE_ORIGIN_FILE,
+                             os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                             0o644, dir_fd=root_fd)
+        with os.fdopen(descriptor, 'w', encoding='utf-8') as stream:
+            json.dump({
+                'product': 'minios-extracted-module',
+                'schema_version': 1,
+                'source_sha256': source_digest,
+                'ownership_preserved': os.geteuid() == 0,
+            }, stream, sort_keys=True)
+            stream.write('\n')
+            stream.flush()
+            os.fsync(stream.fileno())
+    except FileExistsError:
+        fail(3, 'module contains reserved origin record ' + MODULE_ORIGIN_FILE)
+    finally:
+        os.fchmod(root_fd, stat.S_IMODE(metadata.st_mode))
+        os.utime(root_fd, ns=(metadata.st_atime_ns, metadata.st_mtime_ns))
+
+# MiniOS reserves 1000..60000 for ordinary users/groups. Keep service,
+# dynamic-system and nobody IDs. Home and optional application data are exempt.
+PRESERVED_OWNERSHIP_TREES = ('home', 'opt')
+ROOT_OWNED_DIRECTORIES = (
+    'usr', 'etc', 'bin', 'sbin', 'lib', 'lib32', 'lib64', 'libx32', 'boot', 'root',
+    'dev', 'home', 'media', 'mnt', 'opt', 'proc', 'run', 'srv', 'sys', 'tmp', 'var',
+)
+
+
+def module_ownership(relative_path, metadata):
+    """Ownership in the module; never change the source inode."""
+    parts = relative_path.split('/') if relative_path else []
+    uid, gid = metadata.st_uid, metadata.st_gid
+    if not parts or (len(parts) == 1 and parts[0] in ROOT_OWNED_DIRECTORIES
+                     and (stat.S_ISDIR(metadata.st_mode)
+                          or stat.S_ISLNK(metadata.st_mode))):
+        return 0, 0
+    if parts[0] not in PRESERVED_OWNERSHIP_TREES:
+        uid = 0 if 1000 <= uid <= 60000 else uid
+        gid = 0 if 1000 <= gid <= 60000 else gid
+    return uid, gid
+
+
+def ownership_hardlink_conflict(root_fd):
+    """One SquashFS inode cannot have different owners at different paths."""
+    owners = {}
+
+    def visit(directory_fd, prefix):
+        for name in os.listdir(directory_fd):
+            metadata = os.stat(name, dir_fd=directory_fd, follow_symlinks=False)
+            path = prefix + name
+            if stat.S_ISDIR(metadata.st_mode):
+                child = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
+                                dir_fd=directory_fd)
+                try:
+                    if visit(child, path + '/'):
+                        return True
+                finally:
+                    os.close(child)
+            elif metadata.st_nlink > 1:
+                identity = metadata.st_dev, metadata.st_ino
+                owner = module_ownership(path, metadata)
+                if identity in owners and owners[identity] != owner:
+                    return True
+                owners[identity] = owner
+        return False
+
+    return visit(root_fd, '')
+
+
+def command_ownership_options(arguments):
+    if len(arguments) != 1:
+        fail(2, 'ownership-options requires SOURCE_DIR')
+    # dir2sb passes its retained /proc/PID/fd/N directory, so follow that
+    # reference directly rather than resolving its potentially renamed path.
+    root_fd = os.open(arguments[0], os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        conflict = ownership_hardlink_conflict(root_fd)
+    finally:
+        os.close(root_fd)
+    normalize = ' && '.join('!subpathname(/{})'.format(path)
+                           for path in PRESERVED_OWNERSHIP_TREES)
+    directories = ' || '.join('pathname(/{})'.format(path)
+                             for path in ROOT_OWNED_DIRECTORIES)
+    for action in (
+            'uid(0)@uid_range(1000,60000) && ({})'.format(normalize),
+            'gid(0)@gid_range(1000,60000) && ({})'.format(normalize),
+            'guid(0,0)@pathname(/) || ((type(d) || type(l)) && ({}))'.format(
+                directories)):
+        print('-action')
+        print(action)
+    if conflict:
+        # Actions operate on shared inodes. Split links only for an input with
+        # conflicting ownership rules, or /usr could also change a /home file.
+        # SquashFS data deduplication still avoids duplicating file contents.
+        print('-no-hardlinks')
 
 
 class EngineError(Exception):
@@ -516,6 +665,8 @@ def command_publish_dir(arguments):
             source_size, source_digest = hash_regular_fd(source_descriptor)
         finally:
             os.close(source_descriptor)
+        write_module_origin(directory_fd, source_digest)
+        fsync_directory(directory_fd)
         identity = (staged.st_dev, staged.st_ino)
         rename_noreplace(
             workspace_fd, os.fsencode(temp_name), parent_fd,
@@ -970,6 +1121,8 @@ COMMANDS = {
     "cleanup-workspace": command_cleanup_workspace,
     "check-workspace": command_check_workspace,
     "scan-specials": command_scan_specials,
+    "ownership-options": command_ownership_options,
+    "source-origin": command_source_origin,
     "publish-file": command_publish_file,
     "publish-dir": command_publish_dir,
     "ensure-directory": command_ensure_directory,

@@ -40,6 +40,34 @@ run_real() {
 
 # --- argument and validation surface -------------------------------------
 
+@test "caller marker cancels a privileged extractor across the UID boundary" {
+    (( EUID != 0 )) || skip 'requires an unprivileged caller'
+    command -v sudo >/dev/null || skip 'sudo unavailable'
+    sudo -n /usr/bin/test 1 = 1 2>/dev/null || skip 'passwordless sudo unavailable'
+    make_stub_module "$TEST_ROOT/module.sb"
+    cat >"$TOOLS/unsquashfs" <<'FAKE'
+#!/bin/bash
+printf '%s\n' "$$" >"$UNSQUASHFS_SLEEP_MARKER"
+trap 'exit 143' TERM
+while :; do sleep 1; done
+FAKE
+    local ready="$TEST_ROOT/ready" cancel="$TEST_ROOT/cancel"
+    sudo -n env PATH="$TOOLS:$SYSTEM_PATH" NO_COLOR=1 \
+        UNSQUASHFS_SLEEP=true UNSQUASHFS_SLEEP_MARKER="$ready" \
+        "$SB2DIR" --cancel-file "$cancel" --keep-ownership --allow-special \
+        "$TEST_ROOT/module.sb" "$OUT/tree" &
+    local pid=$!
+    for _ in {1..100}; do [ -s "$ready" ] && break; sleep 0.05; done
+    [ -s "$ready" ]
+    touch "$cancel"
+    local status=0
+    wait "$pid" || status=$?
+    [ "$status" -eq 130 ]
+    [ ! -e "$OUT/tree" ]
+    run find "$OUT" -name '.sb2dir.*'
+    [ -z "$output" ]
+}
+
 @test "missing operands print usage and fail" {
     run_stub "$TEST_ROOT/module.sb"
     [ "$status" -eq 1 ]
@@ -529,7 +557,7 @@ FAKE
     [ "$status" -eq 0 ]
     run_real "$TEST_ROOT/module.sb" "$OUT/tree"
     [ "$status" -eq 0 ]
-    run diff -r "$src" "$OUT/tree"
+    run diff -r --exclude=.minios-module-origin.json "$src" "$OUT/tree"
     [ "$status" -eq 0 ]
     run_real "$TEST_ROOT/module.sb" "$OUT/tree"
     [ "$status" -eq 4 ]

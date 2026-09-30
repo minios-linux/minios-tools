@@ -318,7 +318,9 @@ setup() {
     run "$root/usr/bin/sb2dir" --json "$root/example.sb" "$root/extracted"
     [ "$status" -eq 0 ]
     [ "$(cat "$root/extracted/file")" = test ]
-    run "$root/usr/bin/dir2sb" --json "$root/extracted" "$root/repacked.sb"
+    # A rootless extraction loses original owners and carries an origin record;
+    # exercise the relocated packer on a fresh source tree instead.
+    run "$root/usr/bin/dir2sb" --json "$root/source" "$root/repacked.sb"
     [ "$status" -eq 0 ]
     unsquashfs -s "$root/repacked.sb" >/dev/null
 }

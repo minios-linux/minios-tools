@@ -19,6 +19,21 @@ the destination filesystem and then published atomically without replacement.
 Cleanup verifies the private workspace identity; publication failures remove
 only the converter-owned output inode.
 
+For editing and repackaging a system module, run **sb2dir --keep-ownership
+--allow-special** with administrator privileges. This retains the original
+numeric owners, groups, permission bits, hard links, special objects and
+extended attributes. MiniOS Module Manager and the Thunar integration use this
+mode. Unprivileged extraction remains available for inspecting ordinary files,
+but cannot preserve ownership or privileged attributes.
+
+Successful extraction adds **.minios-module-origin.json** to the folder. It
+records the original module's SHA-256 and whether extraction preserved owners.
+**dir2sb** recognizes this record and automatically preserves extracted modules
+instead of applying its new-folder ownership rules. The record itself is not
+included in the repackaged module. A module already containing this reserved
+filename is rejected rather than overwriting one of its files. An unprivileged
+extraction is marked as such and cannot silently be repackaged with lost owners.
+
 ## OPTIONS
 * **-b, --bext** *EXT*: Bundle extension displayed in help text (default: sb).
 * **--keep-ownership**: Declare that archive ownership may be restored. Requires
@@ -29,6 +44,9 @@ only the converter-owned output inode.
   complete, followed by a JSON result with the output path, device, inode, entry
   count, source size, and source SHA-256 digest.
 * **--no-color**: Disable colored diagnostics.
+* **--cancel-file** *PATH*: Cancel when the caller creates this marker at an
+  absolute path. GUI callers use a private directory so cancellation works
+  across the PolicyKit privilege boundary. The backend never writes the marker.
 * **--help**: Display help and exit.
 * **--version**: Display version information and exit.
 
@@ -43,7 +61,8 @@ only the converter-owned output inode.
 * **1**: Usage, option, privilege, or required-tool error.
 * **2**: The source module is missing or unreadable, or the target parent is
   missing.
-* **3**: The module contains special files and no privileged mode was requested.
+* **3**: Special files need privileged mode, or the reserved origin record
+  conflicts with module content.
 * **4**: The target already exists, or private staging cannot be reserved.
 * **5**: The module could not be extracted, staged, or published.
 * **130**: Interrupted by SIGINT or SIGTERM.

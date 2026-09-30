@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: minios-tools 1.7.1\n"
+"Project-Id-Version: minios-tools 1.8.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 22:42+0300\n"
+"POT-Creation-Date: 2026-09-30 20:27+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,8 +18,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: bin/apt2sb:33 bin/apt2sb:68 bin/apt2sb:71 bin/chroot2sb:38 bin/chroot2sb:66
-#: bin/chroot2sb:69 bin/dir2sb:36 bin/dir2sb:52 bin/savechanges:47
-#: bin/savechanges:70 bin/sb:34 bin/sb:69 bin/sb2dir:36 bin/sb2dir:51
+#: bin/chroot2sb:69 bin/dir2sb:38 bin/dir2sb:55 bin/savechanges:47
+#: bin/savechanges:70 bin/sb:34 bin/sb:69 bin/sb2dir:38 bin/sb2dir:54
 #: bin/script2sb:30 bin/script2sb:54 bin/script2sb:57
 msgid "Usage"
 msgstr ""
@@ -40,8 +40,8 @@ msgstr ""
 msgid "Upgrade installed packages"
 msgstr ""
 
-#: bin/apt2sb:40 bin/chroot2sb:47 bin/dir2sb:38 bin/savechanges:50
-#: bin/sb2dir:38 bin/script2sb:33
+#: bin/apt2sb:40 bin/chroot2sb:47 bin/dir2sb:40 bin/savechanges:50
+#: bin/sb2dir:40 bin/script2sb:33
 msgid "Options"
 msgstr ""
 
@@ -65,13 +65,13 @@ msgstr ""
 msgid "Emit machine-readable phase events and result"
 msgstr ""
 
-#: bin/apt2sb:46 bin/chroot2sb:53 bin/dir2sb:45 bin/savechanges:63 bin/sb:54
-#: bin/sb2dir:44 bin/script2sb:41
+#: bin/apt2sb:46 bin/chroot2sb:53 bin/dir2sb:48 bin/savechanges:63 bin/sb:54
+#: bin/sb2dir:47 bin/script2sb:41
 msgid "Display this help and exit"
 msgstr ""
 
-#: bin/apt2sb:47 bin/chroot2sb:54 bin/dir2sb:46 bin/savechanges:64 bin/sb:55
-#: bin/sb2dir:45 bin/script2sb:42
+#: bin/apt2sb:47 bin/chroot2sb:54 bin/dir2sb:49 bin/savechanges:64 bin/sb:55
+#: bin/sb2dir:48 bin/script2sb:42
 msgid "Display version information and exit"
 msgstr ""
 
@@ -111,13 +111,13 @@ msgstr ""
 msgid "Examples"
 msgstr ""
 
-#: bin/apt2sb:69 bin/apt2sb:72 bin/chroot2sb:67 bin/chroot2sb:70 bin/dir2sb:53
-#: bin/savechanges:71 bin/sb:71 bin/sb2dir:52 bin/script2sb:55 bin/script2sb:58
+#: bin/apt2sb:69 bin/apt2sb:72 bin/chroot2sb:67 bin/chroot2sb:70 bin/dir2sb:56
+#: bin/savechanges:71 bin/sb:71 bin/sb2dir:55 bin/script2sb:55 bin/script2sb:58
 msgid "Try"
 msgstr ""
 
-#: bin/apt2sb:69 bin/apt2sb:72 bin/chroot2sb:67 bin/chroot2sb:70 bin/dir2sb:53
-#: bin/savechanges:71 bin/sb:71 bin/sb2dir:52 bin/script2sb:55 bin/script2sb:58
+#: bin/apt2sb:69 bin/apt2sb:72 bin/chroot2sb:67 bin/chroot2sb:70 bin/dir2sb:56
+#: bin/savechanges:71 bin/sb:71 bin/sb2dir:55 bin/script2sb:55 bin/script2sb:58
 msgid "for more information."
 msgstr ""
 
@@ -153,143 +153,159 @@ msgstr ""
 msgid "Use NAME as the filename for the module"
 msgstr ""
 
-#: bin/dir2sb:37
+#: bin/dir2sb:39
 msgid "Convert a directory tree into a compressed .sb module."
 msgstr ""
 
-#: bin/dir2sb:39 bin/savechanges:51
+#: bin/dir2sb:41 bin/savechanges:51
 msgid "Compression: zstd, gzip, lzo, lz4, or xz (default: zstd)"
 msgstr ""
 
-#: bin/dir2sb:40 bin/savechanges:52 bin/sb2dir:39
+#: bin/dir2sb:42 bin/savechanges:52 bin/sb2dir:41
 msgid "Bundle extension used in help text (default: sb)"
 msgstr ""
 
-#: bin/dir2sb:41
-msgid "Preserve source ownership instead of normalizing to root (needs privilege)"
+#: bin/dir2sb:43
+msgid "Preserve all source owners instead of applying module ownership rules (needs privilege)"
 msgstr ""
 
-#: bin/dir2sb:42 bin/sb2dir:41
+#: bin/dir2sb:44 bin/sb2dir:43
 msgid "Permit device nodes, sockets, and FIFOs (needs privilege)"
 msgstr ""
 
-#: bin/dir2sb:43 bin/sb2dir:42
+#: bin/dir2sb:45 bin/sb2dir:44
 msgid "Emit phase events and a machine-readable result"
 msgstr ""
 
-#: bin/dir2sb:44 bin/savechanges:62 bin/sb2dir:43
+#: bin/dir2sb:46 bin/sb2dir:45
+msgid "Cancel when the caller creates this marker file"
+msgstr ""
+
+#: bin/dir2sb:47 bin/savechanges:62 bin/sb2dir:46
 msgid "Disable colored output"
 msgstr ""
 
-#: bin/dir2sb:47
+#: bin/dir2sb:50
 msgid "The contents of SOURCE_DIRECTORY become the module root. Neither the source"
 msgstr ""
 
-#: bin/dir2sb:48
+#: bin/dir2sb:51
 msgid "nor an existing TARGET is modified; the module is published atomically."
 msgstr ""
 
-#: bin/dir2sb:86 bin/savechanges:105 bin/sb2dir:85
+#: bin/dir2sb:89 bin/savechanges:105 bin/sb2dir:88
 msgid "Option requires an argument:"
 msgstr ""
 
-#: bin/dir2sb:90 bin/savechanges:113 bin/sb2dir:89
+#: bin/dir2sb:93 bin/savechanges:113 bin/sb2dir:92
 msgid "must not contain newline characters"
 msgstr ""
 
-#: bin/dir2sb:195 bin/savechanges:238 bin/sb2dir:188
+#: bin/dir2sb:208 bin/savechanges:238 bin/sb2dir:201
 msgid "Unknown option:"
 msgstr ""
 
-#: bin/dir2sb:204 bin/savechanges:260
+#: bin/dir2sb:215 bin/sb2dir:208
+msgid "Cancellation marker must be an absolute path"
+msgstr ""
+
+#: bin/dir2sb:232 bin/savechanges:260
 msgid "Invalid compression type:"
 msgstr ""
 
-#: bin/dir2sb:214 bin/sb2dir:202
+#: bin/dir2sb:242 bin/sb2dir:230
 msgid "Source path"
 msgstr ""
 
-#: bin/dir2sb:215 bin/sb2dir:203
+#: bin/dir2sb:243 bin/sb2dir:231
 msgid "Target path"
 msgstr ""
 
-#: bin/dir2sb:218 bin/sb2dir:206
+#: bin/dir2sb:246 bin/sb2dir:234
 msgid "--keep-ownership requires root privileges"
 msgstr ""
 
-#: bin/dir2sb:221 bin/sb2dir:209
+#: bin/dir2sb:249 bin/sb2dir:237
 msgid "--allow-special requires root privileges"
 msgstr ""
 
-#: bin/dir2sb:237 bin/sb2dir:224
+#: bin/dir2sb:265 bin/sb2dir:252
 msgid "converter engine helper not found"
 msgstr ""
 
-#: bin/dir2sb:240 bin/sb2dir:227
+#: bin/dir2sb:268 bin/sb2dir:255
 msgid "python3 is required"
 msgstr ""
 
-#: bin/dir2sb:244
+#: bin/dir2sb:272
 msgid "mksquashfs is required"
 msgstr ""
 
-#: bin/dir2sb:246 bin/sb2dir:231
+#: bin/dir2sb:274 bin/sb2dir:259
 msgid "unsquashfs is required"
 msgstr ""
 
-#: bin/dir2sb:255
+#: bin/dir2sb:283
 msgid "Source is not a directory:"
 msgstr ""
 
-#: bin/dir2sb:261
+#: bin/dir2sb:289
 msgid "Invalid target filename:"
 msgstr ""
 
-#: bin/dir2sb:270
+#: bin/dir2sb:298
 msgid "Target directory does not exist:"
 msgstr ""
 
-#: bin/dir2sb:272 bin/sb2dir:272
+#: bin/dir2sb:300 bin/sb2dir:300
 msgid "Target already exists:"
 msgstr ""
 
-#: bin/dir2sb:281
+#: bin/dir2sb:310
+msgid "Repackaging an extracted module requires root privileges"
+msgstr ""
+
+#: bin/dir2sb:318
 msgid "Source contains special files that cannot be packaged; re-run with the privileged special-object mode."
 msgstr ""
 
-#: bin/dir2sb:293
+#: bin/dir2sb:330
 msgid "Cannot retain the source directory"
 msgstr ""
 
-#: bin/dir2sb:296
+#: bin/dir2sb:333
 msgid "Source directory changed during validation"
 msgstr ""
 
-#: bin/dir2sb:307 bin/sb2dir:294
+#: bin/dir2sb:344 bin/sb2dir:322
 msgid "Cannot reserve a private workspace"
 msgstr ""
 
-#: bin/dir2sb:343
+#: bin/dir2sb:356
+msgid "Cannot determine module ownership rules"
+msgstr ""
+
+#: bin/dir2sb:388
 msgid "mksquashfs failed to build the module"
 msgstr ""
 
-#: bin/dir2sb:351
+#: bin/dir2sb:396
 msgid "Cannot create a temporary verification log"
 msgstr ""
 
-#: bin/dir2sb:365
+#: bin/dir2sb:410
 msgid "staged module failed SquashFS validation"
 msgstr ""
 
-#: bin/dir2sb:371
+#: bin/dir2sb:416
 msgid "staged module contains special files that were not present during validation"
 msgstr ""
 
-#: bin/dir2sb:384
+#: bin/dir2sb:429
 msgid "Failed to publish the module"
 msgstr ""
 
-#: bin/dir2sb:397 bin/sb2dir:348
+#: bin/dir2sb:442 bin/sb2dir:376
 msgid "Created"
 msgstr ""
 
@@ -369,211 +385,211 @@ msgstr ""
 msgid "Invalid output filename"
 msgstr ""
 
-#: bin/savechanges:282
+#: bin/savechanges:283
 msgid "Output path"
 msgstr ""
 
-#: bin/savechanges:283
+#: bin/savechanges:284
 msgid "Changes directory"
 msgstr ""
 
-#: bin/savechanges:284
+#: bin/savechanges:285
 msgid "Mounted root"
 msgstr ""
 
-#: bin/savechanges:285
+#: bin/savechanges:286
 msgid "AUFS branch inventory"
 msgstr ""
 
-#: bin/savechanges:287
+#: bin/savechanges:288
 msgid "Selection path"
 msgstr ""
 
-#: bin/savechanges:290
+#: bin/savechanges:291
 msgid "Invalid metadata output filename"
 msgstr ""
 
-#: bin/savechanges:291
+#: bin/savechanges:292
 msgid "Metadata output path"
 msgstr ""
 
-#: bin/savechanges:294
+#: bin/savechanges:295
 msgid "Invalid cancel marker filename"
 msgstr ""
 
-#: bin/savechanges:295
+#: bin/savechanges:296
 msgid "Cancel marker path"
 msgstr ""
 
-#: bin/savechanges:298
+#: bin/savechanges:299
 msgid "Invalid work parent"
 msgstr ""
 
-#: bin/savechanges:299
+#: bin/savechanges:300
 msgid "Work parent"
 msgstr ""
 
-#: bin/savechanges:320
+#: bin/savechanges:321
 msgid "Cannot resolve script path"
 msgstr ""
 
-#: bin/savechanges:328
+#: bin/savechanges:331
 msgid "This script must be run as root."
 msgstr ""
 
-#: bin/savechanges:330
+#: bin/savechanges:340
 msgid "Cannot detect the live writable changes directory"
 msgstr ""
 
-#: bin/savechanges:344
+#: bin/savechanges:354
 msgid "Invalid mounted root"
 msgstr ""
 
-#: bin/savechanges:346
+#: bin/savechanges:356
 msgid "Mounted root must be a real directory without symbolic-link traversal"
 msgstr ""
 
-#: bin/savechanges:357 bin/savechanges:369
+#: bin/savechanges:367 bin/savechanges:379
 msgid "Invalid AUFS branch inventory"
 msgstr ""
 
-#: bin/savechanges:360 bin/savechanges:372
+#: bin/savechanges:370 bin/savechanges:382
 msgid "AUFS branch inventory must be a regular file"
 msgstr ""
 
-#: bin/savechanges:366
+#: bin/savechanges:376
 msgid "Cannot open AUFS branch inventory lock"
 msgstr ""
 
-#: bin/savechanges:367
+#: bin/savechanges:377
 msgid "Cannot lock AUFS branch inventory"
 msgstr ""
 
-#: bin/savechanges:373
+#: bin/savechanges:383
 msgid "Cannot open AUFS branch inventory"
 msgstr ""
 
-#: bin/savechanges:377
+#: bin/savechanges:387
 msgid "Cannot inspect AUFS branch inventory"
 msgstr ""
 
-#: bin/savechanges:378
+#: bin/savechanges:388
 msgid "AUFS branch inventory must be root-owned"
 msgstr ""
 
-#: bin/savechanges:380
+#: bin/savechanges:390
 msgid "AUFS branch inventory must not be group- or world-writable"
 msgstr ""
 
-#: bin/savechanges:405
+#: bin/savechanges:415
 msgid "Trusted /usr/bin/python3 is unavailable"
 msgstr ""
 
-#: bin/savechanges:406
+#: bin/savechanges:416
 msgid "Trusted /usr/bin/env is unavailable"
 msgstr ""
 
-#: bin/savechanges:409
+#: bin/savechanges:419
 msgid "Invalid test root"
 msgstr ""
 
-#: bin/savechanges:414
+#: bin/savechanges:424
 msgid "Invalid test changes directory"
 msgstr ""
 
-#: bin/savechanges:415
+#: bin/savechanges:425
 msgid "Invalid test mounted root"
 msgstr ""
 
-#: bin/savechanges:418
+#: bin/savechanges:428
 msgid "Invalid test output parent"
 msgstr ""
 
-#: bin/savechanges:421
+#: bin/savechanges:431
 msgid "Non-root test capture is confined to MINIOS_TOOLS_TEST_ROOT"
 msgstr ""
 
-#: bin/savechanges:424
+#: bin/savechanges:434
 msgid "Invalid test selection"
 msgstr ""
 
-#: bin/savechanges:425
+#: bin/savechanges:435
 msgid "Test selection is outside the test root"
 msgstr ""
 
-#: bin/savechanges:430
+#: bin/savechanges:440
 msgid "Invalid test metadata parent"
 msgstr ""
 
-#: bin/savechanges:431
+#: bin/savechanges:441
 msgid "Test metadata output is outside the test root"
 msgstr ""
 
-#: bin/savechanges:437
+#: bin/savechanges:447
 msgid "Invalid test cancel marker parent"
 msgstr ""
 
-#: bin/savechanges:439
+#: bin/savechanges:449
 msgid "Test cancel marker is outside the test root"
 msgstr ""
 
-#: bin/savechanges:443
+#: bin/savechanges:453
 msgid "Invalid test work parent"
 msgstr ""
 
-#: bin/savechanges:445
+#: bin/savechanges:455
 msgid "Test work parent is outside the test root"
 msgstr ""
 
-#: bin/savechanges:453
+#: bin/savechanges:463
 msgid "Test capture tools were not provided"
 msgstr ""
 
-#: bin/savechanges:454
+#: bin/savechanges:464
 msgid "Invalid test mksquashfs"
 msgstr ""
 
-#: bin/savechanges:455
+#: bin/savechanges:465
 msgid "Invalid test unsquashfs"
 msgstr ""
 
-#: bin/savechanges:457
+#: bin/savechanges:467
 msgid "Test tools are outside the test root"
 msgstr ""
 
-#: bin/savechanges:467
+#: bin/savechanges:477
 msgid "Invalid source-test fixture"
 msgstr ""
 
-#: bin/savechanges:469
+#: bin/savechanges:479
 msgid "Cannot canonicalize source-test fixture"
 msgstr ""
 
-#: bin/savechanges:470
+#: bin/savechanges:480
 msgid "Source-test fixture is outside the test root"
 msgstr ""
 
-#: bin/savechanges:474
+#: bin/savechanges:484
 msgid "Invalid source-test AUFS sysfs fixture"
 msgstr ""
 
-#: bin/savechanges:476
+#: bin/savechanges:486
 msgid "Source-test AUFS sysfs fixture is outside the test root"
 msgstr ""
 
-#: bin/savechanges:484
+#: bin/savechanges:494
 msgid "Invalid source-test running source"
 msgstr ""
 
-#: bin/savechanges:486
+#: bin/savechanges:496
 msgid "Source-test running source is outside the test root"
 msgstr ""
 
-#: bin/savechanges:497
+#: bin/savechanges:507
 msgid "Invalid PKEXEC_UID"
 msgstr ""
 
-#: bin/savechanges:509
+#: bin/savechanges:519
 msgid "savechanges engine helper not found"
 msgstr ""
 
@@ -633,55 +649,55 @@ msgstr ""
 msgid "Convert an .sb bundle to directory or vice versa"
 msgstr ""
 
-#: bin/sb2dir:37
+#: bin/sb2dir:39
 msgid "Convert a compressed .sb module into a directory tree."
 msgstr ""
 
-#: bin/sb2dir:40
+#: bin/sb2dir:42
 msgid "Restore the module ownership instead of the invoking user (needs privilege)"
 msgstr ""
 
-#: bin/sb2dir:46
+#: bin/sb2dir:49
 msgid "TARGET_DIRECTORY must not already exist; it is created atomically. Neither"
 msgstr ""
 
-#: bin/sb2dir:47
+#: bin/sb2dir:50
 msgid "the source module nor any existing path is modified."
 msgstr ""
 
-#: bin/sb2dir:240
+#: bin/sb2dir:268
 msgid "unsquashfs lacks selective xattr extraction support"
 msgstr ""
 
-#: bin/sb2dir:252
+#: bin/sb2dir:280
 msgid "Source module is not a readable file:"
 msgstr ""
 
-#: bin/sb2dir:253
+#: bin/sb2dir:281
 msgid "Cannot retain the source module"
 msgstr ""
 
-#: bin/sb2dir:260
+#: bin/sb2dir:288
 msgid "Invalid target directory name:"
 msgstr ""
 
-#: bin/sb2dir:270
+#: bin/sb2dir:298
 msgid "Target parent directory does not exist:"
 msgstr ""
 
-#: bin/sb2dir:286
+#: bin/sb2dir:314
 msgid "unsquashfs failed to inspect the module"
 msgstr ""
 
-#: bin/sb2dir:288
+#: bin/sb2dir:316
 msgid "Module contains special files that cannot be extracted rootlessly; re-run with the privileged special-object mode."
 msgstr ""
 
-#: bin/sb2dir:321
+#: bin/sb2dir:349
 msgid "unsquashfs failed to extract the module"
 msgstr ""
 
-#: bin/sb2dir:335
+#: bin/sb2dir:363
 msgid "Failed to publish the directory"
 msgstr ""
 

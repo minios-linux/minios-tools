@@ -8,7 +8,7 @@
 
 set -Eeuo pipefail
 
-VERSION="2.0.1"
+VERSION="2.1.0"
 BEXT="sb"
 COMP_TYPE="zstd"
 export TEXTDOMAIN="minios-tools"
@@ -25,6 +25,8 @@ WORKSPACE_NAME=""
 WORKSPACE_DEVICE=""
 WORKSPACE_INODE=""
 TOOL_LOG=""
+CANCEL_FILE=""
+CANCEL_WATCHER=""
 
 RED=""
 BOLD=""
@@ -38,9 +40,10 @@ help() {
     printf '%s:\n' "$(gettext "Options")"
     printf '  -c, --comp TYPE          %s\n' "$(gettext "Compression: zstd, gzip, lzo, lz4, or xz (default: zstd)")"
     printf '  -b, --bext EXT           %s\n' "$(gettext "Bundle extension used in help text (default: sb)")"
-    printf '      --keep-ownership     %s\n' "$(gettext "Preserve source ownership instead of normalizing to root (needs privilege)")"
+    printf '      --keep-ownership     %s\n' "$(gettext "Preserve all source owners instead of applying module ownership rules (needs privilege)")"
     printf '      --allow-special      %s\n' "$(gettext "Permit device nodes, sockets, and FIFOs (needs privilege)")"
     printf '      --json               %s\n' "$(gettext "Emit phase events and a machine-readable result")"
+    printf '      --cancel-file PATH   %s\n' "$(gettext "Cancel when the caller creates this marker file")"
     printf '      --no-color           %s\n' "$(gettext "Disable colored output")"
     printf '      --help               %s\n' "$(gettext "Display this help and exit")"
     printf '      --version            %s\n\n' "$(gettext "Display version information and exit")"
@@ -149,6 +152,7 @@ cleanup() {
     local status=$?
     trap - EXIT
     trap '' INT TERM
+    stop_cancel_watcher
     remove_tool_log
     remove_stage
     close_source
@@ -157,11 +161,19 @@ cleanup() {
 
 handle_signal() {
     trap '' INT TERM
+    stop_cancel_watcher
     stop_child_group || true
     remove_tool_log
     remove_stage
     close_source
     exit 130
+}
+
+stop_cancel_watcher() {
+    [[ -n $CANCEL_WATCHER ]] || return 0
+    kill "$CANCEL_WATCHER" 2>/dev/null || true
+    wait "$CANCEL_WATCHER" 2>/dev/null || true
+    CANCEL_WATCHER=""
 }
 
 trap cleanup EXIT
@@ -184,6 +196,7 @@ while (( $# > 0 )); do
     --keep-ownership) KEEP_OWNERSHIP=true; shift ;;
     --allow-special) ALLOW_SPECIAL=true; shift ;;
     --json) JSON_OUTPUT=true; shift ;;
+    --cancel-file) require_value "$1" "$#"; CANCEL_FILE=$2; shift 2 ;;
     --no-color) DISABLE_COLOR=true; shift ;;
     --help) help; exit 0 ;;
     --version) version; exit 0 ;;
@@ -198,6 +211,21 @@ while (( $# > 0 )); do
 done
 
 console_colors
+if [[ -n $CANCEL_FILE ]]; then
+    [[ $CANCEL_FILE == /* ]] || die 1 "$(gettext "Cancellation marker must be an absolute path")"
+    [[ ! -e $CANCEL_FILE && ! -L $CANCEL_FILE ]] || exit 130
+    (
+        trap - EXIT INT TERM
+        while kill -0 "$$" 2>/dev/null; do
+            if [[ -e $CANCEL_FILE || -L $CANCEL_FILE ]]; then
+                kill -TERM "$$" 2>/dev/null || true
+                exit
+            fi
+            sleep 0.1
+        done
+    ) &
+    CANCEL_WATCHER=$!
+fi
 
 case $COMP_TYPE in
 zstd | gzip | lzo | lz4 | xz) ;;
@@ -274,6 +302,15 @@ fi
 
 phase prepare
 
+# sb2dir records provenance explicitly; directory names alone cannot tell an
+# extracted module from a manually assembled tree. Never re-normalize one.
+SOURCE_ORIGIN=$(run_engine source-origin "$SOURCE_PATH") || exit $?
+if [[ $SOURCE_ORIGIN == module ]]; then
+    KEEP_OWNERSHIP=true
+    [[ $EUID -eq 0 ]] || die 1 "$(gettext "Repackaging an extracted module requires root privileges")"
+    ALLOW_SPECIAL=true
+fi
+
 # Reject device nodes, sockets, and FIFOs unless an explicit privileged mode is
 # requested; they cannot round-trip through a rootless conversion.
 if [[ $ALLOW_SPECIAL == false ]]; then
@@ -314,10 +351,18 @@ declare -a MKSQUASHFS_CMD=(
     -comp "$COMP_TYPE" -noappend -always-use-fragments -b 1024k
 )
 if [[ $KEEP_OWNERSHIP == false ]]; then
-    MKSQUASHFS_CMD+=(-all-root)
+    # Selective metadata actions preserve service and data owners rootlessly.
+    OWNERSHIP_OPTIONS=$(run_engine ownership-options "$SOURCE_BOUND") ||
+        die 3 "$(gettext "Cannot determine module ownership rules")"
+    mapfile -t OWNERSHIP_ARGS <<<"$OWNERSHIP_OPTIONS"
+    MKSQUASHFS_CMD+=("${OWNERSHIP_ARGS[@]}")
 fi
 if (( ${#COMP_OPTS[@]} > 0 )); then
     MKSQUASHFS_CMD+=("${COMP_OPTS[@]}")
+fi
+if [[ $SOURCE_ORIGIN == module ]]; then
+    MKSQUASHFS_CMD+=(-e .minios-module-origin.json)
+    [[ -z $SOURCE_ENTRIES ]] || SOURCE_ENTRIES=$((SOURCE_ENTRIES - 1))
 fi
 
 phase compress

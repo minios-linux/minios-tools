@@ -1,3 +1,11 @@
+minios-tools (1.8.0) unstable; urgency=medium
+
+  * Preserve extracted module ownership and provenance across sb2dir and
+    dir2sb round trips, while applying selective ownership rules to new trees.
+  * Add caller-owned cancellation markers for module conversion commands.
+
+ -- crims0n <crims0n@minios.dev>  Wed, 30 Sep 2026 21:34:41 +0300
+
 minios-tools (1.7.3) unstable; urgency=medium
 
   * Stage SquashFS session trees in trusted RAM when memory is available,
