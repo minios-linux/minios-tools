@@ -1748,6 +1748,8 @@ assert first != second
     (( EUID != 0 )) || skip 'requires an unprivileged parent'
     command -v sudo >/dev/null 2>&1 || skip 'sudo is unavailable'
     sudo -n true >/dev/null 2>&1 || skip 'passwordless sudo is unavailable'
+    awk '$5 == "/" { found=1 } END { exit !found }' /proc/self/mountinfo ||
+        skip 'requires a mounted root visible in mountinfo, not a chroot'
     changes="$TEST_ROOT/root boundary changes"
     cancel_parent="$TEST_ROOT/root boundary cancel"
     cancel_file="$cancel_parent/cancel"
@@ -1782,7 +1784,10 @@ for index in range(20000):
         grep -Fqx 'P:capture-inventory' "$log" 2>/dev/null && break
         sleep 0.01
     done
-    grep -Fqx 'P:capture-inventory' "$log"
+    grep -Fqx 'P:capture-inventory' "$log" || {
+        cat "$log" >&3
+        false
+    }
     [ "$(stat -c '%u' "/proc/$root_pid")" -eq 0 ]
     if kill -TERM "$root_pid" 2>/dev/null; then
         false

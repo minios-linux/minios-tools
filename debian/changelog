@@ -1,3 +1,13 @@
+minios-tools (1.9.0) unstable; urgency=medium
+
+  * Add the RAM-session save backend with verified container copying,
+    filesystem freeze/thaw, atomic replacement and transaction recovery.
+  * Keep volatile RAM sessions out of the disk-only shutdown save path.
+  * Recognize relocated initramfs paths during module discovery and extend
+    session-save and module-conversion regression coverage.
+
+ -- crims0n <crims0n@minios.dev>  Mon, 05 Oct 2026 14:05:44 +0300
+
 minios-tools (1.8.0) unstable; urgency=medium
 
   * Preserve extracted module ownership and provenance across sb2dir and

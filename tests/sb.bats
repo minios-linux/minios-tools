@@ -14,6 +14,7 @@ load_sb_functions() {
     set --
     # shellcheck disable=SC1090
     source "$source_file"
+    LIVE="$TEST_ROOT/live"
     protocol_helper_path() {
         printf '%s\n' "$BATS_TEST_DIRNAME/../lib/minios_protocol.py"
     }
@@ -211,16 +212,16 @@ load_sb_functions() {
 @test "next-boot collapses source overrides and preserves boot layer order" {
     load_sb_functions
     data="$TEST_ROOT/data/minios"
-    mkdir -p "$data/modules/group" "$data/changes/minios/modules"
+    mkdir -p "$data/modules/group" "$LIVE/perch/minios/modules"
     : >"$data/config.conf"
     for file in 00-core.mymod 50-dup.mymod; do : >"$data/$file"; done
     : >"$data/modules/group/20-addon.mymod"
     : >"$data/modules/50-dup.mymod"
-    : >"$data/changes/minios/modules/50-dup.mymod"
-    : >"$data/changes/minios/modules/60-extra.mymod"
+    : >"$LIVE/perch/minios/modules/50-dup.mymod"
+    : >"$LIVE/perch/minios/modules/60-extra.mymod"
 
     discover_data_root() { printf '%s\n' "$data"; }
-    extra_modules_root() { printf '%s\n' "$data/changes/minios/modules"; }
+    extra_modules_root() { printf '%s\n' "$LIVE/perch/minios/modules"; }
     boot_arg_value() {
         [ "$1" = bext ] && printf '%s\n' mymod
     }
@@ -269,10 +270,10 @@ load_sb_functions() {
     [ "$output" = "$data" ]
 }
 
-@test "persistence module source is used only when changes is a mountpoint" {
+@test "external module source requires the separate store mount" {
     load_sb_functions
     data="$TEST_ROOT/data/minios"
-    root="$data/changes/minios/modules"
+    root="$LIVE/perch/minios/modules"
     mkdir -p "$root"
 
     findmnt() { return 1; }
@@ -407,7 +408,22 @@ load_sb_functions() {
 
     run next_boot_add_target "$data"
     [ "$status" -eq 0 ]
-    [ "$output" = "$data/changes/minios/modules" ]
+    [ "$output" = "$LIVE/perch/minios/modules" ]
+}
+
+@test "external system replacement is the next-boot base without a session mount" {
+    load_sb_functions
+    data="$TEST_ROOT/data/minios"
+    mkdir -p "$data" "$LIVE/perch/minios/modules"
+    : >"$data/config.conf"
+    : >"$data/00-core.sb"
+    : >"$LIVE/perch/minios/00-core.sb"
+    findmnt() { [ "$*" = "-rn --mountpoint $LIVE/perch" ]; }
+    discover_data_root() { printf '%s\n' "$data"; }
+    run print_next_boot json
+    [ "$status" -eq 0 ]
+    run python3 -c 'import json,sys; d=json.loads(sys.argv[1]); m=d["modules"]; assert len(m)==1; assert m[0]["source"]==sys.argv[2]; assert m[0]["origin"]=="base"; assert not m[0]["removable"]' "$output" "$LIVE/perch/minios/00-core.sb"
+    [ "$status" -eq 0 ]
 }
 
 @test "module copy publishes atomically and never replaces an existing target" {

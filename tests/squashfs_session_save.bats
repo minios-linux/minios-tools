@@ -143,6 +143,45 @@ EOF
     [ ! -e "$MARKER" ]
 }
 
+@test "RAM-staged SquashFS skips shutdown saving when the coordinator is unavailable" {
+    shutdown_environment shutdown
+    printf 'mode=trim\nsession=1\n' >"$WORK/ram-origin"
+    run env PATH="$TEST_PATH" MINIOS_SHUTDOWN_BOOT_STATE="$BOOT_STATE" \
+        MINIOS_SHUTDOWN_SESSIONS_DIR="$SESSIONS" \
+        MINIOS_SHUTDOWN_MARKER="$MARKER" \
+        MINIOS_SHUTDOWN_SAVE_COMMAND="$SAVE_COMMAND" \
+        MINIOS_SHUTDOWN_SESSION_COMMAND="$WORK/missing-coordinator" \
+        MINIOS_SHUTDOWN_CONSOLE="$CONSOLE" "$SHUTDOWN"
+    [ "$status" -eq 0 ]
+    [ ! -e "$CALLED" ]
+    [ ! -e "$MARKER" ]
+}
+
+@test "RAM SquashFS shutdown saves through the origin-store coordinator" {
+    shutdown_environment shutdown
+    printf 'mode=trim\nsession=1\n' >"$WORK/ram-origin"
+    run env PATH="$TEST_PATH" MINIOS_SHUTDOWN_BOOT_STATE="$BOOT_STATE" \
+        MINIOS_SHUTDOWN_SESSIONS_DIR="$SESSIONS" MINIOS_SHUTDOWN_MARKER="$MARKER" \
+        MINIOS_SHUTDOWN_SESSION_COMMAND="$SAVE_COMMAND" \
+        MINIOS_SHUTDOWN_CONSOLE="$CONSOLE" "$SHUTDOWN"
+    [ "$status" -eq 0 ]
+    [ "$(cat "$CALLED")" = 'save 1 --shutdown-finalize --json --progress' ]
+    [ -f "$MARKER" ]
+}
+
+@test "an unavailable RAM origin is never reported as a successful shutdown save" {
+    shutdown_environment shutdown
+    printf 'mode=trim\nsession=1\n' >"$WORK/ram-origin"
+    printf '%s\n' '#!/bin/sh' "echo '{\"success\":true,\"message\":\"not saved\",\"capture\":{\"skipped\":true}}'" >"$SAVE_COMMAND"
+    run env PATH="$TEST_PATH" MINIOS_SHUTDOWN_BOOT_STATE="$BOOT_STATE" \
+        MINIOS_SHUTDOWN_SESSIONS_DIR="$SESSIONS" MINIOS_SHUTDOWN_MARKER="$MARKER" \
+        MINIOS_SHUTDOWN_SESSION_COMMAND="$SAVE_COMMAND" \
+        MINIOS_SHUTDOWN_CONSOLE="$CONSOLE" "$SHUTDOWN"
+    [ "$status" -eq 0 ]
+    [ ! -e "$MARKER" ]
+    grep -Fq 'not saved' "$CONSOLE"
+}
+
 @test "Tools provides the core shutdown helper without package-owned systemd lifecycle" {
     [ -x "$SHUTDOWN" ]
     [ ! -e "$ROOT/share/systemd/minios-squashfs-shutdown-save.service" ]

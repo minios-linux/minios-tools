@@ -35,9 +35,11 @@ session-capture tools.
 
 * `next-boot [--json]`
   Lists the module composition selected by the current MiniOS boot rules. It
-  reads the effective MiniOS data tree, its `modules/` tree, and an additional
-  persistence `minios/modules/` tree only when `changes` is a separate mounted
-  source. Current `bext`, `load`, and `noload` parameters are applied. Later
+  reads the effective MiniOS data tree and its `modules/` tree. When the external
+  store is mounted at `/run/initramfs/memory/perch`, its `minios/` system modules
+  and `minios/modules/` are included independently of persistence activation.
+  The session directory is not used as a partition root. Current `bext`, `load`,
+  and `noload` parameters are applied. Later
   sources replace an earlier module with the same basename before final layer
   ordering. JSON additionally reports whether a durable writable add target is
   available and whether each selected module can be disabled. The JSON result

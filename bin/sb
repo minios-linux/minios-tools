@@ -471,10 +471,17 @@ discover_data_root() {
     return 1
 }
 
+extra_data_root() {
+    local ROOT="$LIVE/perch"
+    findmnt -rn --mountpoint "$ROOT" >/dev/null 2>&1 || return 1
+    printf '%s\n' "$ROOT/minios"
+}
+
 extra_modules_root() {
-    local DATA="$1" ROOT="$1/changes/minios/modules"
+    local ROOT
+    ROOT=$(extra_data_root) || return 1
+    ROOT="$ROOT/modules"
     [ -d "$ROOT" ] || return 1
-    findmnt -rn --mountpoint "$DATA/changes" >/dev/null 2>&1 || return 1
     printf '%s\n' "$ROOT"
 }
 
@@ -507,10 +514,10 @@ storage_path_is_durable_writable() {
 }
 
 next_boot_add_target() {
-    local DATA="$1"
-    if findmnt -rn --mountpoint "$DATA/changes" >/dev/null 2>&1 &&
-            storage_path_is_durable_writable "$DATA/changes"; then
-        printf '%s\n' "$DATA/changes/minios/modules"
+    local DATA="$1" EXTRA
+    EXTRA=$(extra_data_root 2>/dev/null || true)
+    if [ -n "$EXTRA" ] && storage_path_is_durable_writable "${EXTRA%/minios}"; then
+        printf '%s\n' "$EXTRA/modules"
         return 0
     fi
     if storage_path_is_durable_writable "$DATA"; then
@@ -521,13 +528,13 @@ next_boot_add_target() {
 }
 
 next_boot_candidates() {
-    local DATA="$1" EXT="$2" LOAD_FILTER NOLOAD_FILTER NAME REL SOURCE EXTRA
+    local DATA="$1" EXT="$2" LOAD_FILTER NOLOAD_FILTER NAME REL SOURCE EXTRA PERCHDATA
     local DATA_REMOVABLE=0 EXTRA_REMOVABLE=0
     LOAD_FILTER=$(normalize_boot_filter "$(boot_arg_value load 2>/dev/null || true)")
     NOLOAD_FILTER=$(normalize_boot_filter "$(boot_arg_value noload 2>/dev/null || true)")
     storage_path_is_durable_writable "$DATA" && DATA_REMOVABLE=1
-    if findmnt -rn --mountpoint "$DATA/changes" >/dev/null 2>&1 &&
-            storage_path_is_durable_writable "$DATA/changes"; then
+    PERCHDATA=$(extra_data_root 2>/dev/null || true)
+    if [ -n "$PERCHDATA" ] && storage_path_is_durable_writable "${PERCHDATA%/minios}"; then
         EXTRA_REMOVABLE=1
     fi
 
@@ -538,6 +545,16 @@ next_boot_candidates() {
         module_selected "$NAME" "$LOAD_FILTER" "$NOLOAD_FILTER" || continue
         printf '%s\0%s\0%s\0' "$SOURCE" base 0
     done < <(LC_ALL=C ls -1 "$DATA" 2>/dev/null | sort -n)
+
+    if [ -n "$PERCHDATA" ] && [ -d "$PERCHDATA" ]; then
+        while IFS= read -r NAME; do
+            SOURCE="$PERCHDATA/$NAME"
+            [ -f "$SOURCE" ] || continue
+            module_name_matches "$NAME" "$EXT" || continue
+            module_selected "$NAME" "$LOAD_FILTER" "$NOLOAD_FILTER" || continue
+            printf '%s\0%s\0%s\0' "$SOURCE" base 0
+        done < <(LC_ALL=C ls -1 "$PERCHDATA" 2>/dev/null | sort -n)
+    fi
 
     if [ -d "$DATA/modules" ]; then
         while IFS= read -r REL; do
@@ -554,14 +571,14 @@ next_boot_candidates() {
         while IFS= read -r SOURCE; do
             [ -f "$SOURCE" ] || continue
             module_name_matches "$SOURCE" "$EXT" || continue
-            module_selected "$SOURCE" "$LOAD_FILTER" "$NOLOAD_FILTER" || continue
+            module_selected "modules/${SOURCE#"$EXTRA/"}" "$LOAD_FILTER" "$NOLOAD_FILTER" || continue
             printf '%s\0%s\0%s\0' "$SOURCE" persistence "$EXTRA_REMOVABLE"
         done < <(find "$EXTRA" 2>/dev/null | sortmod_paths)
     fi
 }
 
 next_boot_disabled_candidates() {
-    local DATA="$1" EXT="$2" SOURCE DISABLED REMOVABLE=0
+    local DATA="$1" EXT="$2" SOURCE DISABLED EXTRA REMOVABLE=0
     storage_path_is_durable_writable "$DATA" && REMOVABLE=1
     if [ -d "$DATA/modules-disabled" ]; then
         while IFS= read -r SOURCE; do
@@ -571,10 +588,11 @@ next_boot_disabled_candidates() {
         done < <(find "$DATA/modules-disabled" 2>/dev/null | sortmod_paths)
     fi
 
-    if findmnt -rn --mountpoint "$DATA/changes" >/dev/null 2>&1; then
-        DISABLED="$DATA/changes/minios/modules-disabled"
+    EXTRA=$(extra_data_root 2>/dev/null || true)
+    if [ -n "$EXTRA" ]; then
+        DISABLED="$EXTRA/modules-disabled"
         REMOVABLE=0
-        storage_path_is_durable_writable "$DATA/changes" && REMOVABLE=1
+        storage_path_is_durable_writable "${EXTRA%/minios}" && REMOVABLE=1
         if [ -d "$DISABLED" ]; then
             while IFS= read -r SOURCE; do
                 [ -f "$SOURCE" ] || continue
@@ -644,8 +662,8 @@ next_boot_add() {
     if [ "$TARGET_DIR" = "$DATA/modules" ]; then
         ensure_relative_directory "$DATA" modules ||
             die "Cannot create the MiniOS modules directory safely."
-    elif [ "$TARGET_DIR" = "$DATA/changes/minios/modules" ]; then
-        ensure_relative_directory "$DATA/changes" minios/modules ||
+    elif [ "$TARGET_DIR" = "$LIVE/perch/minios/modules" ]; then
+        ensure_relative_directory "$LIVE/perch" minios/modules ||
             die "Cannot create the persistence modules directory safely."
     else
         die "Invalid next-boot module target."
@@ -683,7 +701,7 @@ next_boot_disable() {
     [ -f "$SOURCE" ] || [ -L "$SOURCE" ] || die "Module source disappeared: $SOURCE"
     case "$ORIGIN" in
     modules) TARGET_DIR="$DATA/modules-disabled" ;;
-    persistence) TARGET_DIR="$DATA/changes/minios/modules-disabled" ;;
+    persistence) TARGET_DIR="$LIVE/perch/minios/modules-disabled" ;;
     *) die "Invalid next-boot module source: $NAME" ;;
     esac
     ensure_relative_directory "$(dirname "$TARGET_DIR")" "$(basename "$TARGET_DIR")" ||
@@ -724,7 +742,7 @@ next_boot_enable() {
     [ "$REMOVABLE" = 1 ] || die "The disabled module store is read-only: $NAME"
     case "$ORIGIN" in
     disabled-modules) TARGET_DIR="$DATA/modules" ;;
-    disabled-persistence) TARGET_DIR="$DATA/changes/minios/modules" ;;
+    disabled-persistence) TARGET_DIR="$LIVE/perch/minios/modules" ;;
     *) die "Invalid disabled module source: $NAME" ;;
     esac
     ensure_relative_directory "$(dirname "$TARGET_DIR")" "$(basename "$TARGET_DIR")" ||

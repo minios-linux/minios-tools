@@ -5,6 +5,7 @@ BOOT_STATE=${MINIOS_SHUTDOWN_BOOT_STATE:-/run/initramfs/minios-persistence/boot-
 SESSIONS_DIR=${MINIOS_SHUTDOWN_SESSIONS_DIR:-}
 MARKER=${MINIOS_SHUTDOWN_MARKER:-/run/initramfs/minios-persistence/shutdown-save-complete}
 SAVE_COMMAND=${MINIOS_SHUTDOWN_SAVE_COMMAND:-/usr/bin/minios-squashfs-save}
+SESSION_COMMAND=${MINIOS_SHUTDOWN_SESSION_COMMAND:-/usr/bin/minios-session}
 CONSOLE=${MINIOS_SHUTDOWN_CONSOLE:-/dev/console}
 GREEN='\033[0;32m'
 WHITE='\033[1;37m'
@@ -43,6 +44,23 @@ POLICY=$(sed -n "s/^session_policy\[$SESSION\]=//p" \
 [ -n "$POLICY" ] || POLICY=manual
 [ "$POLICY" = shutdown ] || exit 0
 
+RAM_SESSION=false
+if [ -f "${BOOT_STATE%/*}/ram-origin" ]; then
+    RAM_SESSION=true
+    if [ ! -x "$SESSION_COMMAND" ]; then
+        console_step "RAM session save skipped: Session Manager backend is unavailable."
+        exit 0
+    fi
+fi
+
+save_session_command() {
+    if [ "$RAM_SESSION" = true ]; then
+        "$SESSION_COMMAND" save "$SESSION" --shutdown-finalize --json --progress
+    else
+        "$SAVE_COMMAND" "$SESSION" --shutdown-finalize --json --progress
+    fi
+}
+
 mkdir -p "$(dirname "$MARKER")" || exit 1
 PROGRESS_PIPE="${MARKER}.progress.$$"
 ERROR_FILE="${MARKER}.error.$$"
@@ -70,8 +88,7 @@ trap 'rm -f "$PROGRESS_PIPE" "$ERROR_FILE" "$RESULT_FILE"' EXIT HUP INT TERM
 console_step "Saving SquashFS session #$SESSION..."
 phase_reader <"$PROGRESS_PIPE" &
 READER_PID=$!
-if "$SAVE_COMMAND" "$SESSION" --shutdown-finalize --json --progress \
-        >"$PROGRESS_PIPE" 2>"$ERROR_FILE"; then
+if save_session_command >"$PROGRESS_PIPE" 2>"$ERROR_FILE"; then
     STATUS=0
 else
     STATUS=$?
@@ -80,6 +97,10 @@ wait "$READER_PID" 2>/dev/null || true
 rm -f "$PROGRESS_PIPE"
 
 if [ "$STATUS" -eq 0 ]; then
+    if grep -Eq '"skipped"[[:space:]]*:[[:space:]]*true' "$RESULT_FILE"; then
+        console_step "RAM session was not saved: original storage is unavailable."
+        exit 0
+    fi
     printf 'session=%s\n' "$SESSION" >"$MARKER"
     sync
     console_ok "SquashFS session #$SESSION saved."
