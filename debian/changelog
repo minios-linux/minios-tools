@@ -1,3 +1,12 @@
+minios-tools (1.9.1) unstable; urgency=medium
+
+  * Publish SquashFS reset compatibility metadata only when saving the RAM
+    upper from the boot that performed the reset.
+  * Clear stale reset intent without changing the saved snapshot's version
+    and edition, and cover both cases with a regression test.
+
+ -- crims0n <crims0n@minios.dev>  Wed, 07 Oct 2026 11:56:55 +0300
+
 minios-tools (1.9.0) unstable; urgency=medium
 
   * Add the RAM-session save backend with verified container copying,

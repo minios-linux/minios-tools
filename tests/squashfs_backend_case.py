@@ -124,6 +124,22 @@ def case_ram_workspace():
             assert stream.read() == b"hsqs-new-snapshot"
 
 
+def case_reset_metadata():
+    for reset_boot_id in ("boot-test", "previous-boot"):
+        with tempfile.TemporaryDirectory() as root:
+            changes, _session, _old = setup_session(root)
+            with open(os.path.join(changes, "session.conf"), "a") as stream:
+                stream.write("session_version[1]=old\nsession_edition[1]=old\n")
+                stream.write("session_reset_boot_id[1]={}\n".format(reset_boot_id))
+                stream.write("session_reset_version[1]=new\nsession_reset_edition[1]=new\n")
+            saver_for(changes).save("1")
+            record = read_json(changes)["sessions"]["1"]
+            expected = "new" if reset_boot_id == "boot-test" else "old"
+            assert record["version"] == expected
+            assert record["edition"] == expected
+            assert not any(key.startswith("reset_") for key in record)
+
+
 def case_ram_mount_covering():
     path = "/run/initramfs/memory"
     livekit = "24 1 0:24 / /run rw - tmpfs tmpfs rw\n"
@@ -310,6 +326,7 @@ def case_runtime_state_dynblk_field():
 
 CASES = {
     "save": case_save,
+    "reset-metadata": case_reset_metadata,
     "ram-workspace": case_ram_workspace,
     "ram-mount-covering": case_ram_mount_covering,
     "ram-space-fallback": case_ram_space_fallback,

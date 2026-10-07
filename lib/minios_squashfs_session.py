@@ -689,6 +689,17 @@ class SquashfsSessionSaver:
                         "union": result["union_backend"],
                         "capture_boot_id": runtime_state["boot_id"],
                     })
+                    # Initrd can reset the restored RAM upper while the old
+                    # snapshot remains immutable. Its new compatibility data
+                    # becomes valid only after publishing this generation.
+                    reset_boot_id = session_data.pop("reset_boot_id", None)
+                    reset_version = session_data.pop("reset_version", None)
+                    reset_edition = session_data.pop("reset_edition", None)
+                    if reset_boot_id == runtime_state["boot_id"]:
+                        if reset_version is not None:
+                            session_data["version"] = reset_version
+                        if reset_edition is not None:
+                            session_data["edition"] = reset_edition
                     if finalize_shutdown:
                         metadata.pop("running", None)
                         session_data["state"] = "clean"

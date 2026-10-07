@@ -14,6 +14,11 @@ teardown() {
     [ "$status" -eq 0 ]
 }
 
+@test "SquashFS reset compatibility is published only for the boot that reset the RAM upper" {
+    run python3 "$BACKEND_CASE" reset-metadata
+    [ "$status" -eq 0 ]
+}
+
 @test "SquashFS saver stages in RAM but publishes only in the session directory" {
     run python3 "$BACKEND_CASE" ram-workspace
     [ "$status" -eq 0 ]
